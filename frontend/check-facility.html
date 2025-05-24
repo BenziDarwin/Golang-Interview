@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check Facility Status - NH Public Health Cancer Registry</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="logo">
+        <i class="fas fa-heartbeat"></i>
+        <h1>NH Cancer Registry</h1>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="check-facility.html" class="active">Check Facility</a></li>
+          <li><a href="register-facility.html">Register Facility</a></li>
+          <li><a href="register-patient.html">Register Patient</a></li>
+        </ul>
+      </nav>
+      <div class="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+      </div>
+    </div>
+  </header>
+
+  <section class="page-header">
+    <div class="container">
+      <h2><i class="fas fa-search"></i> Check Facility Registration Status</h2>
+      <p>Verify if your healthcare facility is already registered with the NH Cancer Registry</p>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="container">
+      <div class="form-container">
+        <div class="form-instructions">
+          <h3>Facility Verification</h3>
+          <p>Please enter your facility information below to check if it is already registered in our system. You can search by facility name, registration ID, or NPI number.</p>
+        </div>
+        
+        <form id="check-facility-form">
+          <div class="search-options">
+            <div class="search-option active" data-search="name">
+              <i class="fas fa-hospital"></i> Search by Name
+            </div>
+            <div class="search-option" data-search="id">
+              <i class="fas fa-id-card"></i> Search by Registry ID
+            </div>
+            <!-- <div class="search-option" data-search="npi">
+              <i class="fas fa-fingerprint"></i> Search by NPI
+            </div> -->
+          </div>
+
+          <div class="form-group" id="name-search">
+            <label for="facility-name">Facility Name</label>
+            <input type="text" id="facility-name" name="facility-name" placeholder="Enter facility name">
+            <div class="form-help">Enter the full or partial name of the facility</div>
+          </div>
+
+          <div class="form-group hidden" id="id-search">
+            <label for="facility-id">Registry ID</label>
+            <input type="text" id="facility-id" name="facility-id" placeholder="Enter facility registry ID">
+            <div class="form-help">Enter your 6-digit registry identification number</div>
+          </div>
+
+          <div class="form-group hidden" id="npi-search">
+            <label for="facility-npi">NPI Number</label>
+            <input type="text" id="facility-npi" name="facility-npi" placeholder="Enter facility NPI number">
+            <div class="form-help">Enter the 10-digit National Provider Identifier</div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn primary">Search <i class="fas fa-search"></i></button>
+            <button type="reset" class="btn text">Clear</button>
+          </div>
+        </form>
+
+        <div id="search-results" class="hidden">
+          <div class="results-header">
+            <h3>Search Results</h3>
+            <button id="close-results" class="btn icon"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="results-content">
+            <!-- Results will be inserted here via JavaScript -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="registration-cta">
+    <div class="container">
+      <h3>Need to register a new facility?</h3>
+      <p>If your facility is not registered yet, please complete our registration form.</p>
+      <a href="register-facility.html" class="btn secondary">Register New Facility</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>NH Cancer Registry</h3>
+          <p>29 Hazen Drive<br>Concord, NH 03301<br>Phone: (603) 555-1234</p>
+        </div>
+        <div class="footer-section">
+          <h3>Quick Links</h3>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="check-facility.html">Check Facility</a></li>
+            <li><a href="register-facility.html">Register Facility</a></li>
+            <li><a href="register-patient.html">Register Patient</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h3>Resources</h3>
+          <ul>
+            <li><a href="#">Registry Guidelines</a></li>
+            <li><a href="#">Data Reports</a></li>
+            <li><a href="#">Training Materials</a></li>
+            <li><a href="#">Contact Support</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 New Hampshire Public Health Cancer Registry. All Rights Reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/check-facility.js"></script>
+</body>
+</html>

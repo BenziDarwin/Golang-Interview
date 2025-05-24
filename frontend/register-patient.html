@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register Patient - NH Public Health Cancer Registry</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="logo">
+        <i class="fas fa-heartbeat"></i>
+        <h1>NH Cancer Registry</h1>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="check-facility.html">Check Facility</a></li>
+          <li><a href="register-facility.html">Register Facility</a></li>
+          <li><a href="register-patient.html" class="active">Register Patient</a></li>
+        </ul>
+      </nav>
+      <div class="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+      </div>
+    </div>
+  </header>
+
+  <section class="page-header">
+    <div class="container">
+      <h2><i class="fas fa-user-plus"></i> Patient Registration</h2>
+      <p>Register a patient with the NH Cancer Registry</p>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="container">
+      <div class="form-container">
+        <div class="form-instructions">
+          <h3>Patient Registration</h3>
+          <p>Please complete the form below to register a cancer patient with the New Hampshire Public Health Cancer Registry. All fields marked with an asterisk (*) are required.</p>
+          <div class="note">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Important: You must be from a registered facility to submit patient information. If your facility is not registered, please <a href="register-facility.html">register your facility first</a>.</p>
+          </div>
+        </div>
+
+        <!-- Facility Verification Section -->
+        <div id="facility-verification">
+          <h4>Verify Your Facility</h4>
+          <p>Please enter your facility information to continue.</p>
+          
+          <form id="verify-facility-form">
+            <div class="form-group">
+              <label for="facility-id">Facility Registry ID *</label>
+              <input type="text" id="facility-id" name="facility-id" required>
+              <div class="form-help">Enter your 6-digit facility registry ID</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="facility-name-verification">Facility Name *</label>
+              <input type="text" id="facility-name-verification" name="facility-name-verification" required>
+            </div>
+            
+            <div class="form-actions">
+              <button type="submit" class="btn primary">Verify Facility <i class="fas fa-check"></i></button>
+              <a href="check-facility.html" class="btn text">Find My Facility ID</a>
+            </div>
+          </form>
+          
+          <div id="facility-not-found" class="hidden">
+            <div class="alert">
+              <i class="fas fa-times-circle"></i>
+              <div>
+                <h4>Facility Not Found</h4>
+                <p>We couldn't find a matching facility with the provided information. Please check your facility ID and name or register your facility if it's not yet in our system.</p>
+                <a href="register-facility.html" class="btn secondary">Register Facility</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Patient Registration Form -->
+        <form id="register-patient-form" class="hidden">
+          <div class="form-progress">
+            <div class="progress-step active" data-step="1">
+              <div class="step-number">1</div>
+              <div class="step-label">Patient Info</div>
+            </div>
+            <div class="progress-step" data-step="2">
+              <div class="step-number">2</div>
+              <div class="step-label">Diagnosis</div>
+            </div>
+            <div class="progress-step" data-step="3">
+              <div class="step-number">3</div>
+              <div class="step-label">Treatment</div>
+            </div>
+            <div class="progress-step" data-step="4">
+              <div class="step-number">4</div>
+              <div class="step-label">Review</div>
+            </div>
+          </div>
+
+          <!-- Facility Information (pre-filled from verification) -->
+          <div id="selected-facility" class="selected-facility">
+            <h4>Selected Facility</h4>
+            <p id="selected-facility-name">Example Hospital</p>
+            <p id="selected-facility-id">ID: 123456</p>
+          </div>
+
+          <!-- Step 1: Patient Information -->
+          <div class="form-step active" data-step="1">
+            <h4>Patient Information</h4>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="patient-last-name">Last Name *</label>
+                <input type="text" id="patient-last-name" name="patient-last-name" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="patient-first-name">First Name *</label>
+                <input type="text" id="patient-first-name" name="patient-first-name" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="patient-middle-name">Middle Name</label>
+                <input type="text" id="patient-middle-name" name="patient-middle-name">
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="patient-dob">Date of Birth *</label>
+                <input type="date" id="patient-dob" name="patient-dob" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="patient-gender">Gender *</label>
+                <select id="patient-gender" name="patient-gender" required>
+                  <option value="">Select gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                  <option value="unknown">Unknown</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="ssn">Social Security Number (last 4 digits) *</label>
+              <input type="text" id="ssn" name="ssn" maxlength="4" pattern="[0-9]{4}" required placeholder="Last 4 digits only">
+              <div class="form-help">For patient identification purposes only</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="medical-record-number">Medical Record Number *</label>
+              <input type="text" id="medical-record-number" name="medical-record-number" required>
+            </div>
+            
+            <h4>Patient Address</h4>
+            
+            <div class="form-group">
+              <label for="patient-street-address">Street Address *</label>
+              <input type="text" id="patient-street-address" name="patient-street-address" required>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="patient-city">City *</label>
+                <input type="text" id="patient-city" name="patient-city" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="patient-state">State *</label>
+                <select id="patient-state" name="patient-state" required>
+                  <option value="NH">New Hampshire</option>
+                  <option value="ME">Maine</option>
+                  <option value="MA">Massachusetts</option>
+                  <option value="VT">Vermont</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="patient-zip">ZIP Code *</label>
+                <input type="text" id="patient-zip" name="patient-zip" required>
+              </div>
+            </div>
+            
+            <div class="form-actions">
+              <button type="button" class="btn primary next-step">Continue <i class="fas fa-arrow-right"></i></button>
+            </div>
+          </div>
+
+          <!-- Step 2: Diagnosis Information -->
+          <div class="form-step" data-step="2">
+            <h4>Cancer Diagnosis Information</h4>
+            
+            <div class="form-group">
+              <label for="primary-site">Primary Site *</label>
+              <select id="primary-site" name="primary-site" required>
+                <option value="">Select primary site</option>
+                <option value="breast">Breast</option>
+                <option value="colon">Colon</option>
+                <option value="lung">Lung</option>
+                <option value="prostate">Prostate</option>
+                <option value="skin">Skin</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            <div class="form-group hidden" id="other-site-group">
+              <label for="other-site">Please Specify Primary Site *</label>
+              <input type="text" id="other-site" name="other-site">
+            </div>
+            
+            <div class="form-group">
+              <label for="histology">Histology/Behavior *</label>
+              <select id="histology" name="histology" required>
+                <option value="">Select histology</option>
+                <option value="adenocarcinoma">Adenocarcinoma</option>
+                <option value="squamous">Squamous Cell Carcinoma</option>
+                <option value="melanoma">Melanoma</option>
+                <option value="basal">Basal Cell Carcinoma</option>
+                <option value="lymphoma">Lymphoma</option>
+                <option value="leukemia">Leukemia</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="date-of-diagnosis">Date of Diagnosis *</label>
+                <input type="date" id="date-of-diagnosis" name="date-of-diagnosis" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="diagnostic-confirmation">Diagnostic Confirmation *</label>
+                <select id="diagnostic-confirmation" name="diagnostic-confirmation" required>
+                  <option value="">Select method</option>
+                  <option value="positive-histology">Positive Histology</option>
+                  <option value="positive-cytology">Positive Cytology</option>
+                  <option value="positive-microscopic">Positive Microscopic Confirmation</option>
+                  <option value="clinical">Clinical Diagnosis Only</option>
+                  <option value="radiography">Radiography</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="stage">Stage at Diagnosis *</label>
+              <select id="stage" name="stage" required>
+                <option value="">Select stage</option>
+                <option value="in-situ">In Situ</option>
+                <option value="localized">Localized</option>
+                <option value="regional">Regional</option>
+                <option value="distant">Distant</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="laterality">Laterality</label>
+              <select id="laterality" name="laterality">
+                <option value="">Select laterality</option>
+                <option value="right">Right</option>
+                <option value="left">Left</option>
+                <option value="bilateral">Bilateral</option>
+                <option value="not-applicable">Not Applicable</option>
+              </select>
+            </div>
+            
+            <div class="form-actions">
+              <button type="button" class="btn text prev-step"><i class="fas fa-arrow-left"></i> Back</button>
+              <button type="button" class="btn primary next-step">Continue <i class="fas fa-arrow-right"></i></button>
+            </div>
+          </div>
+
+          <!-- Step 3: Treatment Information -->
+          <div class="form-step" data-step="3">
+            <h4>Treatment Information</h4>
+            
+            <div class="form-group">
+              <label>First Course of Treatment (select all that apply)</label>
+              <div class="checkbox-group">
+                <div class="checkbox-item">
+                  <input type="checkbox" id="treatment-surgery" name="treatment[]" value="surgery">
+                  <label for="treatment-surgery">Surgery</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="treatment-radiation" name="treatment[]" value="radiation">
+                  <label for="treatment-radiation">Radiation Therapy</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="treatment-chemo" name="treatment[]" value="chemotherapy">
+                  <label for="treatment-chemo">Chemotherapy</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="treatment-hormone" name="treatment[]" value="hormone">
+                  <label for="treatment-hormone">Hormone Therapy</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="treatment-immuno" name="treatment[]" value="immunotherapy">
+                  <label for="treatment-immuno">Immunotherapy</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="treatment-other" name="treatment[]" value="other">
+                  <label for="treatment-other">Other</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="treatment-none" name="treatment[]" value="none">
+                  <label for="treatment-none">No Treatment</label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group hidden" id="other-treatment-group">
+              <label for="other-treatment">Please Specify Other Treatment</label>
+              <input type="text" id="other-treatment" name="other-treatment">
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="date-of-first-treatment">Date of First Treatment</label>
+                <input type="date" id="date-of-first-treatment" name="date-of-first-treatment">
+              </div>
+              
+              <div class="form-group">
+                <label for="treating-physician">Treating Physician</label>
+                <input type="text" id="treating-physician" name="treating-physician">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="treatment-notes">Additional Treatment Notes</label>
+              <textarea id="treatment-notes" name="treatment-notes" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="reporting-source">Reporting Source *</label>
+              <select id="reporting-source" name="reporting-source" required>
+                <option value="">Select source</option>
+                <option value="hospital">Hospital Inpatient</option>
+                <option value="radiation">Radiation Treatment Center</option>
+                <option value="medical-oncology">Medical Oncology</option>
+                <option value="physician-office">Physician's Office/Private Medical Practitioner</option>
+                <option value="laboratory">Laboratory Only</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            <div class="form-actions">
+              <button type="button" class="btn text prev-step"><i class="fas fa-arrow-left"></i> Back</button>
+              <button type="button" class="btn primary next-step">Review <i class="fas fa-arrow-right"></i></button>
+            </div>
+          </div>
+
+          <!-- Step 4: Review Information -->
+          <div class="form-step" data-step="4">
+            <h4>Review Patient Information</h4>
+            
+            <div id="patient-review-summary">
+              <!-- Review summary will be populated via JavaScript -->
+            </div>
+            
+            <div class="form-group">
+              <div class="checkbox-item">
+                <input type="checkbox" id="data-agreement" name="data-agreement" required>
+                <label for="data-agreement">I certify that the information provided is accurate and complete to the best of my knowledge. *</label>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="submitter-name">Your Name *</label>
+              <input type="text" id="submitter-name" name="submitter-name" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="submitter-title">Your Title/Position *</label>
+              <input type="text" id="submitter-title" name="submitter-title" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="submitter-email">Your Email *</label>
+              <input type="email" id="submitter-email" name="submitter-email" required>
+            </div>
+            
+            <div class="form-actions">
+              <button type="button" class="btn text prev-step"><i class="fas fa-arrow-left"></i> Back</button>
+              <button type="submit" class="btn primary">Submit Registration <i class="fas fa-check"></i></button>
+            </div>
+          </div>
+        </form>
+        
+        <div id="patient-registration-success" class="hidden">
+          <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h3>Patient Registration Submitted Successfully!</h3>
+          <p>Thank you for registering this patient with the New Hampshire Cancer Registry. The information has been submitted successfully.</p>
+          <p>Patient registration ID: <strong id="patient-reg-id">PR-67890</strong></p>
+          <p>A confirmation email will be sent to the address provided. If you have any questions, please contact our support team.</p>
+          <div class="success-actions">
+            <button id="register-another" class="btn secondary">Register Another Patient</button>
+            <a href="index.html" class="btn primary">Return to Home</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>NH Cancer Registry</h3>
+          <p>29 Hazen Drive<br>Concord, NH 03301<br>Phone: (603) 555-1234</p>
+        </div>
+        <div class="footer-section">
+          <h3>Quick Links</h3>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="check-facility.html">Check Facility</a></li>
+            <li><a href="register-facility.html">Register Facility</a></li>
+            <li><a href="register-patient.html">Register Patient</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h3>Resources</h3>
+          <ul>
+            <li><a href="#">Registry Guidelines</a></li>
+            <li><a href="#">Data Reports</a></li>
+            <li><a href="#">Training Materials</a></li>
+            <li><a href="#">Contact Support</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 New Hampshire Public Health Cancer Registry. All Rights Reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/register-patient.js"></script>
+</body>
+</html>
