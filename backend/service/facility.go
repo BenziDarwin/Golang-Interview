@@ -1,14 +1,68 @@
 package service
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"golang-interview.com/database"
+	"golang-interview.com/helpers"
+	"golang-interview.com/middleware"
 	"golang-interview.com/models"
+	"golang.org/x/crypto/bcrypt"
 )
+
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func LoginFacility(c *fiber.Ctx) error {
+	req := new(LoginRequest)
+	if err := c.BodyParser(req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid input",
+		})
+	}
+
+	var contact models.Contact
+	err := database.DB.
+		Where("email = ?", req.Email).First(&contact).Error
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid email or password",
+		})
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(contact.Password), []byte(req.Password)); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid email or password",
+		})
+	}
+
+	var facility models.Facility
+	if err := database.DB.Preload("Identification").Where("id = ?", contact.FacilityID).First(&facility).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to load associated facility",
+		})
+	}
+
+	// ✅ Set cookie using middleware helper
+	token, err := middleware.CreateSession(c, contact.Name, contact.Email, facility.Identification.RegistryID, "facility")
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to create session",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"token":    token,
+		"facility": facility,
+		"contact":  contact,
+	})
+}
 
 func CreateFacility(c *fiber.Ctx) error {
 	req := new(models.FacilityCreateRequest)
@@ -17,6 +71,7 @@ func CreateFacility(c *fiber.Ctx) error {
 			"error": "Cannot parse JSON",
 		})
 	}
+
 	// Validate and process identification fields
 	processedRegistryID, err := validateAndProcessIdentification(req.Identification)
 	if err != nil {
@@ -87,6 +142,32 @@ func CreateFacility(c *fiber.Ctx) error {
 		Name:  req.Contact.NetworkLead.Name,
 		Email: req.Contact.NetworkLead.Email,
 		Phone: req.Contact.NetworkLead.Phone,
+	}
+
+	// Generate password for registry lead
+	password, err := helpers.GeneratePassword(facility.Name, processedRegistryID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to encrypt password",
+		})
+	}
+	meaningfulUse.Password = string(hashedPassword)
+
+	// Send email to registry lead with password
+	emailBody := "Please use the following password to log in to the registry: " + password
+	to := meaningfulUse.Email
+	if err := helpers.SendEmail(to, "UGANDA CANCER REGISTRY", emailBody); err != nil {
+		fmt.Println("Email error:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to send email to registry lead",
+		})
 	}
 
 	facility.SetContacts(meaningfulUse, registryLead, networkLead)

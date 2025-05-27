@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - NH Public Health Cancer Registry</title>
+  <link rel="stylesheet" href="./css/admin-styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <section class="page-header">
+    <div class="container">
+      <h2><i class="fas fa-cog"></i> Registry Administration</h2>
+      <p>Manage registry reference data and configurations</p>
+    </div>
+  </section>
+
+  <section class="admin-section">
+    <div class="container">
+      <div class="admin-container">
+        <div class="tabs">
+          <button class="tab active" data-tab="diagnosis">
+            <i class="fas fa-stethoscope"></i> Diagnosis Types
+          </button>
+          <button class="tab" data-tab="cancer">
+            <i class="fas fa-disease"></i> Cancer Types
+          </button>
+          <button class="tab" data-tab="locations">
+            <i class="fas fa-map-marker-alt"></i> Locations
+          </button>
+          <button class="tab" data-tab="treatments">
+            <i class="fas fa-pills"></i> Treatments
+          </button>
+          <button class="tab" data-tab="facilities">
+            <i class="fas fa-hospital"></i> Facility Types
+          </button>
+        </div>
+
+        <!-- Diagnosis Types Tab -->
+        <div id="diagnosis-tab" class="tab-content active">
+          <div class="tab-header">
+            <h3>Manage Diagnosis Types</h3>
+            <button class="btn primary add-item" data-type="diagnosis">
+              <i class="fas fa-plus"></i> Add Diagnosis Type
+            </button>
+          </div>
+          <div class="data-list" id="diagnosis-list"></div>
+        </div>
+
+        <!-- Cancer Types Tab -->
+        <div id="cancer-tab" class="tab-content">
+          <div class="tab-header">
+            <h3>Manage Cancer Types</h3>
+            <button class="btn primary add-item" data-type="cancer">
+              <i class="fas fa-plus"></i> Add Cancer Type
+            </button>
+          </div>
+          <div class="data-list" id="cancer-list"></div>
+        </div>
+
+        <!-- Locations Tab -->
+        <div id="locations-tab" class="tab-content">
+          <div class="tab-header">
+            <h3>Manage Locations</h3>
+            <button class="btn primary add-item" data-type="location">
+              <i class="fas fa-plus"></i> Add Location
+            </button>
+          </div>
+          <div class="data-list" id="locations-list"></div>
+        </div>
+
+        <!-- Treatments Tab -->
+        <div id="treatments-tab" class="tab-content">
+          <div class="tab-header">
+            <h3>Manage Treatments</h3>
+            <button class="btn primary add-item" data-type="treatment">
+              <i class="fas fa-plus"></i> Add Treatment
+            </button>
+          </div>
+          <div class="data-list" id="treatments-list"></div>
+        </div>
+
+        <!-- Facility Types Tab -->
+        <div id="facilities-tab" class="tab-content">
+          <div class="tab-header">
+            <h3>Manage Facility Types</h3>
+            <button class="btn primary add-item" data-type="facility">
+              <i class="fas fa-plus"></i> Add Facility Type
+            </button>
+          </div>
+          <div class="data-list" id="facilities-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Add/Edit Item Modal -->
+  <div id="item-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="modal-title">Add Item</h4>
+        <button class="modal-close"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="item-form">
+        <div class="form-group">
+          <label for="item-name">Name *</label>
+          <input type="text" id="item-name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="item-code">Code *</label>
+          <input type="text" id="item-code" name="code" required>
+          <div class="form-help">A unique identifier for this item</div>
+        </div>
+        <div class="form-group">
+          <label for="item-description">Description</label>
+          <textarea id="item-description" name="description" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <div class="checkbox-item">
+            <input type="checkbox" id="item-active" name="active" checked>
+            <label for="item-active">Active</label>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn text modal-close">Cancel</button>
+          <button type="submit" class="btn primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>NH Cancer Registry</h3>
+          <p>29 Hazen Drive<br>Concord, NH 03301<br>Phone: (603) 555-1234</p>
+        </div>
+        <div class="footer-section">
+          <h3>Quick Links</h3>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="check-facility.html">Check Facility</a></li>
+            <li><a href="register-facility.html">Register Facility</a></li>
+            <li><a href="register-patient.html">Register Patient</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h3>Resources</h3>
+          <ul>
+            <li><a href="#">Registry Guidelines</a></li>
+            <li><a href="#">Data Reports</a></li>
+            <li><a href="#">Training Materials</a></li>
+            <li><a href="#">Contact Support</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 New Hampshire Public Health Cancer Registry. All Rights Reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="./js/admin.js"></script>
+  <script src="./js/main.js"></script>
+</body>
+</html>

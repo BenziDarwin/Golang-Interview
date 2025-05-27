@@ -1,24 +1,14 @@
-$(document).ready(async function() {
+// Helper function to get cookie value by name
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
 
-  // Check if facility ID is passed in URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const facilityId = urlParams.get('facility');
-  
-  if (facilityId) {
-    // Auto-fill facility ID and verify
-    $('#facility-id').val(facilityId);
-    const response =  await fetch("http://localhost:6060/api/v1/facilities/registry/" + facilityId);
-    const data = await response.json();
-    const facility = data.find(f => f.identification.registry_id === facilityId);
-    
-    if (facility) {
-      $('#facility-name-verification').val(facility.name);
-      // Trigger verification after a short delay
-      setTimeout(function() {
-        $('#verify-facility-form').submit();
-      }, 500);
-    }
-  }
+$(document).ready(async function() {
+  // Load facility information on page load
+  await loadFacilityInformation();
 
   // Show/hide "Other" fields based on selections
   $('#primary-site').on('change', function() {
@@ -52,54 +42,16 @@ $(document).ready(async function() {
     }
   });
 
-  // Format SSN input to only show last 4 digits
-  $('#ssn').on('input', function() {
+  // Format National ID input
+  $('#national-id').on('input', function() {
     let value = $(this).val().replace(/\D/g, '');
     
-    // Limit to 4 digits
-    if (value.length > 4) {
-      value = value.substring(0, 4);
+    // Limit to reasonable length for National ID
+    if (value.length > 14) {
+      value = value.substring(0, 14);
     }
     
     $(this).val(value);
-  });
-
-  // Handle facility verification form submission
-  $('#verify-facility-form').submit(async function(e) {
-    e.preventDefault();
-    
-    const facilityId = $('#facility-id').val();
-    const facilityName = $('#facility-name-verification').val();
-    
-    // Validate inputs
-    if (!facilityId || !facilityName) {
-      alert('Please enter both facility ID and name');
-      return;
-    }
-    
-    // Check if facility exists in our mock database
-    const response =  await fetch("http://localhost:6060/api/v1/facilities/registry/" + facilityId);
-    const data = await response.json();
-    const facility = data.find(f => f.identification.registry_id === facilityId);
-    
-    if (facility) {
-      // Facility found, show patient registration form
-      $('#facility-verification').addClass('hidden');
-      $('#facility-not-found').addClass('hidden');
-      $('#register-patient-form').removeClass('hidden');
-      
-      // Populate selected facility info
-      $('#selected-facility-name').text(facility.name);
-      $('#selected-facility-id').text(`ID: ${facility.identification.registry_id}`);
-      
-      // Scroll to top of form
-      $('html, body').animate({
-        scrollTop: $('#register-patient-form').offset().top - 100
-      }, 500);
-    } else {
-      // Facility not found, show error message
-      $('#facility-not-found').removeClass('hidden');
-    }
   });
 
   // Handle form review step
@@ -111,6 +63,76 @@ $(document).ready(async function() {
       populatePatientReviewSummary();
     }
   });
+
+  // Handle retry facility button
+  $('#retry-facility').click(async function() {
+    await loadFacilityInformation();
+  });
+
+  // Load facility information from API or session
+  async function loadFacilityInformation() {
+    try {
+      // Hide error state and show loading
+      $('#facility-error').addClass('hidden');
+      $('#facility-loading').removeClass('hidden');
+      $('#register-patient-form').addClass('hidden');
+      
+      // Check if facility ID is passed in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      let facilityId = urlParams.get('facility');
+      
+      // If no facility ID in URL, get from session storage or user session
+      if (!facilityId) {
+        facilityId = getCookie('facility_id') || '123456'; // Default for demo
+      }
+      
+      // Fetch facility information from API
+      const response = await fetch(`http://localhost:6060/api/v1/facilities/registry/${facilityId}`);
+      
+      if (!response.ok) {
+      $('#facility-error').removeClass('hidden');
+      $('#facility-loading').addClass('hidden');
+        throw new Error(`HTTP error! status: ${response.status}`);
+        
+      }
+      
+      const data = await response.json();
+      const facility = data.find(f => f.identification.registry_id === facilityId);
+      
+      if (!facility) {
+              $('#facility-error').removeClass('hidden');
+      $('#facility-loading').addClass('hidden');
+        throw new Error('Facility not found in registry');
+      }
+      
+      // Populate facility information
+      $('#selected-facility-name').text(facility.name);
+      $('#selected-facility-id').text(`ID: ${facility.identification.registry_id}`);
+      
+      // Hide loading and show form
+      $('#facility-loading').addClass('hidden');
+      $('#register-patient-form').removeClass('hidden');
+      
+    } catch (error) {
+      console.error('Error loading facility information:', error);
+      
+      // Hide loading and show error state
+      $('#facility-loading').addClass('hidden');
+      $('#register-patient-form').addClass('hidden');
+      $('#facility-error').removeClass('hidden');
+      
+      // Set appropriate error message
+      let errorMessage = 'We couldn\'t find your facility information. Please contact support or try again.';
+      
+      if (error.message.includes('HTTP error')) {
+        errorMessage = 'Unable to connect to the registry server. Please check your internet connection and try again.';
+      } else if (error.message.includes('Facility not found')) {
+        errorMessage = 'Your facility was not found in the registry. Please contact support to verify your facility registration.';
+      }
+      
+      $('#facility-error-message').text(errorMessage);
+    }
+  }
 
   // Populate patient review summary
   function populatePatientReviewSummary() {
@@ -148,14 +170,14 @@ $(document).ready(async function() {
     addReviewItem(patientContent, 'Patient Name', patientName);
     addReviewItem(patientContent, 'Date of Birth', formatDate($('#patient-dob').val()));
     addReviewItem(patientContent, 'Gender', $('#patient-gender option:selected').text());
-    addReviewItem(patientContent, 'SSN (Last 4)', 'XXX-XX-' + $('#ssn').val());
+    addReviewItem(patientContent, 'National ID', $('#national-id').val());
     addReviewItem(patientContent, 'Medical Record #', $('#medical-record-number').val());
     
     // Build address
     const patientAddress = $('#patient-street-address').val() + ', ' + 
                           $('#patient-city').val() + ', ' + 
-                          $('#patient-state').val() + ' ' + 
-                          $('#patient-zip').val();
+                          $('#patient-district option:selected').text() + ', ' + 
+                          $('#patient-region option:selected').text();
     
     addReviewItem(patientContent, 'Address', patientAddress);
     
@@ -273,14 +295,7 @@ $(document).ready(async function() {
         last_name: $('#patient-last-name').val(),
         dob: $('#patient-dob').val(),
         gender: $('#patient-gender').val(),
-        ssn_last_4: $('#ssn').val(),
-        medical_record_number: $('#medical-record-number').val()
-      },
-      address: {
-        street: $('#patient-street-address').val(),
-        city: $('#patient-city').val(),
-        state: $('#patient-state').val(),
-        zip: $('#patient-zip').val()
+        national_id: $('#national-id').val()
       },
       diagnosis: {
         primary_site: $('#primary-site').val() === 'other' ? $('#other-site').val() : $('#primary-site').val(),

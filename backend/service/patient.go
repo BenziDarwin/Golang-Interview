@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"golang-interview.com/database"
 	"golang-interview.com/models"
+	"gorm.io/gorm"
 )
 
 // CreatePatient handles POST /patients
@@ -32,19 +34,22 @@ func CreatePatient(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Database error while checking facility",
 		})
-	} else if facility.ID == 0 {
+	}
+	if facility.ID == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Facility not found",
 		})
 	}
 
-	// Check for existing patient with same registration ID
+	// Check for existing patient with same registration ID if provided
 	if req.RegistrationID != "" {
-		if exists, err := checkExistingPatientByRegistrationID(req.RegistrationID); err != nil {
+		exists, err := checkExistingPatientByRegistrationID(req.RegistrationID)
+		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Database error while checking existing patient",
 			})
-		} else if exists {
+		}
+		if exists {
 			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 				"error": "Patient with this registration ID already exists",
 			})
@@ -55,25 +60,25 @@ func CreatePatient(c *fiber.Ctx) error {
 	dob, err := time.Parse("2006-01-02", req.PatientInfo.DOB)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid date of birth format. Use YYYY-MM-DD",
+			"error": "Invalid Date of Birth format. Use YYYY-MM-DD",
 		})
 	}
 
 	dateOfDiagnosis, err := time.Parse("2006-01-02", req.Diagnosis.DateOfDiagnosis)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid date of diagnosis format. Use YYYY-MM-DD",
+			"error": "Invalid Date of Diagnosis format. Use YYYY-MM-DD",
 		})
 	}
 
 	firstTreatmentDate, err := time.Parse("2006-01-02", req.Treatment.FirstTreatmentDate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid first treatment date format. Use YYYY-MM-DD",
+			"error": "Invalid First Treatment Date format. Use YYYY-MM-DD",
 		})
 	}
 
-	// Set registration date if not provided
+	// Set registration date if provided, else now
 	registrationDate := time.Now()
 	if req.RegistrationDate != "" {
 		if parsed, err := time.Parse(time.RFC3339, req.RegistrationDate); err == nil {
@@ -81,62 +86,142 @@ func CreatePatient(c *fiber.Ctx) error {
 		}
 	}
 
-	// Process treatment types array to string
-	treatmentTypesStr := strings.Join(req.Treatment.Types, ",")
+	// Check if patient with this national ID already exists
+	var existingPatient models.Patient
+	err = database.DB.Where("patient_national_id = ?", req.PatientInfo.NationalId).First(&existingPatient).Error
+	if err == nil {
+		// Patient exists - add new diagnosis, treatment, and submitter in a transaction
 
-	// Create patient with all related data
-	patient := models.Patient{
-		FacilityID: strconv.FormatUint(uint64(facility.ID), 10),
-		PatientInfo: models.PatientInfo{
-			FirstName:           req.PatientInfo.FirstName,
-			MiddleName:          req.PatientInfo.MiddleName,
-			LastName:            req.PatientInfo.LastName,
-			DOB:                 dob,
-			Gender:              req.PatientInfo.Gender,
-			SSNLast4:            req.PatientInfo.SSNLast4,
-			MedicalRecordNumber: req.PatientInfo.MedicalRecordNumber,
-		},
-		Address: models.Address{
-			Street: req.Address.Street,
-			City:   req.Address.City,
-			State:  req.Address.State,
-			Zip:    req.Address.Zip,
-		},
-		Diagnosis: models.Diagnosis{
+		newDiagnosis := models.Diagnosis{
 			PrimarySite:            req.Diagnosis.PrimarySite,
 			Histology:              req.Diagnosis.Histology,
 			DateOfDiagnosis:        dateOfDiagnosis,
 			DiagnosticConfirmation: req.Diagnosis.DiagnosticConfirmation,
 			Stage:                  req.Diagnosis.Stage,
 			Laterality:             req.Diagnosis.Laterality,
-		},
-		Treatment: models.Treatment{
+			PatientID:              existingPatient.ID,
+		}
+
+		treatmentTypesStr := strings.Join(req.Treatment.Types, ",")
+		newTreatment := models.Treatment{
 			Types:              treatmentTypesStr,
 			FirstTreatmentDate: firstTreatmentDate,
 			TreatingPhysician:  req.Treatment.TreatingPhysician,
 			Notes:              req.Treatment.Notes,
 			ReportingSource:    req.Treatment.ReportingSource,
+			PatientID:          existingPatient.ID,
+		}
+
+		newSubmitter := models.Submitter{
+			Name:      req.Submitter.Name,
+			Title:     req.Submitter.Title,
+			Email:     req.Submitter.Email,
+			PatientID: existingPatient.ID,
+		}
+
+		tx := database.DB.Begin()
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+			}
+		}()
+
+		if err := tx.Create(&newDiagnosis).Error; err != nil {
+			tx.Rollback()
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to add diagnosis to existing patient",
+			})
+		}
+
+		if err := tx.Create(&newTreatment).Error; err != nil {
+			tx.Rollback()
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to add treatment to existing patient",
+			})
+		}
+
+		if err := tx.Create(&newSubmitter).Error; err != nil {
+			tx.Rollback()
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to add submitter to existing patient",
+			})
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to save patient updates",
+			})
+		}
+
+		// Reload updated patient with relationships
+		var updatedPatient models.Patient
+		if err := database.DB.Preload("Facility").
+			Preload("Diagnosis").
+			Preload("Treatments").
+			Preload("Submitters").
+			First(&updatedPatient, existingPatient.ID).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to load updated patient",
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(updatedPatient)
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		// Some other DB error
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Database error while checking for existing patient",
+		})
+	}
+
+	// No existing patient found - create a new one
+	treatmentTypesStr := strings.Join(req.Treatment.Types, ",")
+
+	patient := models.Patient{
+		FacilityID: strconv.FormatUint(uint64(facility.ID), 10),
+		PatientInfo: models.PatientInfo{
+			FirstName:  req.PatientInfo.FirstName,
+			MiddleName: req.PatientInfo.MiddleName,
+			LastName:   req.PatientInfo.LastName,
+			DOB:        dob,
+			Gender:     req.PatientInfo.Gender,
+			NationalId: req.PatientInfo.NationalId,
 		},
-		Submitter: models.Submitter{
+		Diagnosis: []models.Diagnosis{{
+			PrimarySite:            req.Diagnosis.PrimarySite,
+			Histology:              req.Diagnosis.Histology,
+			DateOfDiagnosis:        dateOfDiagnosis,
+			DiagnosticConfirmation: req.Diagnosis.DiagnosticConfirmation,
+			Stage:                  req.Diagnosis.Stage,
+			Laterality:             req.Diagnosis.Laterality,
+		}},
+		Treatments: []models.Treatment{{
+			Types:              treatmentTypesStr,
+			FirstTreatmentDate: firstTreatmentDate,
+			TreatingPhysician:  req.Treatment.TreatingPhysician,
+			Notes:              req.Treatment.Notes,
+			ReportingSource:    req.Treatment.ReportingSource,
+		}},
+		Submitters: []models.Submitter{{
 			Name:  req.Submitter.Name,
 			Title: req.Submitter.Title,
 			Email: req.Submitter.Email,
-		},
+		}},
 		RegistrationID:   req.RegistrationID,
 		RegistrationDate: registrationDate,
 	}
 
-	// Create patient in database
 	if err := database.DB.Create(&patient).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create patient",
 		})
 	}
 
-	// Load the created patient with facility for response
+	// Load created patient with relationships
 	var createdPatient models.Patient
-	if err := database.DB.
-		Preload("Facility").
+	if err := database.DB.Preload("Facility").
+		Preload("Diagnosis").
+		Preload("Treatments").
+		Preload("Submitters").
 		First(&createdPatient, patient.ID).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to load created patient",
@@ -154,6 +239,9 @@ func GetPatients(c *fiber.Ctx) error {
 		Preload("Facility.Identification").
 		Preload("Facility.Contacts").
 		Preload("Facility.Technical").
+		Preload("Diagnosis").
+		Preload("Treatments").
+		Preload("Submitters").
 		Find(&patients)
 	return c.JSON(patients)
 }
@@ -168,6 +256,9 @@ func GetPatientByID(c *fiber.Ctx) error {
 		Preload("Facility.Identification").
 		Preload("Facility.Contacts").
 		Preload("Facility.Technical").
+		Preload("Diagnosis").
+		Preload("Treatments").
+		Preload("Submitters").
 		First(&patient, id).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Patient not found",
@@ -175,116 +266,6 @@ func GetPatientByID(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(patient)
-}
-
-// UpdatePatient handles PUT /patients/:id
-func UpdatePatient(c *fiber.Ctx) error {
-	id := c.Params("id")
-
-	var patient models.Patient
-	if err := database.DB.First(&patient, id).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Patient not found",
-		})
-	}
-
-	req := new(models.PatientCreateRequest)
-	if err := c.BodyParser(req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Cannot parse JSON",
-		})
-	}
-
-	// Validate required fields
-	if err := validatePatientRequest(req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
-
-	// Check if facility exists
-	facility, err := checkFacilityExists(req.FacilityID)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Database error while checking facility",
-		})
-	} else if facility.ID == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Facility not found",
-		})
-	}
-
-	// Parse dates
-	dob, err := time.Parse("2006-01-02", req.PatientInfo.DOB)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid date of birth format. Use YYYY-MM-DD",
-		})
-	}
-
-	dateOfDiagnosis, err := time.Parse("2006-01-02", req.Diagnosis.DateOfDiagnosis)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid date of diagnosis format. Use YYYY-MM-DD",
-		})
-	}
-
-	firstTreatmentDate, err := time.Parse("2006-01-02", req.Treatment.FirstTreatmentDate)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid first treatment date format. Use YYYY-MM-DD",
-		})
-	}
-
-	// Process treatment types array to string
-	treatmentTypesStr := strings.Join(req.Treatment.Types, ",")
-
-	// Update patient fields
-	patient.FacilityID = strconv.FormatUint(uint64(facility.ID), 10)
-	patient.PatientInfo.FirstName = req.PatientInfo.FirstName
-	patient.PatientInfo.MiddleName = req.PatientInfo.MiddleName
-	patient.PatientInfo.LastName = req.PatientInfo.LastName
-	patient.PatientInfo.DOB = dob
-	patient.PatientInfo.Gender = req.PatientInfo.Gender
-	patient.PatientInfo.SSNLast4 = req.PatientInfo.SSNLast4
-	patient.PatientInfo.MedicalRecordNumber = req.PatientInfo.MedicalRecordNumber
-	patient.Address.Street = req.Address.Street
-	patient.Address.City = req.Address.City
-	patient.Address.State = req.Address.State
-	patient.Address.Zip = req.Address.Zip
-	patient.Diagnosis.PrimarySite = req.Diagnosis.PrimarySite
-	patient.Diagnosis.Histology = req.Diagnosis.Histology
-	patient.Diagnosis.DateOfDiagnosis = dateOfDiagnosis
-	patient.Diagnosis.DiagnosticConfirmation = req.Diagnosis.DiagnosticConfirmation
-	patient.Diagnosis.Stage = req.Diagnosis.Stage
-	patient.Diagnosis.Laterality = req.Diagnosis.Laterality
-	patient.Treatment.Types = treatmentTypesStr
-	patient.Treatment.FirstTreatmentDate = firstTreatmentDate
-	patient.Treatment.TreatingPhysician = req.Treatment.TreatingPhysician
-	patient.Treatment.Notes = req.Treatment.Notes
-	patient.Treatment.ReportingSource = req.Treatment.ReportingSource
-	patient.Submitter.Name = req.Submitter.Name
-	patient.Submitter.Title = req.Submitter.Title
-	patient.Submitter.Email = req.Submitter.Email
-
-	// Save updated patient
-	if err := database.DB.Save(&patient).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to update patient",
-		})
-	}
-
-	// Load updated patient with facility for response
-	var updatedPatient models.Patient
-	if err := database.DB.
-		Preload("Facility").
-		First(&updatedPatient, patient.ID).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to load updated patient",
-		})
-	}
-
-	return c.JSON(updatedPatient)
 }
 
 // DeletePatient handles DELETE /patients/:id
@@ -361,6 +342,28 @@ func GetPatientByName(c *fiber.Ctx) error {
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Database error while searching patients",
+		})
+	}
+
+	return c.JSON(patients)
+}
+
+func GetPatientsByFacilityID(c *fiber.Ctx) error {
+	facilityID := c.Params("id")
+	var patients []models.Patient
+
+	err := database.DB.
+		Joins("JOIN facilities ON facilities.id = patients.facility_id").
+		Joins("JOIN facility_identifications ON facility_identifications.facility_id = facilities.id").
+		Where("facility_identifications.registry_id = ?", facilityID).
+		Preload("Diagnosis").
+		Preload("Treatments").
+		Preload("Submitters").
+		Find(&patients).Error
+
+	if err != nil || len(patients) == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "No patients found for this facility",
 		})
 	}
 

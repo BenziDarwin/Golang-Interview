@@ -14,6 +14,7 @@ type Contact struct {
 	Type       string `json:"type"` // "meaningful_use", "registry_lead", "network_lead"
 	Name       string `json:"name"`
 	Email      string `json:"email"`
+	Password   string `json:"password,omitempty"` // Optional, used for registry lead
 	Phone      string `json:"phone"`
 }
 

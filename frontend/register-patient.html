@@ -3,36 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register Patient - NH Public Health Cancer Registry</title>
+  <title>Register Patient - Uganda National Cancer Registry</title>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
-  <header>
-    <div class="container">
-      <div class="logo">
-        <i class="fas fa-heartbeat"></i>
-        <h1>NH Cancer Registry</h1>
-      </div>
-      <nav>
-        <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="check-facility.html">Check Facility</a></li>
-          <li><a href="register-facility.html">Register Facility</a></li>
-          <li><a href="register-patient.html" class="active">Register Patient</a></li>
-        </ul>
-      </nav>
-      <div class="mobile-menu-toggle">
-        <i class="fas fa-bars"></i>
-      </div>
-    </div>
-  </header>
 
   <section class="page-header">
     <div class="container">
       <h2><i class="fas fa-user-plus"></i> Patient Registration</h2>
-      <p>Register a patient with the NH Cancer Registry</p>
+      <p>Register a patient with the Uganda National Cancer Registry</p>
     </div>
   </section>
 
@@ -41,45 +22,27 @@
       <div class="form-container">
         <div class="form-instructions">
           <h3>Patient Registration</h3>
-          <p>Please complete the form below to register a cancer patient with the New Hampshire Public Health Cancer Registry. All fields marked with an asterisk (*) are required.</p>
-          <div class="note">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p>Important: You must be from a registered facility to submit patient information. If your facility is not registered, please <a href="register-facility.html">register your facility first</a>.</p>
-          </div>
+          <p>Please complete the form below to register a cancer patient with the Uganda National Cancer Registry. All fields marked with an asterisk (*) are required.</p>
         </div>
 
-        <!-- Facility Verification Section -->
-        <div id="facility-verification">
-          <h4>Verify Your Facility</h4>
-          <p>Please enter your facility information to continue.</p>
-          
-          <form id="verify-facility-form">
-            <div class="form-group">
-              <label for="facility-id">Facility Registry ID *</label>
-              <input type="text" id="facility-id" name="facility-id" required>
-              <div class="form-help">Enter your 6-digit facility registry ID</div>
-            </div>
-            
-            <div class="form-group">
-              <label for="facility-name-verification">Facility Name *</label>
-              <input type="text" id="facility-name-verification" name="facility-name-verification" required>
-            </div>
-            
-            <div class="form-actions">
-              <button type="submit" class="btn primary">Verify Facility <i class="fas fa-check"></i></button>
-              <a href="check-facility.html" class="btn text">Find My Facility ID</a>
-            </div>
-          </form>
-          
-          <div id="facility-not-found" class="hidden">
-            <div class="alert">
-              <i class="fas fa-times-circle"></i>
-              <div>
-                <h4>Facility Not Found</h4>
-                <p>We couldn't find a matching facility with the provided information. Please check your facility ID and name or register your facility if it's not yet in our system.</p>
-                <a href="register-facility.html" class="btn secondary">Register Facility</a>
-              </div>
-            </div>
+        <!-- Loading Facility Information -->
+        <div id="facility-loading" class="loading-section">
+          <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+          </div>
+          <p>Loading your facility information...</p>
+        </div>
+
+        <!-- Facility Error State -->
+        <div id="facility-error" class="error-section hidden">
+          <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3>Unable to Load Facility Information</h3>
+          <p id="facility-error-message">We couldn't find your facility information. Please contact support or try again.</p>
+          <div class="error-actions">
+            <button id="retry-facility" class="btn primary">Try Again</button>
+            <a href="index.html" class="btn secondary">Return to Home</a>
           </div>
         </div>
 
@@ -104,11 +67,12 @@
             </div>
           </div>
 
-          <!-- Facility Information (pre-filled from verification) -->
+          <!-- Facility Information (dynamically loaded) -->
           <div id="selected-facility" class="selected-facility">
-            <h4>Selected Facility</h4>
-            <p id="selected-facility-name">Example Hospital</p>
-            <p id="selected-facility-id">ID: 123456</p>
+            <h4>Your Facility</h4>
+            <p id="selected-facility-name">Loading...</p>
+            <p id="selected-facility-id">ID: Loading...</p>
+            <p class="facility-status"><i class="fas fa-check-circle"></i> Verified</p>
           </div>
 
           <!-- Step 1: Patient Information -->
@@ -151,45 +115,11 @@
             </div>
             
             <div class="form-group">
-              <label for="ssn">Social Security Number (last 4 digits) *</label>
-              <input type="text" id="ssn" name="ssn" maxlength="4" pattern="[0-9]{4}" required placeholder="Last 4 digits only">
+              <label for="national-id">National ID Number *</label>
+              <input type="text" id="national-id" name="national-id" required placeholder="Enter National ID">
               <div class="form-help">For patient identification purposes only</div>
             </div>
             
-            <div class="form-group">
-              <label for="medical-record-number">Medical Record Number *</label>
-              <input type="text" id="medical-record-number" name="medical-record-number" required>
-            </div>
-            
-            <h4>Patient Address</h4>
-            
-            <div class="form-group">
-              <label for="patient-street-address">Street Address *</label>
-              <input type="text" id="patient-street-address" name="patient-street-address" required>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label for="patient-city">City *</label>
-                <input type="text" id="patient-city" name="patient-city" required>
-              </div>
-              
-              <div class="form-group">
-                <label for="patient-state">State *</label>
-                <select id="patient-state" name="patient-state" required>
-                  <option value="NH">New Hampshire</option>
-                  <option value="ME">Maine</option>
-                  <option value="MA">Massachusetts</option>
-                  <option value="VT">Vermont</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              
-              <div class="form-group">
-                <label for="patient-zip">ZIP Code *</label>
-                <input type="text" id="patient-zip" name="patient-zip" required>
-              </div>
-            </div>
             
             <div class="form-actions">
               <button type="button" class="btn primary next-step">Continue <i class="fas fa-arrow-right"></i></button>
@@ -205,10 +135,14 @@
               <select id="primary-site" name="primary-site" required>
                 <option value="">Select primary site</option>
                 <option value="breast">Breast</option>
+                <option value="cervix">Cervix</option>
                 <option value="colon">Colon</option>
                 <option value="lung">Lung</option>
                 <option value="prostate">Prostate</option>
+                <option value="liver">Liver</option>
                 <option value="skin">Skin</option>
+                <option value="stomach">Stomach</option>
+                <option value="esophagus">Esophagus</option>
                 <option value="other">Other</option>
               </select>
             </div>
@@ -228,6 +162,7 @@
                 <option value="basal">Basal Cell Carcinoma</option>
                 <option value="lymphoma">Lymphoma</option>
                 <option value="leukemia">Leukemia</option>
+                <option value="sarcoma">Sarcoma</option>
                 <option value="other">Other</option>
               </select>
             </div>
@@ -402,7 +337,7 @@
             <i class="fas fa-check-circle"></i>
           </div>
           <h3>Patient Registration Submitted Successfully!</h3>
-          <p>Thank you for registering this patient with the New Hampshire Cancer Registry. The information has been submitted successfully.</p>
+          <p>Thank you for registering this patient with the Uganda National Cancer Registry. The information has been submitted successfully.</p>
           <p>Patient registration ID: <strong id="patient-reg-id">PR-67890</strong></p>
           <p>A confirmation email will be sent to the address provided. If you have any questions, please contact our support team.</p>
           <div class="success-actions">
@@ -418,16 +353,16 @@
     <div class="container">
       <div class="footer-content">
         <div class="footer-section">
-          <h3>NH Cancer Registry</h3>
-          <p>29 Hazen Drive<br>Concord, NH 03301<br>Phone: (603) 555-1234</p>
+          <h3>Uganda National Cancer Registry</h3>
+          <p>Plot 6, Lourdel Road<br>Nakasero, Kampala<br>Phone: +256 414 540 524</p>
         </div>
         <div class="footer-section">
           <h3>Quick Links</h3>
           <ul>
             <li><a href="index.html">Home</a></li>
-            <li><a href="check-facility.html">Check Facility</a></li>
-            <li><a href="register-facility.html">Register Facility</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
             <li><a href="register-patient.html">Register Patient</a></li>
+            <li><a href="reports.html">Reports</a></li>
           </ul>
         </div>
         <div class="footer-section">
@@ -441,12 +376,11 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2025 New Hampshire Public Health Cancer Registry. All Rights Reserved.</p>
+        <p>&copy; 2025 Uganda National Cancer Registry. All Rights Reserved.</p>
       </div>
     </div>
   </footer>
-
-  <script src="js/main.js"></script>
-  <script src="js/register-patient.js"></script>
+  <script src="../js/register-patient.js"></script>
+  <script src="../js/main.js"></script>
 </body>
 </html>

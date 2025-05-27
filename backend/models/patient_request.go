@@ -4,31 +4,21 @@ package models
 type PatientCreateRequest struct {
 	FacilityID       string             `json:"facility_id" validate:"required"`
 	PatientInfo      PatientInfoRequest `json:"patient_info" validate:"required"`
-	Address          AddressRequest     `json:"address" validate:"required"`
 	Diagnosis        DiagnosisRequest   `json:"diagnosis" validate:"required"`
 	Treatment        TreatmentRequest   `json:"treatment" validate:"required"`
-	Submitter        SubmitterRequest   `json:"submitter" validate:"required"`
+	Submitter        Submitter          `json:"submitter" validate:"required"`
 	RegistrationID   string             `json:"registration_id,omitempty"`
 	RegistrationDate string             `json:"registration_date,omitempty"`
 }
 
 // PatientInfoRequest represents the patient information in the request
 type PatientInfoRequest struct {
-	FirstName           string `json:"first_name" validate:"required"`
-	MiddleName          string `json:"middle_name,omitempty"`
-	LastName            string `json:"last_name" validate:"required"`
-	DOB                 string `json:"dob" validate:"required"` // Format: YYYY-MM-DD
-	Gender              string `json:"gender" validate:"required,oneof=male female other"`
-	SSNLast4            string `json:"ssn_last_4,omitempty" validate:"omitempty,len=4,numeric"`
-	MedicalRecordNumber string `json:"medical_record_number,omitempty"`
-}
-
-// AddressRequest represents the address information in the request
-type AddressRequest struct {
-	Street string `json:"street" validate:"required"`
-	City   string `json:"city" validate:"required"`
-	State  string `json:"state" validate:"required,len=2"`
-	Zip    string `json:"zip" validate:"required"`
+	FirstName  string `json:"first_name" validate:"required"`
+	MiddleName string `json:"middle_name,omitempty"`
+	LastName   string `json:"last_name" validate:"required"`
+	DOB        string `json:"dob" validate:"required"` // Format: YYYY-MM-DD
+	Gender     string `json:"gender" validate:"required,oneof=male female other"`
+	NationalId string `json:"national_id" validate:"required"`
 }
 
 // DiagnosisRequest represents the diagnosis information in the request

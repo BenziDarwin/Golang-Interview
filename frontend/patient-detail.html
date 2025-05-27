@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Details - Uganda National Cancer Registry</title>
+    <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/patient-detail-styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <style>
+    /* Additional styles for patient detail */
+    .patient-detail-header {
+      background-color: var(--white);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-4);
+      margin-bottom: var(--spacing-4);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .patient-name-header {
+      font-size: 1.75rem;
+      color: var(--primary);
+      margin-bottom: var(--spacing-2);
+    }
+
+    .patient-basic-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-3);
+      margin-top: var(--spacing-3);
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      margin-bottom: 0.125rem;
+      font-weight: 600;
+    }
+
+    .info-value {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--gray-900);
+    }
+
+    .diagnosis-section {
+      background-color: var(--white);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-4);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .back-button {
+      margin-bottom: var(--spacing-4);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+      margin-bottom: var(--spacing-3);
+    }
+
+    .section-title i {
+      color: var(--primary);
+    }
+
+    /* Tab styles */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--gray-200);
+      margin-bottom: var(--spacing-4);
+    }
+
+    .tab {
+      padding: var(--spacing-3) var(--spacing-4);
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--gray-600);
+      border-bottom: 3px solid transparent;
+      transition: all var(--transition-fast);
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+    }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background-color: var(--gray-50);
+    }
+
+    .tab:hover:not(.active) {
+      color: var(--gray-800);
+      background-color: var(--gray-50);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .tab-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-3);
+    }
+
+    /* Table Accordion styles */
+    .table-accordion {
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .accordion-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .accordion-row {
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .accordion-row:last-child {
+      border-bottom: none;
+    }
+
+    .accordion-header-row {
+      background-color: var(--gray-50);
+      cursor: pointer;
+      transition: background-color var(--transition-fast);
+    }
+
+    .accordion-header-row:hover {
+      background-color: var(--gray-100);
+    }
+
+    .accordion-header-row.active {
+      background-color: var(--primary-light);
+      color: var(--white);
+    }
+
+    .accordion-header-row th {
+      padding: var(--spacing-3);
+      text-align: left;
+      font-weight: 600;
+      border-right: 1px solid var(--gray-200);
+    }
+
+    .accordion-header-row th:last-child {
+      border-right: none;
+    }
+
+    .accordion-header-row.active th {
+      border-right-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .accordion-content-row {
+      display: none;
+    }
+
+    .accordion-content-row.active {
+      display: table-row;
+    }
+
+    .accordion-content-cell {
+      padding: 0;
+      border: none;
+    }
+
+    .accordion-content-inner {
+      padding: var(--spacing-3);
+      background-color: var(--white);
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .accordion-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-3);
+    }
+
+    .accordion-actions {
+      display: flex;
+      gap: var(--spacing-1);
+      justify-content: flex-end;
+    }
+
+    .btn.small {
+      padding: var(--spacing-1) var(--spacing-2);
+      font-size: 0.75rem;
+    }
+
+    .accordion-icon {
+      transition: transform var(--transition-fast);
+      margin-left: var(--spacing-2);
+    }
+
+    .accordion-header-row.active .accordion-icon {
+      transform: rotate(180deg);
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background-color: var(--white);
+      margin: 5% auto;
+      padding: var(--spacing-5);
+      border-radius: var(--radius-md);
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-4);
+      padding-bottom: var(--spacing-2);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .modal-title {
+      margin: 0;
+      color: var(--primary);
+    }
+
+    .close {
+      color: var(--gray-400);
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all var(--transition-fast);
+    }
+
+    .close:hover {
+      color: var(--gray-600);
+      background-color: var(--gray-100);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--spacing-2);
+      margin-top: var(--spacing-4);
+      padding-top: var(--spacing-3);
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-3);
+    }
+
+    .required {
+      color: var(--danger);
+    }
+  </style>
+</head>
+<body>
+
+  <section class="page-header">
+    <div class="container">
+      <h2><i class="fas fa-user"></i> Patient Details</h2>
+      <p>Comprehensive patient information and medical history</p>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="container">
+      <div class="back-button">
+        <a href="patients.html" class="btn text">
+          <i class="fas fa-arrow-left"></i> Back to Patients
+        </a>
+      </div>
+
+      <div class="patient-detail-header">
+        <h2 class="patient-name-header" id="patient-name">Loading...</h2>
+        <div class="patient-basic-info" id="patient-basic-info">
+          <!-- Basic info will be loaded here -->
+        </div>
+      </div>
+
+      <div class="diagnosis-section">
+        <div class="section-title">
+          <i class="fas fa-stethoscope"></i>
+          <h3>Medical History</h3>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" data-tab="diagnoses">
+            <i class="fas fa-stethoscope"></i> Cancer Diagnoses
+          </button>
+          <button class="tab" data-tab="referrals">
+            <i class="fas fa-share-square"></i> Referrals
+          </button>
+        </div>
+
+        <div id="diagnoses-tab" class="tab-content active">
+          <div class="tab-header">
+            <h4>Cancer Diagnoses</h4>
+            <button class="btn primary" id="add-diagnosis-btn">
+              <i class="fas fa-plus"></i> Add New Diagnosis
+            </button>
+          </div>
+          <div class="table-accordion" id="diagnoses-accordion">
+            <!-- Diagnoses table will be loaded here -->
+          </div>
+        </div>
+
+        <div id="referrals-tab" class="tab-content">
+          <div class="tab-header">
+            <h4>Patient Referrals</h4>
+            <button class="btn primary" id="add-referral-btn">
+              <i class="fas fa-plus"></i> Add New Referral
+            </button>
+          </div>
+          <div class="table-accordion" id="referrals-accordion">
+            <!-- Referrals table will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Diagnosis Edit Modal -->
+  <div id="diagnosis-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="diagnosis-modal-title">Edit Diagnosis</h3>
+        <button class="close" id="close-diagnosis-modal">&times;</button>
+      </div>
+      <form id="diagnosis-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="primary-site">Primary Site</label>
+            <input type="text" id="primary-site" name="primary_site" required>
+          </div>
+          <div class="form-group">
+            <label for="histology">Histology</label>
+            <input type="text" id="histology" name="histology" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="diagnosis-date">Date of Diagnosis</label>
+            <input type="date" id="diagnosis-date" name="date_of_diagnosis" required>
+          </div>
+          <div class="form-group">
+            <label for="diagnostic-confirmation">Diagnostic Confirmation</label>
+            <select id="diagnostic-confirmation" name="diagnostic_confirmation" required>
+              <option value="">Select confirmation method</option>
+              <option value="Histologic">Histologic</option>
+              <option value="Cytologic">Cytologic</option>
+              <option value="Clinical">Clinical</option>
+              <option value="Imaging">Imaging</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="stage">Stage</label>
+            <select id="stage" name="stage" required>
+              <option value="">Select stage</option>
+              <option value="Stage 0">Stage 0</option>
+              <option value="Stage I">Stage I</option>
+              <option value="Stage II">Stage II</option>
+              <option value="Stage III">Stage III</option>
+              <option value="Stage IV">Stage IV</option>
+              <option value="Unknown">Unknown</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="laterality">Laterality</label>
+            <select id="laterality" name="laterality" required>
+              <option value="">Select laterality</option>
+              <option value="Left">Left</option>
+              <option value="Right">Right</option>
+              <option value="Bilateral">Bilateral</option>
+              <option value="N/A">N/A</option>
+            </select>
+          </div>
+        </div>
+      </form>
+      <div class="modal-actions">
+        <button class="btn text" id="cancel-diagnosis-btn">Cancel</button>
+        <button class="btn primary" id="save-diagnosis-btn">Save Diagnosis</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Referral Edit Modal -->
+  <div id="referral-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="referral-modal-title">Edit Referral</h3>
+        <button class="close" id="close-referral-modal">&times;</button>
+      </div>
+      <form id="referral-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="referred-by">Referred By</label>
+            <input type="text" id="referred-by" name="referred_by" required>
+          </div>
+          <div class="form-group">
+            <label for="facility-name">Facility Name</label>
+            <input type="text" id="facility-name" name="facility_name" readonly>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="referral-diagnosis">Diagnosis</label>
+            <input type="text" id="referral-diagnosis" name="diagnosis" required>
+          </div>
+          <div class="form-group">
+            <label for="referred-to">Referred To</label>
+            <input type="text" id="referred-to" name="referred_to" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="country">Country <span class="required">*</span></label>
+            <select id="country" name="country" required>
+              <option value="">Select country</option>
+              <option value="Uganda">Uganda</option>
+              <option value="Kenya">Kenya</option>
+              <option value="Tanzania">Tanzania</option>
+              <option value="Rwanda">Rwanda</option>
+              <option value="South Sudan">South Sudan</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="referral-facility">Facility</label>
+            <input type="text" id="referral-facility" name="facility">
+          </div>
+          <div class="form-group">
+            <label for="doctor">Doctor</label>
+            <input type="text" id="doctor" name="doctor">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="referral-date">Referral Date</label>
+          <input type="date" id="referral-date" name="referral_date" required>
+        </div>
+      </form>
+      <div class="modal-actions">
+        <button class="btn text" id="cancel-referral-btn">Cancel</button>
+        <button class="btn primary" id="save-referral-btn">Save Referral</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>Uganda Cancer Registry</h3>
+          <p>Kampala, Uganda<br>Phone: +256 123 456 789</p>
+        </div>
+        <div class="footer-section">
+          <h3>Quick Links</h3>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="check-facility.html">Check Facility</a></li>
+            <li><a href="register-facility.html">Register Facility</a></li>
+            <li><a href="register-patient.html">Register Patient</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h3>Resources</h3>
+          <ul>
+            <li><a href="#">Registry Guidelines</a></li>
+            <li><a href="#">Data Reports</a></li>
+            <li><a href="#">Training Materials</a></li>
+            <li><a href="#">Contact Support</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 Uganda National Cancer Registry. All Rights Reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/patient-detail.js"></script>
+  <script src="../js/main.js"></script>
+</body>
+</html>

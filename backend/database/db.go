@@ -12,7 +12,7 @@ import (
 
 var DB *gorm.DB
 
-func ConnectDB() {
+func ConnectDB() *gorm.DB {
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		getEnv("DB_HOST", "localhost"),
@@ -29,6 +29,7 @@ func ConnectDB() {
 	}
 
 	err = DB.AutoMigrate(
+		&models.Admin{},
 		&models.Facility{},
 		&models.Contact{},
 		&models.Technical{},
@@ -38,13 +39,13 @@ func ConnectDB() {
 		&models.PatientInfo{},
 		&models.Treatment{},
 		&models.Submitter{},
-		&models.Address{},
 		&models.Treatment{},
 		&models.Patient{},
 	)
 	if err != nil {
 		log.Fatal("AutoMigrate failed:", err)
 	}
+	return DB
 }
 
 func getEnv(key, fallback string) string {
