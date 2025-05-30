@@ -109,10 +109,13 @@ const NavigationManager = {
 
     // Add protected pages if user is authenticated
     if (hasSession) {
-      navItems += `
+      if (userRole === 'facility') {
+    navItems += `
         <li><a href="register-patient.html" ${currentPage === 'register-patient.html' ? 'class="active"' : ''}>Register Patient</a></li>
          <li><a href="patients.html" ${currentPage === 'patients.html' ? 'class="active"' : ''}>Patients</a></li>
       `;
+      }
+  
 
       // Add admin link for admin users
       if (userRole === 'admin' || userRole === 'super_admin') {

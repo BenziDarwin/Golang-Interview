@@ -42,5 +42,10 @@ func SetupRoutes(app *fiber.App) {
 		patient.Get("/facility/:id", service.GetPatientsByFacilityID)
 	}
 
+	admin := api.Group("/admin")
+	{
+		admin.Post("/login", service.LoginAdmin)
+	}
+
 	// Add similar routes for each model as needed
 }

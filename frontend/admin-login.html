@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Uganda National Health Registry</title>
+    <title>Admin Login - Uganda National Health Registry</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -25,7 +25,7 @@
         .login-container {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             overflow: hidden;
             width: 100%;
             max-width: 900px;
@@ -35,7 +35,7 @@
         }
 
         .login-left {
-            background: linear-gradient(135deg, #2c5aa0 0%, #1e3a8a 100%);
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
             padding: 60px 40px;
             display: flex;
             flex-direction: column;
@@ -71,7 +71,7 @@
         .logo-icon {
             font-size: 4rem;
             margin-bottom: 20px;
-            color: #60a5fa;
+            color: #fca5a5;
             animation: pulse 2s ease-in-out infinite;
         }
 
@@ -93,6 +93,17 @@
             line-height: 1.6;
         }
 
+        .admin-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
         .login-right {
             padding: 60px 40px;
             display: flex;
@@ -110,6 +121,14 @@
             font-size: 2rem;
             font-weight: 600;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .login-header h2 i {
+            color: #dc2626;
         }
 
         .login-header p {
@@ -155,13 +174,13 @@
 
         .form-group input:focus {
             outline: none;
-            border-color: #2c5aa0;
+            border-color: #dc2626;
             background: white;
-            box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
         }
 
         .form-group input:focus + .input-wrapper i {
-            color: #2c5aa0;
+            color: #dc2626;
         }
 
         .form-error {
@@ -176,26 +195,27 @@
             background: #fef2f2 !important;
         }
 
-        .forgot-password {
-            text-align: right;
-            margin-bottom: 30px;
-        }
-
-        .forgot-password a {
-            color: #2c5aa0;
-            text-decoration: none;
+        .security-notice {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 25px;
             font-size: 0.9rem;
-            font-weight: 500;
+            color: #92400e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .forgot-password a:hover {
-            text-decoration: underline;
+        .security-notice i {
+            color: #f59e0b;
         }
 
         .login-btn {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #2c5aa0 0%, #1e3a8a 100%);
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
             color: white;
             border: none;
             border-radius: 10px;
@@ -209,7 +229,7 @@
 
         .login-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(44, 90, 160, 0.3);
+            box-shadow: 0 10px 25px rgba(220, 38, 38, 0.3);
         }
 
         .login-btn:active {
@@ -242,49 +262,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        .divider {
-            text-align: center;
-            margin: 30px 0;
-            position: relative;
-        }
-
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #e5e7eb;
-        }
-
-        .divider span {
-            background: white;
-            padding: 0 20px;
-            color: #6b7280;
-            font-size: 0.9rem;
-        }
-
-        .register-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .register-link p {
-            color: #6b7280;
-            font-size: 0.95rem;
-        }
-
-        .register-link a {
-            color: #2c5aa0;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .register-link a:hover {
-            text-decoration: underline;
         }
 
         .alert {
@@ -329,6 +306,39 @@
             transform: translateX(-5px);
         }
 
+        .admin-features {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid #dc2626;
+        }
+
+        .admin-features h4 {
+            color: #374151;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .admin-features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .admin-features li {
+            color: #6b7280;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-features li i {
+            color: #dc2626;
+            font-size: 0.8rem;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .login-container {
@@ -363,8 +373,8 @@
                 left: auto;
                 margin-bottom: 20px;
                 align-self: flex-start;
-                color: #2c5aa0;
-                background: rgba(44, 90, 160, 0.1);
+                color: #dc2626;
+                background: rgba(220, 38, 38, 0.1);
             }
         }
 
@@ -388,19 +398,29 @@
                 Back to Home
             </a>
             <div class="logo-section">
-                <div class="logo-icon">
-                       <img src="../assets/logo.png" alt="Uganda National Cancer Registry Logo" style="height: 100px;">
+                <div class="admin-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    Administrator Access
                 </div>
-                <h1>Uganda National Cancer Registry</h1>
-                <p>An integrated system for managing cancer data to improve patient care and health outcomes nationwide.</p>
-
+                <div class="logo-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h1>Admin Portal</h1>
             </div>
         </div>
 
         <div class="login-right">
             <div class="login-header">
-                <h2>Welcome Back</h2>
-                <p>Please sign in to your account to continue</p>
+                <h2>
+                    <i class="fas fa-lock"></i>
+                    Admin Login
+                </h2>
+                <p>Enter your administrator credentials to access the system</p>
+            </div>
+
+            <div class="security-notice">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>This is a restricted area. All access attempts are logged and monitored.</span>
             </div>
 
             <div class="alert alert-error" id="error-alert">
@@ -413,45 +433,37 @@
                 <span id="success-message"></span>
             </div>
 
-            <form id="login-form">
+            <form id="admin-login-form">
                 <div class="form-group">
-                    <label for="email">Email Address</label>
+                    <label for="admin-email">Administrator Email</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" name="email" required 
-                               placeholder="Enter your email address">
+                        <i class="fas fa-user-shield"></i>
+                        <input type="email" id="admin-email" name="email" required 
+                               placeholder="Enter your admin email address">
                     </div>
-                    <div class="form-error" id="email-error">Please enter a valid email address</div>
+                    <div class="form-error" id="email-error">Please enter a valid admin email address</div>
                 </div>
 
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="admin-password">Administrator Password</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" name="password" required 
-                               placeholder="Enter your password">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="admin-password" name="password" required 
+                               placeholder="Enter your admin password">
                     </div>
                     <div class="form-error" id="password-error">Password is required</div>
                 </div>
 
-                <div class="forgot-password">
-                    <a href="#" id="forgot-password-link">Forgot your password?</a>
-                </div>
-
-                <button type="submit" class="login-btn" id="login-btn">
-                    <span class="btn-text">Sign In</span>
+                <button type="submit" class="login-btn" id="admin-login-btn">
+                    <span class="btn-text">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Access Admin Panel
+                    </span>
                     <div class="btn-loading">
                         <div class="spinner"></div>
                     </div>
                 </button>
             </form>
-
-            <div class="divider">
-                        <span>New to the system?</span>
-
-            <div class="register-link">
-                <p>Don't have an account? <a href="register-facility.html">Register your facility</a></p>
-            </div>
         </div>
     </div>
 
@@ -460,18 +472,18 @@
     
     <script>
         $(document).ready(async function() {
-            // Check if user is already logged in
-            if (getCookie('session_token')) {
-                window.location.href = 'index.html';
+            // Check if admin is already logged in
+            if (getCookie('admin_session_token')) {
+                window.location.href = 'admin-dashboard.html';
                 return;
             }
 
             // Form submission handler
-            $('#login-form').on('submit', function(e) {
+            $('#admin-login-form').on('submit', function(e) {
                 e.preventDefault();
                 
-                const email = $('#email').val().trim();
-                const password = $('#password').val().trim();
+                const email = $('#admin-email').val().trim();
+                const password = $('#admin-password').val().trim();
                 
                 // Reset previous errors
                 $('.form-error').hide();
@@ -482,13 +494,13 @@
                 let isValid = true;
                 
                 if (!email) {
-                    $('#email').addClass('input-error');
+                    $('#admin-email').addClass('input-error');
                     $('#email-error').show();
                     isValid = false;
                 }
                 
                 if (!password) {
-                    $('#password').addClass('input-error');
+                    $('#admin-password').addClass('input-error');
                     $('#password-error').show();
                     isValid = false;
                 }
@@ -498,48 +510,52 @@
                 // Show loading state
                 setLoadingState(true);
                 
-          
-                authenticateUser(email, password);
-            
+                // Authenticate admin user
+                authenticateAdmin(email, password);
             });
 
-            // Authentication function (replace with actual API call)
-            async function authenticateUser(email, password) {
+            // Admin authentication function
+            async function authenticateAdmin(email, password) {
+                try {
+                    const res = await fetch("http://localhost:6060/api/v1/admin/login", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
 
-                const res = await fetch("http://localhost:6060/api/v1/facilities/login", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ email, password })
-                });
+                    if (!res.ok) {
+                        setLoadingState(false);
+                        showError('Admin login failed. Please check your credentials and try again.');
+                        return;
+                    }
 
-                if (!res.ok) {
-                    setLoadingState(false);
-                    showError('Login failed. Please check your credentials and try again.');
-                    return;
-                }
-
-                const data = await res.json();
-                
-                if (data.token && data.facility) {
-                    // Show success message
-                    showSuccess('Login successful! Redirecting...');
+                    const data = await res.json();
                     
-                    // Redirect based on role
-                    setTimeout(() => {
-                            window.location.href = 'index.html';
-                    }, 1500);
-                } else {
-                    // Failed login
+                    if (data.token && data.admin) {
+                        
+                        // Show success message
+                        showSuccess('Admin login successful! Redirecting to admin dashboard...');
+                        
+                        // Redirect to admin dashboard
+                        setTimeout(() => {
+                            window.location.href = 'admin.html';
+                        }, 1500);
+                    } else {
+                        setLoadingState(false);
+                        showError('Invalid admin credentials. Access denied.');
+                    }
+                } catch (error) {
                     setLoadingState(false);
-                    showError('Invalid email or password. Please try again.');
+                    showError('Connection error. Please try again later.');
+                    console.error('Admin login error:', error);
                 }
             }
 
             // Utility functions
             function setLoadingState(loading) {
-                const btn = $('#login-btn');
+                const btn = $('#admin-login-btn');
                 const btnText = $('.btn-text');
                 const btnLoading = $('.btn-loading');
                 
@@ -566,10 +582,6 @@
                 $('#error-alert').hide();
             }
 
-            function generateSessionToken() {
-                return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-            }
-
             function setCookie(name, value, days) {
                 const expires = new Date();
                 expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -589,61 +601,19 @@
                 $(this).siblings('.form-error').hide();
             });
 
-            // Forgot password handler
-            $('#forgot-password-link').on('click', function(e) {
-                e.preventDefault();
-                alert('Password reset functionality will be implemented. Please contact your system administrator for assistance.');
-            });
+            // Enhanced security logging (in production, this would be server-side)
+            function logAccessAttempt(email, success) {
+                const logData = {
+                    timestamp: new Date().toISOString(),
+                    email: email,
+                    success: success,
+                    ip: 'client-side-logging', // In production, get from server
+                    userAgent: navigator.userAgent
+                };
+                console.log('Admin access attempt:', logData);
+                // In production, send this to your security logging endpoint
+            }
         });
     </script>
-    <!-- Admin Login Button - Add this to your main page -->
-<div class="admin-access" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
-    <a href="admin-login.html" class="admin-btn">
-        <i class="fas fa-user-shield"></i>
-        Admin Login
-    </a>
-</div>
-
-<style>
-.admin-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-    color: white;
-    text-decoration: none;
-    border-radius: 25px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-}
-
-.admin-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
-    border-color: rgba(255, 255, 255, 0.2);
-}
-
-.admin-btn:active {
-    transform: translateY(0);
-}
-
-.admin-btn i {
-    font-size: 1.1rem;
-}
-
-@media (max-width: 768px) {
-    .admin-access {
-        position: relative;
-        top: auto;
-        right: auto;
-        text-align: center;
-        margin: 20px 0;
-    }
-}
-</style>
 </body>
 </html>

@@ -2,7 +2,11 @@ package service
 
 import (
 	"fmt"
+	"strconv"
 
+	"github.com/gofiber/fiber/v2"
+	"golang-interview.com/database"
+	"golang-interview.com/middleware"
 	"golang-interview.com/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -37,4 +41,41 @@ func CreateAdmin(username, password, email string, DB *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func LoginAdmin(c *fiber.Ctx) error {
+	req := new(LoginRequest)
+	if err := c.BodyParser(req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid input",
+		})
+	}
+
+	var admin models.Admin
+	err := database.DB.
+		Where("email = ?", req.Email).First(&admin).Error
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid email or password",
+		})
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(req.Password)); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid email or password",
+		})
+	}
+
+	// ✅ Set cookie using middleware helper
+	token, err := middleware.CreateSession(c, admin.Username, admin.Email, strconv.FormatUint(uint64(admin.ID), 10), "admin")
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to create session",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"token": token,
+		"admin": admin,
+	})
 }
