@@ -22,7 +22,8 @@ type PatientInfo struct {
 	FirstName  string    `json:"first_name"`
 	MiddleName string    `json:"middle_name"`
 	LastName   string    `json:"last_name"`
-	DOB        time.Time `json:"dob"`
+	DOB        time.Time `json:"dob,omitempty"` // Date of Birth
+	Age        int       `json:"age,omitempty"` // Age can be calculated from DOB
 	Gender     string    `json:"gender"`
 	NationalId string    `json:"national_id"`
 }
