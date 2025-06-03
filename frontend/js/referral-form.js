@@ -1,8 +1,11 @@
 $(document).ready(function() {
+  const currentStep = $(this).closest('.form-step');
+  console.log('Current step:', currentStep.data('step'));
 
   // Handle next step button to show review summary
   $('.next-step').click(function() {
     const currentStep = $(this).closest('.form-step');
+    console.log('Current step:', currentStep.data('step'));
     
     // Validate required fields on Step 1
     if (currentStep.data('step') === 1) {
@@ -21,7 +24,7 @@ $(document).ready(function() {
       // Hide Step 1 and show Step 2
       currentStep.removeClass('active');
       $('.form-step[data-step="2"]').addClass('active');
-    }
+    } 
   });
 
   // Populate review summary for Step 2
