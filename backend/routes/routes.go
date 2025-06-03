@@ -29,6 +29,7 @@ func SetupRoutes(app *fiber.App) {
 		facility.Get("/", service.GetFacilities)
 		facility.Get("/name/:name", service.GetFacilityByName)
 		facility.Get("/registry/:registryId", service.GetFacilityByRegistryID)
+		facility.Put("/:id", service.UpdateFacility)
 		facility.Put("/status/:id", service.SetFacilityStatus)
 	}
 

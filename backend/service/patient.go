@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -56,25 +55,11 @@ func CreatePatient(c *fiber.Ctx) error {
 		}
 	}
 
-	// Parse dates
+	// Parse DOB
 	dob, err := time.Parse("2006-01-02", req.PatientInfo.DOB)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid Date of Birth format. Use YYYY-MM-DD",
-		})
-	}
-
-	dateOfDiagnosis, err := time.Parse("2006-01-02", req.Diagnosis.DateOfDiagnosis)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid Date of Diagnosis format. Use YYYY-MM-DD",
-		})
-	}
-
-	firstTreatmentDate, err := time.Parse("2006-01-02", req.Treatment.FirstTreatmentDate)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid First Treatment Date format. Use YYYY-MM-DD",
 		})
 	}
 
@@ -90,28 +75,7 @@ func CreatePatient(c *fiber.Ctx) error {
 	var existingPatient models.Patient
 	err = database.DB.Where("patient_national_id = ?", req.PatientInfo.NationalId).First(&existingPatient).Error
 	if err == nil {
-		// Patient exists - add new diagnosis, treatment, and submitter in a transaction
-
-		newDiagnosis := models.Diagnosis{
-			PrimarySite:            req.Diagnosis.PrimarySite,
-			Histology:              req.Diagnosis.Histology,
-			DateOfDiagnosis:        dateOfDiagnosis,
-			DiagnosticConfirmation: req.Diagnosis.DiagnosticConfirmation,
-			Stage:                  req.Diagnosis.Stage,
-			Laterality:             req.Diagnosis.Laterality,
-			PatientID:              existingPatient.ID,
-		}
-
-		treatmentTypesStr := strings.Join(req.Treatment.Types, ",")
-		newTreatment := models.Treatment{
-			Types:              treatmentTypesStr,
-			FirstTreatmentDate: firstTreatmentDate,
-			TreatingPhysician:  req.Treatment.TreatingPhysician,
-			Notes:              req.Treatment.Notes,
-			ReportingSource:    req.Treatment.ReportingSource,
-			PatientID:          existingPatient.ID,
-		}
-
+		// Patient exists - only add new submitter
 		newSubmitter := models.Submitter{
 			Name:      req.Submitter.Name,
 			Title:     req.Submitter.Title,
@@ -119,45 +83,14 @@ func CreatePatient(c *fiber.Ctx) error {
 			PatientID: existingPatient.ID,
 		}
 
-		tx := database.DB.Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
-
-		if err := tx.Create(&newDiagnosis).Error; err != nil {
-			tx.Rollback()
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to add diagnosis to existing patient",
-			})
-		}
-
-		if err := tx.Create(&newTreatment).Error; err != nil {
-			tx.Rollback()
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to add treatment to existing patient",
-			})
-		}
-
-		if err := tx.Create(&newSubmitter).Error; err != nil {
-			tx.Rollback()
+		if err := database.DB.Create(&newSubmitter).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to add submitter to existing patient",
 			})
 		}
 
-		if err := tx.Commit().Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to save patient updates",
-			})
-		}
-
-		// Reload updated patient with relationships
 		var updatedPatient models.Patient
 		if err := database.DB.Preload("Facility").
-			Preload("Diagnosis").
-			Preload("Treatments").
 			Preload("Submitters").
 			First(&updatedPatient, existingPatient.ID).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -174,8 +107,6 @@ func CreatePatient(c *fiber.Ctx) error {
 	}
 
 	// No existing patient found - create a new one
-	treatmentTypesStr := strings.Join(req.Treatment.Types, ",")
-
 	patient := models.Patient{
 		FacilityID: strconv.FormatUint(uint64(facility.ID), 10),
 		PatientInfo: models.PatientInfo{
@@ -186,21 +117,6 @@ func CreatePatient(c *fiber.Ctx) error {
 			Gender:     req.PatientInfo.Gender,
 			NationalId: req.PatientInfo.NationalId,
 		},
-		Diagnosis: []models.Diagnosis{{
-			PrimarySite:            req.Diagnosis.PrimarySite,
-			Histology:              req.Diagnosis.Histology,
-			DateOfDiagnosis:        dateOfDiagnosis,
-			DiagnosticConfirmation: req.Diagnosis.DiagnosticConfirmation,
-			Stage:                  req.Diagnosis.Stage,
-			Laterality:             req.Diagnosis.Laterality,
-		}},
-		Treatments: []models.Treatment{{
-			Types:              treatmentTypesStr,
-			FirstTreatmentDate: firstTreatmentDate,
-			TreatingPhysician:  req.Treatment.TreatingPhysician,
-			Notes:              req.Treatment.Notes,
-			ReportingSource:    req.Treatment.ReportingSource,
-		}},
 		Submitters: []models.Submitter{{
 			Name:  req.Submitter.Name,
 			Title: req.Submitter.Title,
@@ -216,11 +132,8 @@ func CreatePatient(c *fiber.Ctx) error {
 		})
 	}
 
-	// Load created patient with relationships
 	var createdPatient models.Patient
 	if err := database.DB.Preload("Facility").
-		Preload("Diagnosis").
-		Preload("Treatments").
 		Preload("Submitters").
 		First(&createdPatient, patient.ID).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -386,12 +299,6 @@ func validatePatientRequest(req *models.PatientCreateRequest) error {
 	}
 	if req.PatientInfo.Gender == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Gender is required")
-	}
-	if req.Diagnosis.DateOfDiagnosis == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "Date of diagnosis is required")
-	}
-	if req.Treatment.FirstTreatmentDate == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "First treatment date is required")
 	}
 	return nil
 }

@@ -57,9 +57,10 @@ $(document).ready(async function() {
   // Handle form review step
   $('.next-step').click(function() {
     const currentStep = $(this).closest('.form-step');
+    console.log('Current step:', currentStep.data('step'));
     
     // If moving to review step, populate summary
-    if (currentStep.data('step') === 3) {
+    if (currentStep.data('step') === 1) {
       populatePatientReviewSummary();
     }
   });
@@ -169,89 +170,12 @@ $(document).ready(async function() {
     
     addReviewItem(patientContent, 'Patient Name', patientName);
     addReviewItem(patientContent, 'Date of Birth', formatDate($('#patient-dob').val()));
-    addReviewItem(patientContent, 'Gender', $('#patient-gender option:selected').text());
+    addReviewItem(patientContent, 'Gender', $('input[name="patient-gender"]:checked').val());
     addReviewItem(patientContent, 'National ID', $('#national-id').val());
     addReviewItem(patientContent, 'Medical Record #', $('#medical-record-number').val());
     
-    // Build address
-    const patientAddress = $('#patient-street-address').val() + ', ' + 
-                          $('#patient-city').val() + ', ' + 
-                          $('#patient-district option:selected').text() + ', ' + 
-                          $('#patient-region option:selected').text();
-    
-    addReviewItem(patientContent, 'Address', patientAddress);
-    
+
     summary.append(patientSection);
-    
-    // Diagnosis Information
-    const diagnosisSection = $(`
-      <div class="review-section">
-        <h5>Diagnosis Information</h5>
-        <div class="review-content"></div>
-      </div>
-    `);
-    
-    const diagnosisContent = diagnosisSection.find('.review-content');
-    
-    let primarySite = $('#primary-site option:selected').text();
-    if ($('#primary-site').val() === 'other') {
-      primarySite = $('#other-site').val();
-    }
-    
-    addReviewItem(diagnosisContent, 'Primary Site', primarySite);
-    addReviewItem(diagnosisContent, 'Histology', $('#histology option:selected').text());
-    addReviewItem(diagnosisContent, 'Date of Diagnosis', formatDate($('#date-of-diagnosis').val()));
-    addReviewItem(diagnosisContent, 'Confirmation', $('#diagnostic-confirmation option:selected').text());
-    addReviewItem(diagnosisContent, 'Stage', $('#stage option:selected').text());
-    
-    if ($('#laterality').val()) {
-      addReviewItem(diagnosisContent, 'Laterality', $('#laterality option:selected').text());
-    }
-    
-    summary.append(diagnosisSection);
-    
-    // Treatment Information
-    const treatmentSection = $(`
-      <div class="review-section">
-        <h5>Treatment Information</h5>
-        <div class="review-content"></div>
-      </div>
-    `);
-    
-    const treatmentContent = treatmentSection.find('.review-content');
-    
-    // Get selected treatments
-    const selectedTreatments = [];
-    $('input[name="treatment[]"]:checked').each(function() {
-      let treatment = $(this).next('label').text();
-      selectedTreatments.push(treatment);
-    });
-    
-    // If "Other" is selected, add the specified value
-    if ($('#treatment-other').is(':checked')) {
-      const otherIndex = selectedTreatments.findIndex(t => t === 'Other');
-      if (otherIndex !== -1) {
-        selectedTreatments[otherIndex] = 'Other: ' + $('#other-treatment').val();
-      }
-    }
-    
-    addReviewItem(treatmentContent, 'Treatments', selectedTreatments.length > 0 ? selectedTreatments.join(', ') : 'None specified');
-    
-    if ($('#date-of-first-treatment').val()) {
-      addReviewItem(treatmentContent, 'First Treatment Date', formatDate($('#date-of-first-treatment').val()));
-    }
-    
-    if ($('#treating-physician').val()) {
-      addReviewItem(treatmentContent, 'Treating Physician', $('#treating-physician').val());
-    }
-    
-    if ($('#treatment-notes').val()) {
-      addReviewItem(treatmentContent, 'Treatment Notes', $('#treatment-notes').val());
-    }
-    
-    addReviewItem(treatmentContent, 'Reporting Source', $('#reporting-source option:selected').text());
-    
-    summary.append(treatmentSection);
   }
 
   // Helper function to add a review item
@@ -294,7 +218,7 @@ $(document).ready(async function() {
         middle_name: $('#patient-middle-name').val(),
         last_name: $('#patient-last-name').val(),
         dob: $('#patient-dob').val(),
-        gender: $('#patient-gender').val(),
+        gender: $('input[name="patient-gender"]:checked').val(),
         national_id: $('#national-id').val()
       },
       diagnosis: {

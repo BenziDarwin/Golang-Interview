@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"golang-interview.com/middleware"
 	"golang-interview.com/models"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type LoginRequest struct {
@@ -209,6 +211,228 @@ func CreateFacility(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(createdFacility)
+}
+
+func UpdateFacility(c *fiber.Ctx) error {
+	// Get facility ID from URL parameter
+	facilityID := c.Params("id")
+
+	var req models.FacilityUpdateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Cannot parse JSON",
+		})
+	}
+
+	// Fetch the existing facility
+	var facility models.Facility
+	if err := database.DB.
+		Preload("Contacts").
+		Preload("Technical").
+		Preload("Identification").
+		First(&facility, facilityID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Facility not found",
+		})
+	}
+
+	// Validate and process identification fields if provided
+	if req.Identification != nil {
+		processedRegistryID, err := validateAndProcessIdentification(struct {
+			RegistryID string `json:"registry_id"`
+			NPI        string `json:"npi,omitempty"`
+		}{
+			RegistryID: req.Identification.RegistryID,
+			NPI:        req.Identification.NPI,
+		})
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		// Check for duplicate NPI (if provided)
+		if req.Identification.NPI != "" && req.Identification.NPI != facility.Identification.NPI {
+			exists, err := checkExistingFacilityByNPI(req.Identification.NPI)
+			if err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"error": "Database error while checking existing facility",
+				})
+			}
+			if exists {
+				return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+					"error": "Facility with this NPI already exists",
+				})
+			}
+		}
+
+		// Check for duplicate Registry ID
+		if req.Identification.RegistryID != "" && req.Identification.RegistryID != facility.Identification.RegistryID {
+			exists, err := checkExistingFacilityByRegistryID(req.Identification.RegistryID)
+			if err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"error": "Database error while checking existing facility",
+				})
+			}
+			if exists {
+				return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+					"error": "Facility with this Registry ID already exists",
+				})
+			}
+		}
+
+		// Update identification fields
+		facility.Identification.RegistryID = processedRegistryID
+		facility.Identification.NPI = req.Identification.NPI
+	}
+
+	// Update general information if provided
+	if req.Name != "" {
+		facility.Name = req.Name
+	}
+	if req.OrganizationName != "" {
+		facility.OrganizationName = req.OrganizationName
+	}
+	if req.ProviderSpecialty != "" {
+		facility.ProviderSpecialty = req.ProviderSpecialty
+	}
+	if req.Status != "" {
+		facility.Status = req.Status
+	}
+	if req.OrganizationType != nil {
+		facility.OrganizationType = req.OrganizationType
+	}
+	if req.YearlyCases != "" {
+		facility.YearlyCases = req.YearlyCases
+	}
+	if req.GenomicTests != nil {
+		facility.GenomicTests = req.GenomicTests
+	}
+
+	// Update contact information if provided
+	if req.Contact != nil {
+		if req.Contact.MeaningfulUse != nil {
+			if err := updateContact(&facility.Contacts[0], req.Contact.MeaningfulUse); err != nil {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": err.Error(),
+				})
+			}
+		}
+		if req.Contact.RegistryLead != nil {
+			if err := updateContact(&facility.Contacts[1], req.Contact.RegistryLead); err != nil {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": err.Error(),
+				})
+			}
+		}
+		if req.Contact.NetworkLead != nil {
+			if err := updateContact(&facility.Contacts[2], req.Contact.NetworkLead); err != nil {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": err.Error(),
+				})
+			}
+		}
+	}
+
+	// Update technical information if provided
+	if req.Technical != nil {
+		if facility.Technical.ID == 0 {
+			// If technical doesn't exist yet, create it
+			facility.Technical = models.Technical{}
+		}
+
+		if req.Technical.SoftwareVendor != "" {
+			facility.Technical.SoftwareVendor = req.Technical.SoftwareVendor
+		}
+		if req.Technical.SoftwareProduct != "" {
+			facility.Technical.SoftwareProduct = req.Technical.SoftwareProduct
+		}
+		if req.Technical.SoftwareVersion != "" {
+			facility.Technical.SoftwareVersion = req.Technical.SoftwareVersion
+		}
+		if req.Technical.TransportOption != "" {
+			facility.Technical.TransportOption = req.Technical.TransportOption
+		}
+		if req.Technical.UpgradeDate != "" {
+			parsed, err := time.Parse("2006-01-02", req.Technical.UpgradeDate)
+			if err != nil {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "Invalid upgrade date format. Use YYYY-MM-DD",
+				})
+			}
+			facility.Technical.UpgradeDate = &parsed
+		}
+		facility.Technical.IsCEHRT2014 = req.Technical.IsCEHRT2014
+		facility.Technical.SupportsHL7CDA = req.Technical.SupportsHL7CDA
+	}
+
+	// Run DB operations in a transaction
+	err := database.DB.Transaction(func(tx *gorm.DB) error {
+		// Save main facility
+		if err := tx.Save(&facility).Error; err != nil {
+			return err
+		}
+
+		// Save related contacts
+		for i := range facility.Contacts {
+			if err := tx.Save(&facility.Contacts[i]).Error; err != nil {
+				return err
+			}
+		}
+
+		// Save technical info
+		if facility.Technical.ID != 0 {
+			if err := tx.Save(&facility.Technical).Error; err != nil {
+				return err
+			}
+		}
+
+		// Save identification
+		if facility.Identification.ID != 0 {
+			if err := tx.Save(&facility.Identification).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to update facility",
+		})
+	}
+
+	// Reload the updated facility with relations
+	var updatedFacility models.Facility
+	if err := database.DB.
+		Preload("Contacts").
+		Preload("Technical").
+		Preload("Identification").
+		First(&updatedFacility, facilityID).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to load updated facility",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(updatedFacility)
+}
+
+func updateContact(contact *models.Contact, input *models.ContactInput) error {
+	if input.Name != "" {
+		contact.Name = input.Name
+	}
+	if input.Email != "" {
+		emailRegex := regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
+		if !emailRegex.MatchString(input.Email) {
+			return fmt.Errorf("invalid email format for contact")
+		}
+		contact.Email = input.Email
+	}
+	if input.Phone != "" {
+		contact.Phone = input.Phone
+	}
+	return nil
 }
 
 // Helper function to validate and process identification fields

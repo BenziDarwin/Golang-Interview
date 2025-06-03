@@ -165,17 +165,134 @@
       padding: var(--spacing-1) var(--spacing-2);
       color: var(--gray-500);
     }
+    /* === TABLE STYLING === */
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+  margin-top: var(--spacing-4);
+}
+
+.data-table {
+  width: 100%;
+  min-width: 800px; /* Ensures it doesn't collapse too much on small screens */
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.data-table thead {
+  background-color: var(--primary);
+  color: white;
+}
+
+.data-table th,
+.data-table td {
+  padding: var(--spacing-2) var(--spacing-3);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.data-table th.sortable {
+  cursor: pointer;
+  position: relative;
+}
+
+.data-table th.sortable::after {
+  content: '\f0dc';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  right: 8px;
+  opacity: 0.5;
+  font-size: 0.8rem;
+}
+
+.data-table th.sort-asc::after,
+.data-table th.sort-desc::after {
+  opacity: 1;
+  color: #fff;
+}
+
+.data-table tr:hover {
+  background-color: var(--gray-50);
+  transition: background-color 0.2s ease;
+}
+
+/* === STATUS BADGES === */
+.status-badge {
+  display: inline-block;
+  padding: 0.25em 0.6em;
+  font-size: 0.75rem;
+  font-weight: bold;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  border-radius: var(--radius-sm);
+}
+
+.status-active { background-color: #28a745; }
+.status-inactive { background-color: #dc3545; }
+.status-followup { background-color: #ffc107; color: #212529; }
+.status-recovered { background-color: #17a2b8; }
+
+/* === ACTION BUTTONS === */
+.action-buttons .action-btn {
+  background-color: transparent;
+  border: none;
+  color: var(--gray-600);
+  font-size: 1rem;
+  margin-left: 4px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.action-buttons .action-btn:hover {
+  color: var(--primary);
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .data-table {
+    font-size: 0.85rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: var(--spacing-1) var(--spacing-2);
+  }
+
+  .search-input {
+    max-width: 100%;
+  }
+  .btn {
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary {
+  background-color: #e9ecef;
+  color: #495057;
+  border: none;
+}
+
+.btn-secondary:hover {
+  background-color: #ced4da;
+}
+body {
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: var(--spacing-4);
+}
+
+}
   </style>
 </head>
 <body>
-
-  <section class="page-header">
-    <div class="container">
-      <h2><i class="fas fa-users"></i> Patient Registry</h2>
-      <p>View and manage registered cancer patients</p>
-    </div>
-  </section>
-
   <section class="form-section">
     <div class="container">
       <div class="form-container">
@@ -190,9 +307,33 @@
           <input type="text" id="patient-search" class="search-input" placeholder="Search patients by name, ID, or medical record number...">
         </div>
 
-        <div id="patients-list">
-          <!-- Patients will be loaded here -->
-        </div>
+      <div class="table-container">
+        <div style="margin-bottom: var(--spacing-3);">
+  <button id="export-btn" class="btn btn-secondary">
+    <i class="fas fa-file-export"></i> Export CSV
+  </button>
+</div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th class="sortable" data-sort="id">Patient ID</th>
+        <th class="sortable" data-sort="name">Name</th>
+        <th class="sortable" data-sort="dob">Date of Birth</th>
+        <th class="sortable" data-sort="gender">Gender</th>
+        <th class="sortable" data-sort="mrn">National ID</th>
+        <th>Facility</th>
+        <th class="sortable" data-sort="diagnosis">Primary Diagnosis</th>
+        <th class="sortable" data-sort="stage">Stage</th>
+        <th>Status</th>
+        <th class="sortable" data-sort="registered">Registered</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="patients-table-body">
+      <!-- Rows will be injected here -->
+    </tbody>
+  </table>
+</div>
 
         <div class="pagination-container">
           <div class="page-size-selector">
@@ -216,38 +357,6 @@
       </div>
     </div>
   </section>
-
-  <footer>
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-section">
-          <h3>Uganda Cancer Registry</h3>
-          <p>Kampala, Uganda<br>Phone: +256 123 456 789</p>
-        </div>
-        <div class="footer-section">
-          <h3>Quick Links</h3>
-          <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="check-facility.html">Check Facility</a></li>
-            <li><a href="register-facility.html">Register Facility</a></li>
-            <li><a href="register-patient.html">Register Patient</a></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h3>Resources</h3>
-          <ul>
-            <li><a href="#">Registry Guidelines</a></li>
-            <li><a href="#">Data Reports</a></li>
-            <li><a href="#">Training Materials</a></li>
-            <li><a href="#">Contact Support</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2025 Uganda National Cancer Registry. All Rights Reserved.</p>
-      </div>
-    </div>
-  </footer>
 
   <script src="../js/patients.js"></script>
   <script src="../js/main.js"></script>

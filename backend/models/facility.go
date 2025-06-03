@@ -144,3 +144,45 @@ type FacilityCreateRequest struct {
 		NPI        string `json:"npi,omitempty"` // Optional for backward compatibility
 	} `json:"identification"`
 }
+
+// FacilityUpdateRequest represents the request structure for updating a facility
+
+type FacilityUpdateRequest struct {
+	Name              string                `json:"name,omitempty"`
+	OrganizationName  string                `json:"organization_name,omitempty"`
+	ProviderSpecialty string                `json:"provider_specialty,omitempty"`
+	Status            string                `json:"status,omitempty"`
+	OrganizationType  []string              `json:"organization_type,omitempty"`
+	YearlyCases       string                `json:"yearly_cases,omitempty"`
+	GenomicTests      []string              `json:"genomic_tests,omitempty"`
+	Contact           *ContactUpdate        `json:"contacts,omitempty"`
+	Technical         *TechnicalUpdate      `json:"technical,omitempty"`
+	Identification    *IdentificationUpdate `json:"identification,omitempty"`
+}
+
+type ContactUpdate struct {
+	MeaningfulUse *ContactInput `json:"meaningful_use,omitempty"`
+	RegistryLead  *ContactInput `json:"registry_lead,omitempty"`
+	NetworkLead   *ContactInput `json:"network_lead,omitempty"`
+}
+
+type TechnicalUpdate struct {
+	SoftwareVendor  string `json:"software_vendor,omitempty"`
+	SoftwareProduct string `json:"software_product,omitempty"`
+	SoftwareVersion string `json:"software_version,omitempty"`
+	TransportOption string `json:"transport_option,omitempty"`
+	UpgradeDate     string `json:"upgrade_date,omitempty"` // Format: YYYY-MM-DD
+	IsCEHRT2014     bool   `json:"is_cehrt2014"`
+	SupportsHL7CDA  bool   `json:"supports_hl7cda"`
+}
+
+type IdentificationUpdate struct {
+	RegistryID string `json:"registry_id,omitempty"`
+	NPI        string `json:"npi,omitempty"`
+}
+
+type ContactInput struct {
+	Name  string `json:"name,omitempty"`
+	Email string `json:"email,omitempty"`
+	Phone string `json:"phone,omitempty"`
+}

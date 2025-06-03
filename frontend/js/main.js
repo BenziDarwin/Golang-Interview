@@ -34,6 +34,11 @@ const SessionManager = {
     return this.getCookie('user_role') || 'guest';
   },
 
+  // Get user name from cookie
+  getUserName: function() {
+    return this.getCookie('user_name') || 'User';
+  },
+
   // Logout user
   logout: function() {
     this.removeCookie('session_token');
@@ -95,27 +100,43 @@ const NavigationManager = {
     return true;
   },
 
+  // Generate user initials for avatar
+  getUserInitials: function() {
+    const userName = SessionManager.getUserName();
+    const names = userName.split(' ');
+    if (names.length >= 2) {
+      return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+    }
+    return userName.substring(0, 2).toUpperCase();
+  },
+
   // Generate navigation HTML based on user session
   generateNavigation: function() {
     const hasSession = SessionManager.hasValidSession();
     const userRole = SessionManager.getUserRole();
+    const userName = SessionManager.getUserName();
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
     let navItems = `
       <li><a href="index.html" ${currentPage === 'index.html' ? 'class="active"' : ''}>Home</a></li>
-      <li><a href="check-facility.html" ${currentPage === 'check-facility.html' ? 'class="active"' : ''}>Check Facility</a></li>
-      <li><a href="register-facility.html" ${currentPage === 'register-facility.html' ? 'class="active"' : ''}>Register Facility</a></li>
     `;
 
     // Add protected pages if user is authenticated
+    if(!hasSession) {
+      navItems += `
+        <li><a href="check-facility.html" ${currentPage === 'check-facility.html' ? 'class="active"' : ''}>Check Facility</a></li>
+        <li><a href="register-facility.html" ${currentPage === 'register-facility.html' ? 'class="active"' : ''}>Register Facility</a></li>
+      `;
+    }
+
     if (hasSession) {
       if (userRole === 'facility') {
-    navItems += `
-        <li><a href="register-patient.html" ${currentPage === 'register-patient.html' ? 'class="active"' : ''}>Register Patient</a></li>
-         <li><a href="patients.html" ${currentPage === 'patients.html' ? 'class="active"' : ''}>Patients</a></li>
-      `;
+        navItems += `
+          <li><a href="facility.html" ${currentPage === 'facility.html' ? 'class="active"' : ''}>My Facility</a></li>
+            <li><a href="register-patient.html" ${currentPage === 'register-patient.html' ? 'class="active"' : ''}>Register Patient</a></li>
+          <li><a href="patients.html" ${currentPage === 'patients.html' ? 'class="active"' : ''}>Patient Registry</a></li>
+        `;
       }
-  
 
       // Add admin link for admin users
       if (userRole === 'admin' || userRole === 'super_admin') {
@@ -123,11 +144,6 @@ const NavigationManager = {
           <li><a href="admin.html" ${currentPage === 'admin.html' ? 'class="active"' : ''}>Admin</a></li>
         `;
       }
-
-      // Add logout option
-      navItems += `
-        <li><a href="#" id="logout-btn" class="logout-link">Logout</a></li>
-      `;
     } else {
       // Add login link for non-authenticated users
       navItems += `
@@ -138,9 +154,52 @@ const NavigationManager = {
     return navItems;
   },
 
+  // Generate user dropdown menu
+  generateUserDropdown: function() {
+    const userName = SessionManager.getUserName();
+    const userRole = SessionManager.getUserRole();
+    const userInitials = this.getUserInitials();
+
+    return `
+      <div class="user-dropdown">
+        <div class="user-avatar" id="user-avatar">
+          <div class="avatar-circle">
+            ${userInitials}
+          </div>
+        </div>
+        <div class="dropdown-menu" id="dropdown-menu">
+          <div class="dropdown-header">
+            <div class="user-info">
+              <div class="user-name">${userName}</div>
+              <div class="user-role">${userRole.charAt(0).toUpperCase() + userRole.slice(1)}</div>
+            </div>
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-items">
+          <a href="facility.html" class="dropdown-item" id="profile-link">
+              <i class="fas fa-user"></i>
+              Profile
+            </a>
+           <!-- 
+            <a href="#" class="dropdown-item" id="settings-link">
+              <i class="fas fa-cog"></i>
+              Settings
+            </a>-->
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item logout-item" id="logout-btn">
+              <i class="fas fa-sign-out-alt"></i>
+              Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
   // Load header dynamically
   loadHeader: function() {
- 
+    const hasSession = SessionManager.hasValidSession();
+    
     const headerHTML = `
       <header>
         <div class="container">
@@ -154,15 +213,159 @@ const NavigationManager = {
               ${this.generateNavigation()}
             </ul>
           </nav>
-          <div class="mobile-menu-toggle">
-            <i class="fas fa-bars"></i>
+          
+          <div class="header-right">
+            ${hasSession ? this.generateUserDropdown() : ''}
+            <div class="mobile-menu-toggle">
+              <i class="fas fa-bars"></i>
+            </div>
           </div>
         </div>
       </header>
+      
+      <style>
+        .header-right {
+          display: flex;
+          align-items: center;
+        }
+        
+        .user-dropdown {
+          position: relative;
+        }
+        
+        .user-avatar {
+          cursor: pointer;
+          transition: transform 0.2s ease;
+        }
+        
+        .user-avatar:hover {
+          transform: scale(1.05);
+        }
+        
+        .avatar-circle {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          font-size: 16px;
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .dropdown-menu {
+          position: absolute;
+          top: 50px;
+          right: 0;
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+          min-width: 200px;
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(-10px);
+          transition: all 0.3s ease;
+          z-index: 1000;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .dropdown-menu.show {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0);
+        }
+        
+        .dropdown-header {
+          padding: 15px;
+          background: #f8f9fa;
+          border-radius: 8px 8px 0 0;
+        }
+        
+        .user-info .user-name {
+          font-weight: bold;
+          color: #333;
+          font-size: 14px;
+        }
+        
+        .user-info .user-role {
+          color: #666;
+          font-size: 12px;
+          text-transform: capitalize;
+        }
+        
+        .dropdown-divider {
+          height: 1px;
+          background: #e9ecef;
+          margin: 0;
+        }
+        
+        .dropdown-items {
+          padding: 8px 0;
+        }
+        
+        .dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 15px;
+          color: #333;
+          text-decoration: none;
+          transition: background-color 0.2s ease;
+          font-size: 14px;
+        }
+        
+        .dropdown-item:hover {
+          background-color: #f8f9fa;
+          color: #333;
+        }
+        
+        .dropdown-item.logout-item {
+          color: #dc3545;
+        }
+        
+        .dropdown-item.logout-item:hover {
+          background-color: #f8f9fa;
+          color: #dc3545;
+        }
+        
+        .dropdown-item i {
+          width: 16px;
+          text-align: center;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+          .header-right {
+            order: 2;
+          }
+          
+          .dropdown-menu {
+            right: -10px;
+            min-width: 180px;
+          }
+        }
+      </style>
     `;
 
     // Insert header at the beginning of body
     $('body').prepend(headerHTML);
+
+    // Bind avatar dropdown toggle
+    $('#user-avatar').click(function(e) {
+      e.stopPropagation();
+      $('#dropdown-menu').toggleClass('show');
+    });
+
+    // Close dropdown when clicking outside
+    $(document).click(function(e) {
+      if (!$(e.target).closest('.user-dropdown').length) {
+        $('#dropdown-menu').removeClass('show');
+      }
+    });
 
     // Bind logout event
     $('#logout-btn').click(function(e) {
@@ -170,6 +373,19 @@ const NavigationManager = {
       if (confirm('Are you sure you want to logout?')) {
         SessionManager.logout();
       }
+    });
+
+    // Bind profile and settings links (you can customize these)
+    $('#profile-link').click(function(e) {
+      e.preventDefault();
+      // Add profile page navigation here
+      console.log('Navigate to profile page');
+    });
+
+    $('#settings-link').click(function(e) {
+      e.preventDefault();
+      // Add settings page navigation here
+      console.log('Navigate to settings page');
     });
   }
 };
@@ -380,7 +596,7 @@ $(document).ready(function() {
   });
 
   // Add form styling
-  $('input, select, textarea').focus(function() {
+  $('.form-group input, .form-group select, .form-group textarea').focus(function() {
     $(this).parent('.form-group').addClass('focused');
   }).blur(function() {
     $(this).parent('.form-group').removeClass('focused');

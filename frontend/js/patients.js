@@ -8,38 +8,60 @@ function getCookie(name) {
 
 $(document).ready(async function() {
     const facilityId = getCookie('facility_id');
+    let allPatients = [];
+    let filteredPatients = [];
+    let currentPage = 1;
+    let pageSize = 10;
+    let totalPages = 1;
+    let sortColumn = '';
+    let sortDirection = 'asc';
     if (!facilityId) {
         alert('Facility ID not found. Please register a facility first.');
         window.location.href = 'register-facility.html';
         return;
     }
 
+    // Show loading state
+    $('#loading-state').show();
+    $('.table-container').hide();
+
     // Fetch patients from the API
-    const response = await fetch(`http://localhost:6060/api/v1/patients/facility/${facilityId}`)
-    if (!response.ok) {
-        console.error('Error fetching patients:', response.statusText);
+    try {
+        const response = await fetch(`http://localhost:6060/api/v1/patients/facility/${facilityId}`)
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const samplePatients = await response.json();
+        
+        $('#loading-state').hide();
+        
+        if (!Array.isArray(samplePatients) || samplePatients.length === 0) {
+            console.warn('No patients found or data is not in expected format.');
+            $('#empty-state').show();
+            return;
+        }
+        
+        // Initialize data
+        allPatients = samplePatients;
+        filteredPatients = samplePatients;
+        
+        // Initial render
+        renderPatientsTable(allPatients);
+        
+    } catch (error) {
+        console.error('Error fetching patients:', error);
+        $('#loading-state').hide();
         alert('Failed to load patients. Please try again later.');
         return;
     }
-    const samplePatients = await response.json();
-    if (!Array.isArray(samplePatients) || samplePatients.length === 0) {
-        console.warn('No patients found or data is not in expected format.');
-        alert('No patients found for this facility.');
-        return;
-    }
-    
-    let allPatients = samplePatients;
-    let filteredPatients = samplePatients;
-    let currentPage = 1;
-    let pageSize = 10;
-    let totalPages = 1;
+
 
     function formatDate(dateString) {
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
+        return date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
         });
     }
 
@@ -56,8 +78,8 @@ $(document).ready(async function() {
         return age;
     }
 
-    function renderPatients(patients) {
-        const patientsList = $('#patients-list');
+    function renderPatientsTable(patients) {
+        const tableBody = $('#patients-table-body');
         const patientCount = $('#patient-count');
         
         // Calculate pagination
@@ -69,21 +91,17 @@ $(document).ready(async function() {
         patientCount.text(patients.length);
         
         if (patients.length === 0) {
-            patientsList.html(`
-                <div class="alert">
-                    <i class="fas fa-info-circle"></i>
-                    <div>
-                        <h4>No Patients Found</h4>
-                        <p>No patients match your search criteria.</p>
-                    </div>
-                </div>
-            `);
+            $('.table-container').hide();
+            $('#empty-state').show();
             $('#pagination-controls').empty();
             $('#pagination-info').empty();
             return;
         }
 
-        const patientsHtml = paginatedPatients.map(patient => {
+        $('#empty-state').hide();
+        $('.table-container').show();
+
+        const tableRows = paginatedPatients.map(patient => {
             const fullName = `${patient.patient_info.first_name} ${patient.patient_info.middle_name || ''} ${patient.patient_info.last_name}`.trim();
             const age = calculateAge(patient.patient_info.dob);
             
@@ -93,50 +111,36 @@ $(document).ready(async function() {
             const stage = latestDiagnosis ? latestDiagnosis.stage : 'Not specified';
             const diagnosisDate = latestDiagnosis ? formatDate(latestDiagnosis.date_of_diagnosis) : 'Not specified';
             
+            // Determine status based on patient data (you may need to adjust this logic)
+            const status = patient.status || 'active'; // Default to active if no status field
+            
             return `
-                <div class="patient-card">
-                    <div class="patient-card-header">
-                        <div>
-                            <div class="patient-name">${fullName}</div>
-                            <div class="patient-id">ID: ${patient.registration_id} | National ID: ${patient.patient_info.national_id || 'Not provided'}</div>
+                <tr>
+                    <td><strong>${patient.registration_id}</strong></td>
+                    <td>${fullName}</td>
+                    <td>${formatDate(patient.patient_info.dob)} (${age} years)</td>
+                    <td>${patient.patient_info.gender}</td>
+                    <td>${patient.patient_info.national_id || 'Not provided'}</td>
+                    <td>${patient.facility_name || 'Current Facility'}</td>
+                    <td>${primarySite}</td>
+                    <td>${stage}</td>
+                    <td><span class="status-badge status-${status}">${status}</span></td>
+                    <td>${formatDate(patient.registration_date)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view-patient" title="View Details" data-patient-id="${patient.ID}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn delete" title="Delete Patient" data-patient-id="${patient.ID}">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
-                    </div>
-                    <div class="patient-card-content">
-                        <div class="patient-card-item">
-                            <div class="patient-card-label">Age</div>
-                            <div class="patient-card-value">${age} years</div>
-                        </div>
-                        <div class="patient-card-item">
-                            <div class="patient-card-label">Gender</div>
-                            <div class="patient-card-value">${patient.patient_info.gender}</div>
-                        </div>
-                        <div class="patient-card-item">
-                            <div class="patient-card-label">Primary Site</div>
-                            <div class="patient-card-value">${primarySite}</div>
-                        </div>
-                        <div class="patient-card-item">
-                            <div class="patient-card-label">Stage</div>
-                            <div class="patient-card-value">${stage}</div>
-                        </div>
-                        <div class="patient-card-item">
-                            <div class="patient-card-label">Diagnosis Date</div>
-                            <div class="patient-card-value">${diagnosisDate}</div>
-                        </div>
-                        <div class="patient-card-item">
-                            <div class="patient-card-label">Registration Date</div>
-                            <div class="patient-card-value">${formatDate(patient.registration_date)}</div>
-                        </div>
-                    </div>
-                    <div class="patient-card-actions">
-                        <button class="btn primary view-patient" data-patient-id="${patient.ID}">
-                            <i class="fas fa-eye"></i> View Patient
-                        </button>
-                    </div>
-                </div>
+                    </td>
+                </tr>
             `;
         }).join('');
 
-        patientsList.html(patientsHtml);
+        tableBody.html(tableRows);
         renderPagination(patients.length);
     }
 
@@ -218,7 +222,56 @@ $(document).ready(async function() {
                        primarySites.includes(term);
             });
         }
-        renderPatients(filteredPatients);
+        renderPatientsTable(filteredPatients);
+    }
+
+    function sortPatients(column, direction) {
+        filteredPatients.sort((a, b) => {
+            let aVal, bVal;
+            
+            switch(column) {
+                case 'id':
+                    aVal = a.registration_id;
+                    bVal = b.registration_id;
+                    break;
+                case 'name':
+                    aVal = `${a.patient_info.first_name} ${a.patient_info.last_name}`.toLowerCase();
+                    bVal = `${b.patient_info.first_name} ${b.patient_info.last_name}`.toLowerCase();
+                    break;
+                case 'dob':
+                    aVal = new Date(a.patient_info.dob);
+                    bVal = new Date(b.patient_info.dob);
+                    break;
+                case 'gender':
+                    aVal = a.patient_info.gender;
+                    bVal = b.patient_info.gender;
+                    break;
+                case 'mrn':
+                    aVal = a.patient_info.national_id || '';
+                    bVal = b.patient_info.national_id || '';
+                    break;
+                case 'diagnosis':
+                    aVal = a.diagnosis && a.diagnosis.length > 0 ? a.diagnosis[0].primary_site : '';
+                    bVal = b.diagnosis && b.diagnosis.length > 0 ? b.diagnosis[0].primary_site : '';
+                    break;
+                case 'stage':
+                    aVal = a.diagnosis && a.diagnosis.length > 0 ? a.diagnosis[0].stage : '';
+                    bVal = b.diagnosis && b.diagnosis.length > 0 ? b.diagnosis[0].stage : '';
+                    break;
+                case 'registered':
+                    aVal = new Date(a.registration_date);
+                    bVal = new Date(b.registration_date);
+                    break;
+                default:
+                    return 0;
+            }
+            
+            if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+            if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+        
+        renderPatientsTable(filteredPatients);
     }
 
     // Event handlers
@@ -227,43 +280,104 @@ $(document).ready(async function() {
         filterPatients(searchTerm);
     });
 
-$(document).on('click', '.view-patient', function() {
-    const patientId = $(this).data('patient-id');
-    // Navigate to patient detail page with patient ID as URL parameter
-    window.location.href = `patient-detail.html?id=${patientId}`;
-});
+    // View patient button click
+    $(document).on('click', '.view-patient', function() {
+        const patientId = $(this).data('patient-id');
+        window.location.href = `patient-detail.html?id=${patientId}`;
+    });
+
+    // Delete patient button click
+    $(document).on('click', '.action-btn.delete', function() {
+        const patientId = $(this).data('patient-id');
+        if (confirm('Are you sure you want to delete this patient? This action cannot be undone.')) {
+            // Implement delete functionality
+            alert(`Delete patient functionality - Patient ID: ${patientId}`);
+            // You would typically make an API call here to delete the patient
+        }
+    });
+
+    // Sorting functionality
+    $(document).on('click', '.sortable', function() {
+        const column = $(this).data('sort');
+        
+        if (sortColumn === column) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            sortColumn = column;
+            sortDirection = 'asc';
+        }
+        
+        // Update sort indicators
+        $('.sortable').removeClass('sort-asc sort-desc');
+        $(this).addClass(sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+        
+        sortPatients(column, sortDirection);
+    });
 
     // Pagination event handlers
     $(document).on('click', '.page-btn', function() {
         currentPage = parseInt($(this).data('page'));
-        renderPatients(filteredPatients);
+        renderPatientsTable(filteredPatients);
     });
 
     $(document).on('click', '#prev-page', function() {
         if (currentPage > 1) {
             currentPage--;
-            renderPatients(filteredPatients);
+            renderPatientsTable(filteredPatients);
         }
     });
 
     $(document).on('click', '#next-page', function() {
         if (currentPage < totalPages) {
             currentPage++;
-            renderPatients(filteredPatients);
+            renderPatientsTable(filteredPatients);
         }
     });
 
     $('#page-size').on('change', function() {
         pageSize = parseInt($(this).val());
         currentPage = 1;
-        renderPatients(filteredPatients);
+        renderPatientsTable(filteredPatients);
+    });
+
+    // Export functionality
+    $('#export-btn').on('click', function() {
+        const headers = ['Patient ID', 'Name', 'Date of Birth', 'Gender', 'National ID', 'Facility', 'Primary Diagnosis', 'Stage', 'Status', 'Registered'];
+        const csvContent = [
+            headers.join(','),
+            ...filteredPatients.map(patient => {
+                const fullName = `${patient.patient_info.first_name} ${patient.patient_info.middle_name || ''} ${patient.patient_info.last_name}`.trim();
+                const latestDiagnosis = patient.diagnosis && patient.diagnosis.length > 0 ? patient.diagnosis[0] : null;
+                const primarySite = latestDiagnosis ? latestDiagnosis.primary_site : 'Not specified';
+                const stage = latestDiagnosis ? latestDiagnosis.stage : 'Not specified';
+                const status = patient.status || 'active';
+                
+                return [
+                    patient.registration_id,
+                    `"${fullName}"`,
+                    formatDate(patient.patient_info.dob),
+                    patient.patient_info.gender,
+                    patient.patient_info.national_id || 'Not provided',
+                    `"${patient.facility_name || 'Current Facility'}"`,
+                    `"${primarySite}"`,
+                    stage,
+                    status,
+                    formatDate(patient.registration_date)
+                ].join(',');
+            })
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'patients_export.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
     });
 
     // Mobile menu toggle
     $('.mobile-menu-toggle').click(function() {
         $('nav').toggleClass('active');
     });
-
-    // Initial render
-    renderPatients(allPatients);
 });

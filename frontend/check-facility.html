@@ -4,26 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Check Facility Status - NH Public Health Cancer Registry</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- Local CSS -->
+<link rel="stylesheet" href="css/styles.css">
+
+<!-- Font Awesome from CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
+
+<!-- jQuery from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> 
 </head>
 <body>
-
-  <section class="page-header">
-    <div class="container">
-      <h2><i class="fas fa-search"></i> Check Facility Registration Status</h2>
-      <p>Verify if your healthcare facility is already registered with the Uganda National Cancer Registry</p>
-    </div>
-  </section>
 
   <section class="form-section">
     <div class="container">
       <div class="form-container">
-        <div class="form-instructions">
-          <h3>Facility Verification</h3>
-          <p>Please enter your facility information below to check if it is already registered in our system. You can search by facility name, registration ID, or NPI number.</p>
-        </div>
         
         <form id="check-facility-form">
           <div class="search-options">
@@ -33,9 +27,6 @@
             <div class="search-option" data-search="id">
               <i class="fas fa-id-card"></i> Search by Registry ID
             </div>
-            <!-- <div class="search-option" data-search="npi">
-              <i class="fas fa-fingerprint"></i> Search by NPI
-            </div> -->
           </div>
 
           <div class="form-group" id="name-search">
@@ -48,12 +39,6 @@
             <label for="facility-id">Registry ID</label>
             <input type="text" id="facility-id" name="facility-id" placeholder="Enter facility registry ID">
             <div class="form-help">Enter your 6-digit registry identification number</div>
-          </div>
-
-          <div class="form-group hidden" id="npi-search">
-            <label for="facility-npi">NPI Number</label>
-            <input type="text" id="facility-npi" name="facility-npi" placeholder="Enter facility NPI number">
-            <div class="form-help">Enter the 10-digit National Provider Identifier</div>
           </div>
 
           <div class="form-actions">
@@ -82,38 +67,6 @@
       <a href="register-facility.html" class="btn secondary">Register New Facility</a>
     </div>
   </section>
-
-  <footer>
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-section">
-          <h3>Uganda National Cancer Registry</h3>
-          <p>29 Hazen Drive<br>Concord, NH 03301<br>Phone: (603) 555-1234</p>
-        </div>
-        <div class="footer-section">
-          <h3>Quick Links</h3>
-          <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="check-facility.html">Check Facility</a></li>
-            <li><a href="register-facility.html">Register Facility</a></li>
-            <li><a href="register-patient.html">Register Patient</a></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h3>Resources</h3>
-          <ul>
-            <li><a href="#">Registry Guidelines</a></li>
-            <li><a href="#">Data Reports</a></li>
-            <li><a href="#">Training Materials</a></li>
-            <li><a href="#">Contact Support</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2025 Uganda National Cancer Registry. All Rights Reserved.</p>
-      </div>
-    </div>
-  </footer>
 
   <script src="../js/main.js"></script>
   <script src="../js/check-facility.js"></script>

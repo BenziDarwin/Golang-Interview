@@ -9,6 +9,71 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
+  <style>
+ .gender-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.gender-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  background-color: #f1f1f1;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.gender-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.gender-label {
+  margin-left: 0.5rem;
+  font-size: 0.95rem;
+  color: #333;
+  user-select: none;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+/* Custom circle icon */
+.gender-option::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  background-color: white;
+  margin-right: 0.5rem;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+/* Checked state styling */
+.gender-option input[type="radio"]:checked + .gender-label {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.gender-option input[type="radio"]:checked::before {
+  background-color: #007bff;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+}
+
+/* Hover effect */
+.gender-option:hover {
+  background-color: #e9ecef;
+}
+  </style>
 
   <section class="page-header">
     <div class="container">
@@ -20,10 +85,6 @@
   <section class="form-section">
     <div class="container">
       <div class="form-container">
-        <div class="form-instructions">
-          <h3>Patient Registration</h3>
-          <p>Please complete the form below to register a cancer patient with the Uganda National Cancer Registry. All fields marked with an asterisk (*) are required.</p>
-        </div>
 
         <!-- Loading Facility Information -->
         <div id="facility-loading" class="loading-section">
@@ -55,14 +116,6 @@
             </div>
             <div class="progress-step" data-step="2">
               <div class="step-number">2</div>
-              <div class="step-label">Diagnosis</div>
-            </div>
-            <div class="progress-step" data-step="3">
-              <div class="step-number">3</div>
-              <div class="step-label">Treatment</div>
-            </div>
-            <div class="progress-step" data-step="4">
-              <div class="step-number">4</div>
               <div class="step-label">Review</div>
             </div>
           </div>
@@ -102,16 +155,28 @@
                 <input type="date" id="patient-dob" name="patient-dob" required>
               </div>
               
-              <div class="form-group">
-                <label for="patient-gender">Gender *</label>
-                <select id="patient-gender" name="patient-gender" required>
-                  <option value="">Select gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                  <option value="unknown">Unknown</option>
-                </select>
-              </div>
+<div class="form-group">
+  <label>Gender *</label>
+  <div class="gender-radio-group">
+    <label class="gender-option">
+      <input type="radio" name="patient-gender" value="male" required>
+      <span class="gender-label">Male</span>
+    </label>
+    <label class="gender-option">
+      <input type="radio" name="patient-gender" value="female" required>
+      <span class="gender-label">Female</span>
+    </label>
+    <label class="gender-option">
+      <input type="radio" name="patient-gender" value="other" required>
+      <span class="gender-label">Other</span>
+    </label>
+    <label class="gender-option">
+      <input type="radio" name="patient-gender" value="unknown" required>
+      <span class="gender-label">Unknown</span>
+    </label>
+  </div>
+</div>
+
             </div>
             
             <div class="form-group">
@@ -126,177 +191,8 @@
             </div>
           </div>
 
-          <!-- Step 2: Diagnosis Information -->
-          <div class="form-step" data-step="2">
-            <h4>Cancer Diagnosis Information</h4>
-            
-            <div class="form-group">
-              <label for="primary-site">Primary Site *</label>
-              <select id="primary-site" name="primary-site" required>
-                <option value="">Select primary site</option>
-                <option value="breast">Breast</option>
-                <option value="cervix">Cervix</option>
-                <option value="colon">Colon</option>
-                <option value="lung">Lung</option>
-                <option value="prostate">Prostate</option>
-                <option value="liver">Liver</option>
-                <option value="skin">Skin</option>
-                <option value="stomach">Stomach</option>
-                <option value="esophagus">Esophagus</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            
-            <div class="form-group hidden" id="other-site-group">
-              <label for="other-site">Please Specify Primary Site *</label>
-              <input type="text" id="other-site" name="other-site">
-            </div>
-            
-            <div class="form-group">
-              <label for="histology">Histology/Behavior *</label>
-              <select id="histology" name="histology" required>
-                <option value="">Select histology</option>
-                <option value="adenocarcinoma">Adenocarcinoma</option>
-                <option value="squamous">Squamous Cell Carcinoma</option>
-                <option value="melanoma">Melanoma</option>
-                <option value="basal">Basal Cell Carcinoma</option>
-                <option value="lymphoma">Lymphoma</option>
-                <option value="leukemia">Leukemia</option>
-                <option value="sarcoma">Sarcoma</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label for="date-of-diagnosis">Date of Diagnosis *</label>
-                <input type="date" id="date-of-diagnosis" name="date-of-diagnosis" required>
-              </div>
-              
-              <div class="form-group">
-                <label for="diagnostic-confirmation">Diagnostic Confirmation *</label>
-                <select id="diagnostic-confirmation" name="diagnostic-confirmation" required>
-                  <option value="">Select method</option>
-                  <option value="positive-histology">Positive Histology</option>
-                  <option value="positive-cytology">Positive Cytology</option>
-                  <option value="positive-microscopic">Positive Microscopic Confirmation</option>
-                  <option value="clinical">Clinical Diagnosis Only</option>
-                  <option value="radiography">Radiography</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="stage">Stage at Diagnosis *</label>
-              <select id="stage" name="stage" required>
-                <option value="">Select stage</option>
-                <option value="in-situ">In Situ</option>
-                <option value="localized">Localized</option>
-                <option value="regional">Regional</option>
-                <option value="distant">Distant</option>
-                <option value="unknown">Unknown</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="laterality">Laterality</label>
-              <select id="laterality" name="laterality">
-                <option value="">Select laterality</option>
-                <option value="right">Right</option>
-                <option value="left">Left</option>
-                <option value="bilateral">Bilateral</option>
-                <option value="not-applicable">Not Applicable</option>
-              </select>
-            </div>
-            
-            <div class="form-actions">
-              <button type="button" class="btn text prev-step"><i class="fas fa-arrow-left"></i> Back</button>
-              <button type="button" class="btn primary next-step">Continue <i class="fas fa-arrow-right"></i></button>
-            </div>
-          </div>
-
-          <!-- Step 3: Treatment Information -->
-          <div class="form-step" data-step="3">
-            <h4>Treatment Information</h4>
-            
-            <div class="form-group">
-              <label>First Course of Treatment (select all that apply)</label>
-              <div class="checkbox-group">
-                <div class="checkbox-item">
-                  <input type="checkbox" id="treatment-surgery" name="treatment[]" value="surgery">
-                  <label for="treatment-surgery">Surgery</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="treatment-radiation" name="treatment[]" value="radiation">
-                  <label for="treatment-radiation">Radiation Therapy</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="treatment-chemo" name="treatment[]" value="chemotherapy">
-                  <label for="treatment-chemo">Chemotherapy</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="treatment-hormone" name="treatment[]" value="hormone">
-                  <label for="treatment-hormone">Hormone Therapy</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="treatment-immuno" name="treatment[]" value="immunotherapy">
-                  <label for="treatment-immuno">Immunotherapy</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="treatment-other" name="treatment[]" value="other">
-                  <label for="treatment-other">Other</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="treatment-none" name="treatment[]" value="none">
-                  <label for="treatment-none">No Treatment</label>
-                </div>
-              </div>
-            </div>
-            
-            <div class="form-group hidden" id="other-treatment-group">
-              <label for="other-treatment">Please Specify Other Treatment</label>
-              <input type="text" id="other-treatment" name="other-treatment">
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label for="date-of-first-treatment">Date of First Treatment</label>
-                <input type="date" id="date-of-first-treatment" name="date-of-first-treatment">
-              </div>
-              
-              <div class="form-group">
-                <label for="treating-physician">Treating Physician</label>
-                <input type="text" id="treating-physician" name="treating-physician">
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="treatment-notes">Additional Treatment Notes</label>
-              <textarea id="treatment-notes" name="treatment-notes" rows="3"></textarea>
-            </div>
-            
-            <div class="form-group">
-              <label for="reporting-source">Reporting Source *</label>
-              <select id="reporting-source" name="reporting-source" required>
-                <option value="">Select source</option>
-                <option value="hospital">Hospital Inpatient</option>
-                <option value="radiation">Radiation Treatment Center</option>
-                <option value="medical-oncology">Medical Oncology</option>
-                <option value="physician-office">Physician's Office/Private Medical Practitioner</option>
-                <option value="laboratory">Laboratory Only</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            
-            <div class="form-actions">
-              <button type="button" class="btn text prev-step"><i class="fas fa-arrow-left"></i> Back</button>
-              <button type="button" class="btn primary next-step">Review <i class="fas fa-arrow-right"></i></button>
-            </div>
-          </div>
-
           <!-- Step 4: Review Information -->
-          <div class="form-step" data-step="4">
+          <div class="form-step" data-step="2">
             <h4>Review Patient Information</h4>
             
             <div id="patient-review-summary">
@@ -348,38 +244,6 @@
       </div>
     </div>
   </section>
-
-  <footer>
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-section">
-          <h3>Uganda National Cancer Registry</h3>
-          <p>Plot 6, Lourdel Road<br>Nakasero, Kampala<br>Phone: +256 414 540 524</p>
-        </div>
-        <div class="footer-section">
-          <h3>Quick Links</h3>
-          <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="dashboard.html">Dashboard</a></li>
-            <li><a href="register-patient.html">Register Patient</a></li>
-            <li><a href="reports.html">Reports</a></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h3>Resources</h3>
-          <ul>
-            <li><a href="#">Registry Guidelines</a></li>
-            <li><a href="#">Data Reports</a></li>
-            <li><a href="#">Training Materials</a></li>
-            <li><a href="#">Contact Support</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2025 Uganda National Cancer Registry. All Rights Reserved.</p>
-      </div>
-    </div>
-  </footer>
   <script src="../js/register-patient.js"></script>
   <script src="../js/main.js"></script>
 </body>
