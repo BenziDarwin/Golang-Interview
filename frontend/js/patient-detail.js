@@ -29,23 +29,21 @@ $(document).ready(async function() {
     let treatments = Array.isArray(patient.treatments) ? patient.treatments : [];
     let currentEditingDiagnosis = null;
     let currentEditingReferral = null;
+      // Sample referrals data
+    let referrals;
 
-    // Sample referrals data
-    let referrals = [
-        {
-            id: 1,
-            referred_by: "Dr. John Smith",
-            facility_name: "Mulago National Referral Hospital",
-            diagnosis: "Cancer Referral",
-            referred_to: "Oncology Specialist",
-            country: "Uganda",
-            city: "Kampala",
-            facility: "Uganda Cancer Institute",
-            doctor: "Dr. Sarah Wilson",
-            referral_date: "2024-12-01",
-            status: "Completed"
+    try {
+        const referralsResponse = await fetch(`http://localhost:6060/api/v1/patients/${patientId}/referrals`);
+        if (!referralsResponse.ok) {
+            throw new Error('Failed to fetch referrals');
         }
-    ];
+        referrals = await referralsResponse.json();
+    } catch (error) {
+        console.error('Error fetching referrals:', error);
+        referrals = [];
+    }
+
+  
 
     function formatDate(dateString) {
         if (!dateString) return 'Not specified';
@@ -496,15 +494,39 @@ $(document).ready(async function() {
         currentEditingReferral = null;
     }
 
-    function saveDiagnosis() {
+    async function saveDiagnosis() {
+            const date = new Date($('#diagnosis-date').val());
+        const isoDate = date.toISOString(); 
         const formData = {
             primary_site: $('#primary-site').val(),
             histology: $('#histology').val(),
-            date_of_diagnosis: $('#diagnosis-date').val(),
+            date_of_diagnosis: isoDate,
             diagnostic_confirmation: $('#diagnostic-confirmation').val(),
             stage: $('#stage').val(),
             laterality: $('#laterality').val()
         };
+
+
+           try {
+            const response = await fetch(`http://localhost:6060/api/v1/patients/${patientId}/diagnosis`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save referral');
+            }
+
+            const newReferral = await response.json();
+            referrals.push(newReferral);
+        } catch (error) {
+            console.error('Error saving referral:', error);
+            alert('An error occurred while saving the referral. Please try again.');
+            return;
+        }
 
         if (currentEditingDiagnosis) {
             const index = diagnoses.findIndex(d => d.ID === currentEditingDiagnosis.ID);
@@ -523,7 +545,9 @@ $(document).ready(async function() {
         closeDiagnosisModal();
     }
 
-    function saveReferral() {
+    async function saveReferral() {
+        const date = new Date($('#referral-date').val());
+        const isoDate = date.toISOString(); // Get just the date part
         const formData = {
             referred_by: $('#referred-by').val(),
             facility_name: $('#facility-name').val(),
@@ -533,21 +557,29 @@ $(document).ready(async function() {
             city: $('#city').val(),
             facility: $('#referral-facility').val(),
             doctor: $('#doctor').val(),
-            referral_date: $('#referral-date').val(),
+            referral_date: isoDate,
             status: 'Pending'
         };
 
-        if (currentEditingReferral) {
-            const index = referrals.findIndex(r => r.id === currentEditingReferral.id);
-            if (index !== -1) {
-                referrals[index] = { ...referrals[index], ...formData };
+        try {
+            const response = await fetch(`http://localhost:6060/api/v1/patients/${patientId}/referral`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save referral');
             }
-        } else {
-            const newReferral = {
-                id: Date.now(),
-                ...formData
-            };
+
+            const newReferral = await response.json();
             referrals.push(newReferral);
+        } catch (error) {
+            console.error('Error saving referral:', error);
+            alert('An error occurred while saving the referral. Please try again.');
+            return;
         }
 
         renderReferralsTable();

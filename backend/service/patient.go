@@ -153,7 +153,7 @@ func GetPatients(c *fiber.Ctx) error {
 		Preload("Facility.Contacts").
 		Preload("Facility.Technical").
 		Preload("Diagnosis").
-		Preload("Treatments").
+		Preload("Referrals").
 		Preload("Submitters").
 		Find(&patients)
 	return c.JSON(patients)
@@ -170,7 +170,7 @@ func GetPatientByID(c *fiber.Ctx) error {
 		Preload("Facility.Contacts").
 		Preload("Facility.Technical").
 		Preload("Diagnosis").
-		Preload("Treatments").
+		Preload("Referrals").
 		Preload("Submitters").
 		First(&patient, id).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -270,7 +270,7 @@ func GetPatientsByFacilityID(c *fiber.Ctx) error {
 		Joins("JOIN facility_identifications ON facility_identifications.facility_id = facilities.id").
 		Where("facility_identifications.registry_id = ?", facilityID).
 		Preload("Diagnosis").
-		Preload("Treatments").
+		Preload("Referrals").
 		Preload("Submitters").
 		Find(&patients).Error
 
@@ -281,6 +281,73 @@ func GetPatientsByFacilityID(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(patients)
+}
+
+// CreateDiagnosis handles POST /patients/:id/diagnosis
+func CreateDiagnosis(c *fiber.Ctx) error {
+	patientID := c.Params("id")
+	var diagnosis models.Diagnosis
+
+	if err := c.BodyParser(&diagnosis); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
+	}
+
+	patientIDUint, err := strconv.Atoi(patientID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid patient ID"})
+	}
+	diagnosis.PatientID = uint(patientIDUint)
+	if err := database.DB.Create(&diagnosis).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create diagnosis"})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(diagnosis)
+}
+
+// CreateReferral handles POST /patients/:id/referral
+func CreateReferral(c *fiber.Ctx) error {
+	patientID := c.Params("id")
+	var referral models.Referral
+
+	if err := c.BodyParser(&referral); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
+	}
+
+	patientIDUint, err := strconv.Atoi(patientID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid patient ID"})
+	}
+
+	referral.PatientID = uint(patientIDUint)
+	if err := database.DB.Create(&referral).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create referral"})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(referral)
+}
+
+// GetDiagnosisByPatientID handles GET /patients/:id/diagnosis
+func GetDiagnosisByPatientID(c *fiber.Ctx) error {
+	patientID := c.Params("id")
+	var diagnosis []models.Diagnosis
+
+	if err := database.DB.Where("patient_id = ?", patientID).Find(&diagnosis).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve diagnosis"})
+	}
+
+	return c.JSON(diagnosis)
+}
+
+// GetReferralByPatientID handles GET /patients/:id/referrals
+func GetReferralByPatientID(c *fiber.Ctx) error {
+	patientID := c.Params("id")
+	var referrals []models.Referral
+
+	if err := database.DB.Where("patient_id = ?", patientID).Find(&referrals).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve referrals"})
+	}
+
+	return c.JSON(referrals)
 }
 
 // Helper function to validate patient request

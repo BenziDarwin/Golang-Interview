@@ -41,6 +41,12 @@ func SetupRoutes(app *fiber.App) {
 		patient.Get("/registration/:registrationId", service.GetPatientByRegistrationID)
 		patient.Delete("/:id", service.DeletePatient)
 		patient.Get("/facility/:id", service.GetPatientsByFacilityID)
+
+		patient.Post("/:id/diagnosis", service.CreateDiagnosis)
+		patient.Get("/:id/diagnosis", service.GetDiagnosisByPatientID)
+
+		patient.Post("/:id/referral", service.CreateReferral)
+		patient.Get("/:id/referrals", service.GetReferralByPatientID)
 	}
 
 	admin := api.Group("/admin")

@@ -35,11 +35,9 @@ func ConnectDB() *gorm.DB {
 		&models.Technical{},
 		&models.FacilityIdentification{},
 		&models.Diagnosis{},
-		&models.Treatment{},
+		&models.Referral{},
 		&models.PatientInfo{},
-		&models.Treatment{},
 		&models.Submitter{},
-		&models.Treatment{},
 		&models.Patient{},
 	)
 	if err != nil {
