@@ -121,14 +121,6 @@ const NavigationManager = {
       <li><a href="index.html" ${currentPage === 'index.html' ? 'class="active"' : ''}>Home</a></li>
     `;
 
-    // Add protected pages if user is authenticated
-    if(!hasSession) {
-      navItems += `
-        <li><a href="check-facility.html" ${currentPage === 'check-facility.html' ? 'class="active"' : ''}>Check Facility</a></li>
-        <li><a href="register-facility.html" ${currentPage === 'register-facility.html' ? 'class="active"' : ''}>Register Facility</a></li>
-      `;
-    }
-
     if (hasSession) {
       if (userRole === 'facility') {
         navItems += `
@@ -204,12 +196,12 @@ const NavigationManager = {
       <header>
         <div class="container">
           <div class="logo">
-            <img src="../assets/logo.png" alt="Uganda National Cancer Registry Logo" style="height: 50px;">
-            <h1>Uganda National Cancer Registry</h1>
+            <img src="../assets/logo.png" alt="Uganda National Patient Registry Logo" style="height: 50px;">
+            <h1>Uganda National Patient Registry</h1>
           </div>
         
           <nav>
-            <ul>
+            <ul class="nav-items">
               ${this.generateNavigation()}
             </ul>
           </nav>
@@ -227,7 +219,16 @@ const NavigationManager = {
         .header-right {
           display: flex;
           align-items: center;
+              gap: 20px;
         }
+
+          .nav-items {
+        display: flex;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        gap: 15px;
+      }
         
         .user-dropdown {
           position: relative;
@@ -399,6 +400,10 @@ $(document).ready(function() {
 
   // Load header dynamically
   NavigationManager.loadHeader();
+
+  if (SessionManager.hasValidSession()) {
+    $('.hero').hide();
+  }
 
   // Mobile menu toggle
   $(document).on('click', '.mobile-menu-toggle', function() {

@@ -118,7 +118,7 @@ $(document).ready(async function() {
                 <tr>
                     <td><strong>${patient.registration_id}</strong></td>
                     <td>${fullName}</td>
-                    <td>${formatDate(patient.patient_info.dob)} (${age} years)</td>
+                    <td>${(patient.patient_info.dob && patient.patient_info.dob.includes("0001-01-01")) ?`${patient.patient_info.age} years` : formatDate(patient.patient_info.dob) ` (${age} years)`}</td>
                     <td>${patient.patient_info.gender}</td>
                     <td>${patient.patient_info.national_id || 'Not provided'}</td>
                     <td>${patient.facility_name || 'Current Facility'}</td>
@@ -355,7 +355,7 @@ $(document).ready(async function() {
                 return [
                     patient.registration_id,
                     `"${fullName}"`,
-                    formatDate(patient.patient_info.dob),
+                    (patient.patient_info.dob && patient.patient_info.dob.includes("0001-01-01")) ?`${patient.patient_info.age} years` : formatDate(patient.patient_info.dob),
                     patient.patient_info.gender,
                     patient.patient_info.national_id || 'Not provided',
                     `"${patient.facility_name || 'Current Facility'}"`,

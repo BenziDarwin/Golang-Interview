@@ -13,12 +13,13 @@ type PatientCreateRequest struct {
 
 // PatientInfoRequest represents the patient information in the request
 type PatientInfoRequest struct {
-	FirstName  string `json:"first_name" validate:"required"`
-	MiddleName string `json:"middle_name,omitempty"`
-	LastName   string `json:"last_name" validate:"required"`
-	DOB        string `json:"dob" validate:"required"` // Format: YYYY-MM-DD
-	Gender     string `json:"gender" validate:"required,oneof=male female other"`
-	NationalId string `json:"national_id" validate:"required"`
+	FirstName  string  `json:"first_name" validate:"required"`
+	MiddleName string  `json:"middle_name,omitempty"`
+	LastName   string  `json:"last_name" validate:"required"`
+	DOB        *string `json:"dob,omitempty"` // Format: YYYY-MM-DD
+	Age        int     `json:"age,omitempty"` // Age can be calculated from DOB
+	Gender     string  `json:"gender" validate:"required,oneof=male female other"`
+	NationalId string  `json:"national_id" validate:"required"`
 }
 
 // DiagnosisRequest represents the diagnosis information in the request

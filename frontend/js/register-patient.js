@@ -6,71 +6,204 @@ function getCookie(name) {
   return null;
 }
 
-$(document).ready(async function() {
+$(document).ready(async function () {
+  let currentPatientId = null;
+
   // Load facility information on page load
   await loadFacilityInformation();
 
   // Show/hide "Other" fields based on selections
-  $('#primary-site').on('change', function() {
-    if ($(this).val() === 'other') {
-      $('#other-site-group').removeClass('hidden');
-      $('#other-site').attr('required', true);
-    } else {
-      $('#other-site-group').addClass('hidden');
-      $('#other-site').attr('required', false);
-    }
+  $('#primary-site').on('change', function () {
+    toggleOtherField($(this), '#other-site-group', '#other-site');
   });
 
-  $('#treatment-other').on('change', function() {
-    if ($(this).is(':checked')) {
-      $('#other-treatment-group').removeClass('hidden');
-      $('#other-treatment').attr('required', true);
-    } else {
-      $('#other-treatment-group').addClass('hidden');
-      $('#other-treatment').attr('required', false);
-    }
+  $('#treatment-other').on('change', function () {
+    toggleOtherField($(this), '#other-treatment-group', '#other-treatment');
   });
+
+  function toggleOtherField(selectElement, groupSelector, inputSelector) {
+    if (selectElement.is(':checkbox') ? selectElement.is(':checked') : selectElement.val() === 'other') {
+      $(groupSelector).removeClass('hidden');
+      $(inputSelector).attr('required', true);
+    } else {
+      $(groupSelector).addClass('hidden');
+      $(inputSelector).attr('required', false);
+    }
+  }
 
   // Handle "No Treatment" checkbox
-  $('#treatment-none').on('change', function() {
+  $('#treatment-none').on('change', function () {
     if ($(this).is(':checked')) {
-      // Disable all other treatment checkboxes
       $('input[name="treatment[]"]').not(this).prop('checked', false).prop('disabled', true);
     } else {
-      // Re-enable all treatment checkboxes
       $('input[name="treatment[]"]').prop('disabled', false);
     }
   });
 
   // Format National ID input
-  $('#national-id').on('input', function() {
+  $('#national-id').on('input', function () {
     let value = $(this).val().replace(/\D/g, '');
-    
-    // Limit to reasonable length for National ID
-    if (value.length > 14) {
-      value = value.substring(0, 14);
-    }
-    
+    if (value.length > 14) value = value.substring(0, 14);
     $(this).val(value);
   });
 
+  $('#patient-dob').on('input', function () {
+  if ($(this).val()) {
+    $('#patient-age').prop('disabled', true).val('');
+  } else {
+    $('#patient-age').prop('disabled', false);
+  }
+});
+
+$('#patient-age').on('input', function () {
+  if ($(this).val()) {
+    $('#patient-dob').prop('disabled', true).val('');
+  } else {
+    $('#patient-dob').prop('disabled', false);
+  }
+});
+
+function validateDemographics() {
+  const dob = $('#patient-dob').val();
+  const age = $('#patient-age').val();
+
+  // If both are empty, invalid
+  if (!dob && !age) {
+    alert("Please provide either Date of Birth or Age.");
+    return false;
+  }
+
+  // If DOB provided, age is optional
+  if (dob && age) {
+    // Optional: warn user that only one should be provided
+    if (confirm("Both Date of Birth and Age are provided. Would you like to continue?")) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  return true; // Valid
+}
+
   // Handle form review step
-  $('.next-step').click(function() {
+  $('.next-step').click(async function () {
     const currentStep = $(this).closest('.form-step');
-    console.log('Current step:', currentStep.data('step'));
-    
-    // If moving to review step, populate summary
-    if (currentStep.data('step') === 1) {
+    const stepNumber = currentStep.data('step');
+
+    console.log(`Moving to step ${stepNumber + 1}`);
+
+    if (stepNumber === 1) {
+       if (!validateDemographics()) {
+      return; // Prevent moving forward
+    }
+    }
+
+    if (stepNumber === 1) {
       populatePatientReviewSummary();
     }
   });
 
+  // Populate patient review summary
+ function populatePatientReviewSummary() {
+    const summary = $('#patient-review-summary');
+    summary.empty();
+    
+    // Facility Information
+    const facilitySection = $(`
+      <div class="review-section">
+        <h5>Facility Information</h5>
+        <div class="review-content"></div>
+      </div>
+    `);
+    
+    const facilityContent = facilitySection.find('.review-content');
+    addReviewItem(facilityContent, 'Facility', $('#selected-facility-name').text());
+    addReviewItem(facilityContent, 'Facility ID', $('#selected-facility-id').text().replace('ID: ', ''));
+    
+    summary.append(facilitySection);
+    
+    // Patient Information
+    const patientSection = $(`
+      <div class="review-section">
+        <h5>Patient Information</h5>
+        <div class="review-content"></div>
+      </div>
+    `);
+    
+    const patientContent = patientSection.find('.review-content');
+    
+    const patientName = $('#patient-first-name').val() + ' ' + 
+                        ($('#patient-middle-name').val() ? $('#patient-middle-name').val() + ' ' : '') + 
+                        $('#patient-last-name').val();
+    
+    addReviewItem(patientContent, 'Patient Name', patientName);
+    if( $('#patient-age').val()) {
+      addReviewItem(patientContent, 'Age', $('#patient-age').val() + ' years');
+    } else {
+
+    addReviewItem(patientContent, 'Date of Birth', formatDate($('#patient-dob').val()));
+    }
+    addReviewItem(patientContent, 'Gender', $('input[name="patient-gender"]:checked').val());
+    addReviewItem(patientContent, 'National ID', $('#national-id').val());
+    addReviewItem(patientContent, 'Medical Record #', $('#medical-record-number').val());
+  
+    
+    summary.append(patientSection);
+    
+    // Diagnosis Information
+    const diagnosisSection = $(`
+      <div class="review-section">
+        <h5>Diagnosis Information</h5>
+        <div class="review-content"></div>
+      </div>
+    `);
+    
+    const diagnosisContent = diagnosisSection.find('.review-content');
+    
+    let primarySite = $('#primary-site option:selected').text();
+    if ($('#primary-site').val() === 'other') {
+      primarySite = $('#other-site').val();
+    }
+    
+    addReviewItem(diagnosisContent, 'Primary Site', primarySite);
+    addReviewItem(diagnosisContent, 'Histology', $('#histology option:selected').text());
+    addReviewItem(diagnosisContent, 'Date of Diagnosis', formatDate($('#date-of-diagnosis').val()));
+    addReviewItem(diagnosisContent, 'Confirmation', $('#diagnostic-confirmation option:selected').text());
+    addReviewItem(diagnosisContent, 'Stage', $('#stage option:selected').text());
+    
+    if ($('#laterality').val()) {
+      addReviewItem(diagnosisContent, 'Laterality', $('#laterality option:selected').text());
+    }
+    
+    summary.append(diagnosisSection);
+  }
+
+    function addReviewItem(container, label, value) {
+    if (value) {
+      container.append(`
+        <div class="review-item">
+          <div class="review-label">${label}:</div>
+          <div class="review-value">${value}</div>
+        </div>
+      `);
+    }
+  }
+
+
+  function formatDate(dateString) {
+    if (!dateString) return '';
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  }
+
   // Handle retry facility button
-  $('#retry-facility').click(async function() {
+  $('#retry-facility').click(async function () {
     await loadFacilityInformation();
   });
 
-  // Load facility information from API or session
+
+    // Load facility information from API or session
   async function loadFacilityInformation() {
     try {
       // Hide error state and show loading
@@ -108,7 +241,13 @@ $(document).ready(async function() {
       
       // Populate facility information
       $('#selected-facility-name').text(facility.name);
-      $('#selected-facility-id').text(`ID: ${facility.identification.registry_id}`);
+      $('#selected-facility-id').text(`${facility.identification.registry_id}`).addClass("hidden");
+
+if (facility.status !== 'active') {
+  $('#facility-status').html('<i class="fas fa-times-circle"></i> Not Verified');
+} else {
+  $('#facility-status').html('<i class="fas fa-check-circle"></i> Verified');
+}
       
       // Hide loading and show form
       $('#facility-loading').addClass('hidden');
@@ -135,78 +274,8 @@ $(document).ready(async function() {
     }
   }
 
-  // Populate patient review summary
-  function populatePatientReviewSummary() {
-    const summary = $('#patient-review-summary');
-    summary.empty();
-    
-    // Facility Information
-    const facilitySection = $(`
-      <div class="review-section">
-        <h5>Facility Information</h5>
-        <div class="review-content"></div>
-      </div>
-    `);
-    
-    const facilityContent = facilitySection.find('.review-content');
-    addReviewItem(facilityContent, 'Facility', $('#selected-facility-name').text());
-    addReviewItem(facilityContent, 'Facility ID', $('#selected-facility-id').text().replace('ID: ', ''));
-    
-    summary.append(facilitySection);
-    
-    // Patient Information
-    const patientSection = $(`
-      <div class="review-section">
-        <h5>Patient Information</h5>
-        <div class="review-content"></div>
-      </div>
-    `);
-    
-    const patientContent = patientSection.find('.review-content');
-    
-    const patientName = $('#patient-first-name').val() + ' ' + 
-                        ($('#patient-middle-name').val() ? $('#patient-middle-name').val() + ' ' : '') + 
-                        $('#patient-last-name').val();
-    
-    addReviewItem(patientContent, 'Patient Name', patientName);
-    addReviewItem(patientContent, 'Date of Birth', formatDate($('#patient-dob').val()));
-    addReviewItem(patientContent, 'Gender', $('input[name="patient-gender"]:checked').val());
-    addReviewItem(patientContent, 'National ID', $('#national-id').val());
-    addReviewItem(patientContent, 'Medical Record #', $('#medical-record-number').val());
-    
-
-    summary.append(patientSection);
-  }
-
-  // Helper function to add a review item
-  function addReviewItem(container, label, value) {
-    if (value) {
-      container.append(`
-        <div class="review-item">
-          <div class="review-label">${label}:</div>
-          <div class="review-value">${value}</div>
-        </div>
-      `);
-    }
-  }
-
-  // Format date for display
-  function formatDate(dateString) {
-    if (!dateString) return '';
-    
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-  }
-
-  // Handle patient registration form submission
-  $('#register-patient-form').submit(async function(e) {
+    $('#register-patient-form').submit(async function(e) {
     e.preventDefault();
-    
-    // Validate required checkbox
-    if (!$('#data-agreement').is(':checked')) {
-      alert('You must certify that the information is accurate to proceed');
-      return;
-    }
     
     // Generate a random patient registration ID for demo purposes
     const patientRegId = 'PR-' + Math.floor(10000 + Math.random() * 90000);
@@ -217,7 +286,8 @@ $(document).ready(async function() {
         first_name: $('#patient-first-name').val(),
         middle_name: $('#patient-middle-name').val(),
         last_name: $('#patient-last-name').val(),
-        dob: $('#patient-dob').val(),
+        dob: $('#patient-dob').val() == "" ? null : $('#patient-dob').val(),
+        age: $('#patient-age').val() == "" ? null :  parseInt($('#patient-age').val()),
         gender: $('input[name="patient-gender"]:checked').val(),
         national_id: $('#national-id').val()
       },
@@ -228,15 +298,6 @@ $(document).ready(async function() {
         diagnostic_confirmation: $('#diagnostic-confirmation').val(),
         stage: $('#stage').val(),
         laterality: $('#laterality').val()
-      },
-      treatment: {
-        types: $('input[name="treatment[]"]:checked').map(function() {
-          return $(this).val();
-        }).get(),
-        first_treatment_date: $('#date-of-first-treatment').val(),
-        treating_physician: $('#treating-physician').val(),
-        notes: $('#treatment-notes').val(),
-        reporting_source: $('#reporting-source').val()
       },
       submitter: {
         name: $('#submitter-name').val(),
@@ -284,24 +345,16 @@ $(document).ready(async function() {
     }, 500);
   });
 
-  // Handle "Register Another Patient" button
-  $('#register-another').click(function() {
-    // Reset the form
+  // Handle "Register Another Patient"
+  $('#register-another').click(function () {
+    // Reset the form and UI
     $('#register-patient-form').trigger('reset');
-    
-    // Show the first step
-    $('.form-step').removeClass('active');
-    $('.form-step[data-step="1"]').addClass('active');
-    
-    // Update progress indicator
-    $('.progress-step').removeClass('active');
-    $('.progress-step[data-step="1"]').addClass('active');
-    
-    // Hide success message and show form
     $('#patient-registration-success').addClass('hidden');
     $('#register-patient-form').removeClass('hidden');
-    
-    // Scroll to top of form
+    $('.form-step').removeClass('active');
+    $('.form-step[data-step="1"]').addClass('active');
+    $('.progress-step').removeClass('active');
+    $('.progress-step[data-step="1"]').addClass('active');
     $('html, body').animate({
       scrollTop: $('#register-patient-form').offset().top - 100
     }, 500);

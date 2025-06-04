@@ -36,7 +36,6 @@ func ConnectDB() *gorm.DB {
 		&models.FacilityIdentification{},
 		&models.Diagnosis{},
 		&models.Referral{},
-		&models.PatientInfo{},
 		&models.Submitter{},
 		&models.Patient{},
 	)

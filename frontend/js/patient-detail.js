@@ -79,44 +79,60 @@ $(document).ready(async function() {
         const submitter = patient.submitter && patient.submitter.length > 0 ? patient.submitter[0] : null;
 
         // Render basic info with improved grid layout
-        const basicInfoHtml = `
-            <div class="patient-info-grid">
-                <div class="info-card">
-                    <div class="info-label">Registration ID</div>
-                    <div class="info-value">${patient.registration_id}</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">National ID</div>
-                    <div class="info-value">${patient.patient_info.national_id || 'Not provided'}</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Date of Birth</div>
-                    <div class="info-value">${formatDate(patient.patient_info.dob)}</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Age</div>
-                    <div class="info-value">${age} years</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Gender</div>
-                    <div class="info-value">${patient.patient_info.gender}</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">Registration Date</div>
-                    <div class="info-value">${formatDate(patient.registration_date)}</div>
-                </div>
-                ${submitter ? `
-                <div class="info-card submitter-card">
-                    <div class="info-label">Submitted By</div>
-                    <div class="info-value">
-                        <strong>${submitter.name}</strong><br>
-                        <span class="text-muted">${submitter.title}</span><br>
-                        <span class="text-muted">${submitter.email}</span>
-                    </div>
-                </div>
-                ` : ''}
-            </div>
-        `;
+      const basicInfoHtml = `
+    <div class="patient-basic-info">
+        <div class="info-item">
+            <span class="info-label">Registration ID</span>
+            <span class="info-value">${patient.registration_id}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">National ID</span>
+            <span class="info-value">${patient.patient_info.national_id || 'Not provided'}</span>
+        </div>
+        ${(patient.patient_info.dob && patient.patient_info.dob.includes("0001-01-01")) ?`<div class="info-item">
+            <span class="info-label">Age</span>
+            <span class="info-value">${patient.patient_info.age} years</span>
+        </div>`: `      <div class="info-item">
+            <span class="info-label">Date of Birth</span>
+            <span class="info-value">${formatDate(patient.patient_info.dob)}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Age</span>
+            <span class="info-value">${age} years</span>
+        </div>`}
+  
+        <div class="info-item">
+            <span class="info-label">Gender</span>
+            <span class="info-value">${patient.patient_info.gender}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Registration Date</span>
+            <span class="info-value">${formatDate(patient.registration_date)}</span>
+        </div>
+        ${patient.patient_info.phone ? `
+        <div class="info-item">
+            <span class="info-label">Phone</span>
+            <span class="info-value">${patient.patient_info.phone}</span>
+        </div>
+        ` : ''}
+        ${patient.patient_info.district ? `
+        <div class="info-item">
+            <span class="info-label">District</span>
+            <span class="info-value">${patient.patient_info.district}</span>
+        </div>
+        ` : ''}
+        ${submitter ? `
+        <div class="info-item submitter-info">
+            <span class="info-label">Submitted By</span>
+            <span class="info-value">
+                <strong>${submitter.name}</strong><br>
+                <small class="text-muted">${submitter.title}</small><br>
+                <small class="text-muted">${submitter.email}</small>
+            </span>
+        </div>
+        ` : ''}
+    </div>
+`;
 
         $('#patient-basic-info').html(basicInfoHtml);
     }
@@ -461,13 +477,17 @@ $(document).ready(async function() {
         $('#diagnosis-modal').show();
     }
 
+    // Fixed openReferralModal function
     function openReferralModal(referral = null) {
         currentEditingReferral = referral;
+
+        console.log("Opening referral modal for patient:", patient);
         
         if (referral) {
             $('#referral-modal-title').text('Edit Referral');
             $('#referred-by').val(referral.referred_by);
-            $('#facility-name').val(referral.facility_name);
+            // Fixed: Use the patient variable that's in scope, not the parameter
+            $('#facility-name').val(patient.facility ? patient.facility.name : '');
             $('#referral-diagnosis').val(referral.diagnosis);
             $('#referred-to').val(referral.referred_to);
             $('#country').val(referral.country);
@@ -478,7 +498,8 @@ $(document).ready(async function() {
         } else {
             $('#referral-modal-title').text('Add New Referral');
             $('#referral-form')[0].reset();
-            $('#facility-name').val('Mulago National Referral Hospital');
+            // Pre-populate facility name for new referrals
+            $('#facility-name').val(patient.facility ? patient.facility.name : '');
         }
         
         $('#referral-modal').show();
@@ -517,14 +538,14 @@ $(document).ready(async function() {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to save referral');
+                throw new Error('Failed to save diagnosis');
             }
 
-            const newReferral = await response.json();
-            referrals.push(newReferral);
+            const newDiagnosis = await response.json();
+            diagnoses.push(newDiagnosis);
         } catch (error) {
-            console.error('Error saving referral:', error);
-            alert('An error occurred while saving the referral. Please try again.');
+            console.error('Error saving diagnosis:', error);
+            alert('An error occurred while saving the diagnosis. Please try again.');
             return;
         }
 
@@ -641,7 +662,7 @@ $(document).ready(async function() {
         }
     });
 
-    // Referral events
+    // Referral events - Fixed to remove patient parameter
     $(document).on('click', '#add-referral-btn', function() {
         openReferralModal();
     });
@@ -651,7 +672,7 @@ $(document).ready(async function() {
         const referralId = parseInt($(this).data('referral-id'));
         const referral = referrals.find(r => r.id === referralId);
         if (referral) {
-            openReferralModal(referral);
+            openReferralModal(referral); // Removed patient parameter
         }
     });
 

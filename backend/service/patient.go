@@ -42,7 +42,7 @@ func CreatePatient(c *fiber.Ctx) error {
 
 	// Check for existing patient with same registration ID if provided
 	if req.RegistrationID != "" {
-		exists, err := checkExistingPatientByRegistrationID(req.RegistrationID)
+		exists, err := checkExistingPatientByRegistrationIDAndFacilityId(req.RegistrationID, req.FacilityID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Database error while checking existing patient",
@@ -56,11 +56,15 @@ func CreatePatient(c *fiber.Ctx) error {
 	}
 
 	// Parse DOB
-	dob, err := time.Parse("2006-01-02", req.PatientInfo.DOB)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid Date of Birth format. Use YYYY-MM-DD",
-		})
+	var dob time.Time
+	if req.PatientInfo.DOB != nil {
+		var err error
+		dob, err = time.Parse("2006-01-02", *req.PatientInfo.DOB)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid Date of Birth format. Use YYYY-MM-DD",
+			})
+		}
 	}
 
 	// Set registration date if provided, else now
@@ -114,14 +118,20 @@ func CreatePatient(c *fiber.Ctx) error {
 			MiddleName: req.PatientInfo.MiddleName,
 			LastName:   req.PatientInfo.LastName,
 			DOB:        dob,
+			Age:        req.PatientInfo.Age,
 			Gender:     req.PatientInfo.Gender,
 			NationalId: req.PatientInfo.NationalId,
 		},
-		Submitters: []models.Submitter{{
-			Name:  req.Submitter.Name,
-			Title: req.Submitter.Title,
-			Email: req.Submitter.Email,
-		}},
+		Diagnosis: []models.Diagnosis{
+			{
+
+				DateOfDiagnosis:        registrationDate,
+				PrimarySite:            req.Diagnosis.PrimarySite,
+				Histology:              req.Diagnosis.Histology,
+				DiagnosticConfirmation: req.Diagnosis.DiagnosticConfirmation,
+				Laterality:             req.Diagnosis.Laterality,
+				Stage:                  req.Diagnosis.Stage,
+			}},
 		RegistrationID:   req.RegistrationID,
 		RegistrationDate: registrationDate,
 	}
@@ -164,15 +174,17 @@ func GetPatientByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	var patient models.Patient
+
 	if err := database.DB.
-		Preload("Facility").
+		Joins("JOIN facilities ON facilities.id = patients.facility_id").
+		Where("patients.id = ?", id).
 		Preload("Facility.Identification").
 		Preload("Facility.Contacts").
 		Preload("Facility.Technical").
 		Preload("Diagnosis").
 		Preload("Referrals").
 		Preload("Submitters").
-		First(&patient, id).Error; err != nil {
+		First(&patient).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Patient not found",
 		})
@@ -361,9 +373,6 @@ func validatePatientRequest(req *models.PatientCreateRequest) error {
 	if req.PatientInfo.LastName == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Last name is required")
 	}
-	if req.PatientInfo.DOB == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "Date of birth is required")
-	}
 	if req.PatientInfo.Gender == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Gender is required")
 	}
@@ -383,12 +392,11 @@ func checkFacilityExists(facilityID string) (models.Facility, error) {
 	return facility, err
 }
 
-// Helper function to check if patient exists by registration ID
-func checkExistingPatientByRegistrationID(registrationID string) (bool, error) {
+func checkExistingPatientByRegistrationIDAndFacilityId(registrationID, facilityId string) (bool, error) {
 	var count int64
 	err := database.DB.
 		Model(&models.Patient{}).
-		Where("registration_id = ?", registrationID).
+		Where("registration_id = ? AND facility_id = ?", registrationID, facilityId).
 		Count(&count).Error
 
 	return count > 0, err

@@ -167,12 +167,6 @@ $(document).ready(function() {
   // Handle form submission
   $('#register-facility-form').submit(async function(e) {
     e.preventDefault();
-    
-    // Validate required checkbox
-    if (!$('#terms-agreement').is(':checked')) {
-      alert('You must agree to the terms to proceed');
-      return;
-    }
 
     // Generate a random facility ID for demo purposes
     const facilityId = 'TMP-' + Math.floor(100000 + Math.random() * 900000);
