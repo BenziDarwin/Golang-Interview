@@ -41,27 +41,29 @@ $(document).ready(function() {
     }
     
     // Perform search
-    let results = [];
+    let results = null;
     let response;
     let data;
-  
+
     switch (activeSearchType) {
       case 'name':
-        response = await fetch("http://localhost:6060/api/v1/facilities/name/" + searchValue);
+        response = await fetch("http://localhost:6060/api/v1/facilities/name/exists/" + encodeURIComponent(searchValue));
         data = await response.json();
         results = data
         break;
       case 'id':
-        response = await fetch("http://localhost:6060/api/v1/facilities/registry/" + searchValue);
+        response = await fetch("http://localhost:6060/api/v1/facilities/registry/exists/" + searchValue);
         data = await response.json();
         results = data
         break;
-      case 'npi':
-        response = await fetch("http://localhost:6060/api/v1/facilities/npi/" + searchValue);
-        data = await response.json();
-        results = data
-        break;
+      // case 'npi':
+      //   response = await fetch("http://localhost:6060/api/v1/facilities/npi/" + searchValue);
+      //   data = await response.json();
+      //   results = data
+      //   break;
     }
+    
+
     
     // Display results
     displaySearchResults(results);
@@ -78,7 +80,9 @@ $(document).ready(function() {
   // Show results container
   resultsContainer.removeClass('hidden');
 
-  if (results.length === 0) {
+  console.log('Search Results:', results);
+
+  if (results.error !== null && results.error !== undefined) {
     resultsContent.html(`
       <div class="no-results">
         <p><strong>Facility does not exist.</strong></p>
@@ -90,7 +94,7 @@ $(document).ready(function() {
     return;
   }
 
-  const facility = results[0];
+  const facility = results;
 
   let statusText = '';
   let actionMessage = '';

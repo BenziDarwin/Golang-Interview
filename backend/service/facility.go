@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -502,6 +503,35 @@ func SetFacilityStatus(c *fiber.Ctx) error {
 
 	return c.JSON(facility)
 }
+func GetExistsFacilityByName(c *fiber.Ctx) error {
+	name := c.Params("name")
+
+	// URL decode the name parameter
+	decodedName, err := url.QueryUnescape(name)
+	if err != nil {
+		decodedName = name // fallback to original if decode fails
+	}
+
+	var facility models.Facility
+	result := database.DB.
+		Preload("Identification").
+		Preload("Contacts").
+		Preload("Technical").
+		Preload("Patients").
+		Where("name = ?", strings.TrimSpace(decodedName)).
+		First(&facility)
+
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Facility with name not found",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"exists": facility.ID != 0,
+		"status": facility.Status,
+	})
+}
 
 func GetFacilityByName(c *fiber.Ctx) error {
 	name := c.Params("name")
@@ -523,6 +553,31 @@ func GetFacilityByName(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(facility)
+}
+
+func GetExistsFacilityByRegistryID(c *fiber.Ctx) error {
+	registryId := c.Params("registryId")
+
+	var facility models.Facility
+	result := database.DB.
+		Preload("Identification").
+		Preload("Contacts").
+		Preload("Technical").
+		Preload("Patients").
+		Joins("JOIN facility_identifications ON facilities.id = facility_identifications.facility_id").
+		Where("facility_identifications.registry_id = ?", registryId).
+		First(&facility)
+
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Facility with registry ID not found",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"exists": facility.ID != 0,
+		"status": facility.Status,
+	})
 }
 
 func GetFacilityByRegistryID(c *fiber.Ctx) error {
