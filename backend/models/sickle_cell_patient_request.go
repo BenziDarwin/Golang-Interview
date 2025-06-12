@@ -3,7 +3,7 @@ package models
 // PatientCreateRequest represents the request structure for creating a patient
 type SickleCellPatientCreateRequest struct {
 	PatientCreateRequest
-	SickleCellDiagnosis SickleCellDiagnosisRequest `json:"sickle_cell_diagnosis" validate:"required"`
+	SickleCellDiagnosis SickleCellDiagnosisRequest `json:"diagnosis" validate:"required"`
 }
 
 // DiagnosisRequest represents the diagnosis information in the request

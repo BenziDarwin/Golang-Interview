@@ -133,8 +133,6 @@ $(document).ready(async function () {
                     <td>${patient.patient_info.gender}</td>
                     <td>${patient.patient_info.national_id || "Not provided"}</td>
                     <td>${patient.facility_name || "Current Facility"}</td>
-                    <td>${primarySite}</td>
-                    <td>${stage}</td>
                     <td><span class="status-badge status-${status}">${status}</span></td>
                     <td>${formatDate(patient.registration_date)}</td>
                     <td>

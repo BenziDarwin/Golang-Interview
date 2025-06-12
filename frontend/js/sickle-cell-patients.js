@@ -135,9 +135,6 @@ $(document).ready(async function () {
                     <td>${patient.patient_info.dob && patient.patient_info.dob.includes("0001-01-01") ? `${patient.patient_info.age} years` : formatDate(patient.patient_info.dob)` (${age} years)`}</td>
                     <td>${patient.patient_info.gender}</td>
                     <td>${patient.patient_info.national_id || "Not provided"}</td>
-                    <td>${patient.facility_name || "Current Facility"}</td>
-                    <td>${primarySite}</td>
-                    <td>${stage}</td>
                     <td><span class="status-badge status-${status}">${status}</span></td>
                     <td>${formatDate(patient.registration_date)}</td>
                     <td>
@@ -317,7 +314,7 @@ $(document).ready(async function () {
   // View patient button click
   $(document).on("click", ".view-patient", function () {
     const patientId = $(this).data("patient-id");
-    window.location.href = `patient-detail.html?id=${patientId}`;
+    window.location.href = `sickle-cell-patient-detail.html?id=${patientId}`;
   });
 
   // Delete patient button click

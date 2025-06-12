@@ -9,7 +9,7 @@ $(document).ready(async function () {
     return;
   }
 
-  const response = await fetch(`/api/v1/patients/${patientId}`);
+  const response = await fetch(`/api/v1/sickle-cell-patients/${patientId}`);
   if (!response.ok) {
     alert("Patient not found or an error occurred while fetching data.");
     window.location.href = "patients.html";
@@ -24,26 +24,10 @@ $(document).ready(async function () {
   }
 
   // Use the patient data directly
-  let patient = patientData;
-  let diagnoses = Array.isArray(patient.diagnosis) ? patient.diagnosis : [];
-  let treatments = Array.isArray(patient.treatments) ? patient.treatments : [];
+  let patient = patientData.patient;
+  let diagnoses = Array.isArray(patientData.diagnosis) ? patientData.diagnosis : [];
+  let referrals = Array.isArray(patient.referrals) ? patient.treatments : [];
   let currentEditingDiagnosis = null;
-  let currentEditingReferral = null;
-  // Sample referrals data
-  let referrals;
-
-  try {
-    const referralsResponse = await fetch(
-      `/api/v1/patients/${patientId}/referrals`,
-    );
-    if (!referralsResponse.ok) {
-      throw new Error("Failed to fetch referrals");
-    }
-    referrals = await referralsResponse.json();
-  } catch (error) {
-    console.error("Error fetching referrals:", error);
-    referrals = [];
-  }
 
   function formatDate(dateString) {
     if (!dateString) return "Not specified";
@@ -141,20 +125,6 @@ $(document).ready(async function () {
         `
             : ""
         }
-        ${
-          submitter
-            ? `
-        <div class="info-item submitter-info">
-            <span class="info-label">Submitted By</span>
-            <span class="info-value">
-                <strong>${submitter.name}</strong><br>
-                <small class="text-muted">${submitter.title}</small><br>
-                <small class="text-muted">${submitter.email}</small>
-            </span>
-        </div>
-        `
-            : ""
-        }
     </div>
 `;
 
@@ -185,8 +155,8 @@ $(document).ready(async function () {
                     <thead>
                         <tr>
                             <th style="width: 25%;">Primary Site</th>
-                            <th style="width: 25%;">Histology</th>
-                            <th style="width: 15%;">Stage</th>
+                            <th style="width: 25%;">Disease Type</th>
+                            <th style="width: 15%;">Diagnostic Confirmation</th>
                             <th style="width: 20%;">Diagnosis Date</th>
                             <th style="width: 15%;">Actions</th>
                         </tr>
@@ -209,11 +179,11 @@ $(document).ready(async function () {
                                             </div>
                                         </td>
                                         <td style="width: 25%;">
-                                            <div class="cell-content">${diagnosis.histology || "Not specified"}</div>
+                                            <div class="cell-content">${diagnosis.disease_type || "Not specified"}</div>
                                         </td>
                                         <td style="width: 15%;">
                                             <div class="cell-content">
-                                                <span class="stage-badge stage-${diagnosis.stage?.toLowerCase()}">${diagnosis.stage || "Not specified"}</span>
+                                                  <div class="cell-content">${diagnosis.diagnostic_confirmation || "Not specified"}</div>
                                             </div>
                                         </td>
                                         <td style="width: 20%;">
