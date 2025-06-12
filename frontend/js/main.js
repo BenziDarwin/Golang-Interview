@@ -126,13 +126,13 @@ const NavigationManager = {
       window.location.pathname.split("/").pop() || "index.html";
 
     let navItems = `
-      <li><a href="index.html" ${currentPage === "index.html" ? 'class="active"' : ""}>Home</a></li>
+      <li><a href="/index.html" ${currentPage === "index.html" ? 'class="active"' : ""}>Home</a></li>
     `;
 
     if (hasSession) {
       if (userRole === "facility") {
         navItems += `
-          <li><a href="facility.html" ${currentPage === "facility.html" ? 'class="active"' : ""}>My Facility</a></li>
+          <li><a href="/facility/facility.html" ${currentPage === "facility.html" ? 'class="active"' : ""}>My Facility</a></li>
         `;
       }
 

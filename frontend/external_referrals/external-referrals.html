@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Patients - Uganda National Cancer Registry</title>
-    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="../css/styles.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -305,7 +305,6 @@
 
       body {
         min-height: 100vh;
-        padding: var(--spacing-2);
       }
 
       .form-section {
@@ -357,8 +356,7 @@
       <div class="container">
         <div class="form-container">
           <div class="patients-header">
-            <h3>Registered Cancer Patients</h3>
-
+            <h3>External Referrals</h3>
             <div class="header-center">
               <input
                 type="text"
@@ -374,10 +372,10 @@
             <div class="header-right">
               <button
                 id="export-btn"
-                onclick="window.location.href='register-cancer-patient.html'"
+                onclick="window.location.href='register-external-referral.html'"
                 class="btn btn-secondary"
               >
-                <i class="fas fa-ribbon"></i> Create Cancer Patient
+                <i class="fas fa-external-link-alt"></i> Create External Referral
               </button>
               <button id="export-btn" class="btn btn-secondary">
                 <i class="fas fa-file-export"></i> Export CSV
@@ -443,7 +441,7 @@
       </div>
     </footer>
 
-    <script src="../js/cancer-patients.js"></script>
+    <script src="../js/external-referrals.js"></script>
     <script src="../js/main.js"></script>
   </body>
 </html>
