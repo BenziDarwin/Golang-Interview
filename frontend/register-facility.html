@@ -1,338 +1,373 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register Facility - NH Public Health Cancer Registry</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-</head>
-<body>
-
-  <section class="form-section">
-    <div class="container">
-      <div class="form-container">
-        <form id="register-facility-form">
-          <div class="form-progress">
-            <div class="progress-step active" data-step="1">
-              <div class="step-number">1</div>
-              <div class="step-label">Basic Info</div>
-            </div>
-            <div class="progress-step" data-step="2">
-              <div class="step-number">2</div>
-              <div class="step-label">Contacts</div>
-            </div>
-            <div class="progress-step" data-step="3">
-              <div class="step-number">3</div>
-              <div class="step-label">Technical</div>
-            </div>
-            <div class="progress-step" data-step="4">
-              <div class="step-number">4</div>
-              <div class="step-label">Review</div>
-            </div>
-          </div>
-
-          <!-- Step 1: Basic Information -->
-          <div class="form-step active" data-step="1">
-            <h4>Basic Information</h4>
-            
-            <div class="form-group">
-              <label for="facility-name">Facility Name *</label>
-              <input type="text" id="facility-name" name="facility-name" required>
-            </div>
-
-            <div class="form-group">
-              <label for="organization-name">Organization/Group Practice Name *</label>
-              <input type="text" id="organization-name" name="organization-name" required>
-              <div class="form-help">E.g., ABC Urology Associates, XYZ Oncology Group</div>
-            </div>
-
-            <div class="form-group">
-              <label for="provider-specialty">Provider Specialty *</label>
-              <input type="text" id="provider-specialty" name="provider-specialty" required>
-              <div class="form-help">E.g., dermatology, hematology, urology, gastroenterology</div>
-            </div>
-
-            <div class="form-group">
-              <label>Organization Type (select all that apply) *</label>
-              <div class="checkbox-group">
-                <div class="checkbox-item">
-                  <input type="checkbox" id="type-freestanding" name="registry-type[]" value="freestanding">
-                  <label for="type-freestanding">Freestanding</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="type-hospital-based" name="registry-type[]" value="hospital-based">
-                  <label for="type-hospital-based">Hospital-based practice</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="type-medical-group" name="registry-type[]" value="medical-group">
-                  <label for="type-medical-group">Medical oncology group or partnership</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="type-multi-specialty" name="registry-type[]" value="multi-specialty">
-                  <label for="type-multi-specialty">Multi-specialty group or partnership</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="type-physician-owned" name="registry-type[]" value="physician-owned">
-                  <label for="type-physician-owned">Physician-owned center</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="type-radiation-group" name="registry-type[]" value="radiation-group">
-                  <label for="type-radiation-group">Radiation oncology group or partnership</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="type-solo-medical" name="registry-type[]" value="solo-medical">
-                  <label for="type-solo-medical">Solo medical oncology practice</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="type-solo-radiation" name="registry-type[]" value="solo-radiation">
-                  <label for="type-solo-radiation">Solo radiation oncology practice</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="type-other" name="registry-type[]" value="other">
-                  <label for="type-other">Other</label>
-                </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register Facility - NH Public Health Cancer Registry</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  </head>
+  <body>
+    <section class="form-section">
+      <div class="container">
+        <div class="form-container">
+          <form id="register-facility-form">
+            <div class="form-progress">
+              <div class="progress-step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Basic Info</div>
+              </div>
+              <div class="progress-step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Contacts</div>
+              </div>
+              <div class="progress-step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Review</div>
               </div>
             </div>
 
-            <div class="form-group">
-              <label for="yearly-cases">Estimated Annual Cancer Cases *</label>
-              <select id="yearly-cases" name="yearly-cases" required>
-                <option value="">Select estimate</option>
-                <option value="less-than-10">Less than 10</option>
-                <option value="10-50">10-50</option>
-                <option value="51-100">51-100</option>
-                <option value="101-500">101-500</option>
-                <option value="more-than-500">More than 500</option>
-              </select>
-            </div>
-            
-            <div class="form-actions">
-              <button type="button" class="btn primary next-step">Continue <i class="fas fa-arrow-right"></i></button>
-            </div>
-          </div>
+            <!-- Step 1: Basic Information -->
+            <div class="form-step active" data-step="1">
+              <h4>Basic Information</h4>
 
-          <!-- Step 2: Contact Information -->
-          <div class="form-step" data-step="2">
-            <h4>Contact Information</h4>
+              <div class="form-group">
+                <label for="facility-name">Facility Name</label>
+                <input
+                  type="text"
+                  id="facility-name"
+                  name="facility-name"
+                  required
+                />
+              </div>
 
-            <div class="contact-section">
-              <h5>Meaningful Use Contact</h5>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="mu-contact-name">Name *</label>
-                  <input type="text" id="mu-contact-name" name="mu-contact-name" required>
+              <div class="form-group">
+                <label for="provider-specialty">Provider Specialty</label>
+                <input
+                  type="text"
+                  id="provider-specialty"
+                  name="provider-specialty"
+                />
+                <div class="form-help">
+                  E.g., dermatology, hematology, urology, gastroenterology
                 </div>
-                <div class="form-group">
-                  <label for="mu-contact-email">Email *</label>
-                  <input type="email" id="mu-contact-email" name="mu-contact-email" required>
+              </div>
+
+              <div class="form-group">
+                <label for="yearly-cases">Estimated Annual Cancer Cases</label>
+                <select id="yearly-cases" name="yearly-cases" required>
+                  <option value="">Select estimate</option>
+                  <option value="less-than-10">Less than 10</option>
+                  <option value="10-50">10-50</option>
+                  <option value="51-100">51-100</option>
+                  <option value="101-500">101-500</option>
+                  <option value="more-than-500">More than 500</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label
+                  >Genomic Testing Capabilities (select all that apply)</label
+                >
+                <div class="checkbox-group">
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-apc"
+                      name="genomic-tests[]"
+                      value="APC"
+                    />
+                    <label for="genomic-apc">APC</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-bcr-abl"
+                      name="genomic-tests[]"
+                      value="BCR-ABL"
+                    />
+                    <label for="genomic-bcr-abl">BCR-ABL</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-brca1"
+                      name="genomic-tests[]"
+                      value="BRCA1"
+                    />
+                    <label for="genomic-brca1">BRCA1</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-brca2"
+                      name="genomic-tests[]"
+                      value="BRCA2"
+                    />
+                    <label for="genomic-brca2">BRCA2</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-ca125"
+                      name="genomic-tests[]"
+                      value="CA 125"
+                    />
+                    <label for="genomic-ca125">CA 125</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-er"
+                      name="genomic-tests[]"
+                      value="ER"
+                    />
+                    <label for="genomic-er">ER</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-her2"
+                      name="genomic-tests[]"
+                      value="HER2"
+                    />
+                    <label for="genomic-her2">HER2</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-kras"
+                      name="genomic-tests[]"
+                      value="KRAS"
+                    />
+                    <label for="genomic-kras">KRAS</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-kit"
+                      name="genomic-tests[]"
+                      value="KIT"
+                    />
+                    <label for="genomic-kit">KIT</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-pr"
+                      name="genomic-tests[]"
+                      value="PR"
+                    />
+                    <label for="genomic-pr">PR</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-tp53"
+                      name="genomic-tests[]"
+                      value="TP53"
+                    />
+                    <label for="genomic-tp53">TP53 (p53)</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-rb1"
+                      name="genomic-tests[]"
+                      value="RB1"
+                    />
+                    <label for="genomic-rb1">RB1</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id="genomic-none"
+                      name="genomic-tests[]"
+                      value="none"
+                    />
+                    <label for="genomic-none"
+                      >My facility does not perform genomic testing</label
+                    >
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="mu-contact-phone">Phone *</label>
-                  <input type="tel" id="mu-contact-phone" name="mu-contact-phone" required>
-                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn primary next-step">
+                  Continue <i class="fas fa-arrow-right"></i>
+                </button>
               </div>
             </div>
 
-            <div class="contact-section">
-              <h5>Cancer Registry Interface Lead</h5>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="registry-contact-name">Name *</label>
-                  <input type="text" id="registry-contact-name" name="registry-contact-name" required>
+            <!-- Step 2: Contact Information -->
+            <div class="form-step" data-step="2">
+              <h4>Contact Information</h4>
+
+              <div class="contact-section">
+                <h5>Facility Incharge</h5>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="facility-incharge-name">Name</label>
+                    <input
+                      type="text"
+                      id="facility-incharge-name"
+                      name="facility-incharge-name"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="facility-incharge-email">Email</label>
+                    <input
+                      type="email"
+                      id="facility-incharge-email"
+                      name="facility-incharge-email"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="facility-incharge-phone">Phone</label>
+                    <input
+                      type="tel"
+                      id="facility-incharge-phone"
+                      name="facility-incharge-phone"
+                      required
+                    />
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="registry-contact-email">Email *</label>
-                  <input type="email" id="registry-contact-email" name="registry-contact-email" required>
+              </div>
+
+              <div class="contact-section">
+                <h5>Registry Focal Person</h5>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="registry-focal-person-name">Name</label>
+                    <input
+                      type="text"
+                      id="registry-focal-person-name"
+                      name="registry-focal-person-name"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="registry-focal-person-email">Email</label>
+                    <input
+                      type="email"
+                      id="registry-focal-person-email"
+                      name="registry-focal-person-email"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="registry-focal-person-phone">Phone</label>
+                    <input
+                      type="tel"
+                      id="registry-focal-person-phone"
+                      name="registry-focal-person-phone"
+                    />
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="registry-contact-phone">Phone *</label>
-                  <input type="tel" id="registry-contact-phone" name="registry-contact-phone" required>
+              </div>
+
+              <div class="contact-section">
+                <h5>Alternative Registry Focal Person</h5>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="alt-registry-focal-person-name">Name</label>
+                    <input
+                      type="text"
+                      id="alt-registry-focal-person-name"
+                      name="alt-registry-focal-person-name"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="alt-registry-focal-person-email">Email</label>
+                    <input
+                      type="email"
+                      id="alt-registry-focal-person-email"
+                      name="alt-registry-focal-person-email"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="alt-registry-focal-person-phone">Phone</label>
+                    <input
+                      type="tel"
+                      id="alt-registry-focal-person-phone"
+                      name="alt-registry-focal-person-phone"
+                    />
+                  </div>
                 </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn text prev-step">
+                  <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <button type="button" class="btn primary next-step">
+                  Continue <i class="fas fa-arrow-right"></i>
+                </button>
               </div>
             </div>
 
-            <div class="contact-section">
-              <h5>Networking Lead</h5>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="network-contact-name">Name *</label>
-                  <input type="text" id="network-contact-name" name="network-contact-name" required>
-                </div>
-                <div class="form-group">
-                  <label for="network-contact-email">Email *</label>
-                  <input type="email" id="network-contact-email" name="network-contact-email" required>
-                </div>
-                <div class="form-group">
-                  <label for="network-contact-phone">Phone *</label>
-                  <input type="tel" id="network-contact-phone" name="network-contact-phone" required>
-                </div>
+            <!-- Step 3: Review -->
+            <div class="form-step" data-step="3">
+              <h4>Review Registration Information</h4>
+
+              <div id="review-summary">
+                <!-- Review summary will be populated via JavaScript -->
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn text prev-step">
+                  <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <button type="submit" class="btn primary">
+                  Submit Registration <i class="fas fa-check"></i>
+                </button>
               </div>
             </div>
-            
-            <div class="form-actions">
-              <button type="button" class="btn text prev-step"><i class="fas fa-arrow-left"></i> Back</button>
-              <button type="button" class="btn primary next-step">Continue <i class="fas fa-arrow-right"></i></button>
-            </div>
-          </div>
+          </form>
 
-          <!-- Step 3: Technical Information -->
-          <div class="form-step" data-step="3">
-            <h4>Technical Information</h4>
-
-            <div class="form-group">
-              <label for="software-vendor">Software Vendor *</label>
-              <input type="text" id="software-vendor" name="software-vendor" required>
+          <div id="registration-success" class="hidden">
+            <div class="success-icon">
+              <i class="fas fa-check-circle"></i>
             </div>
-
-            <div class="form-group">
-              <label for="software-product">Product Name/Number *</label>
-              <input type="text" id="software-product" name="software-product" required>
+            <h3>Registration Submitted Successfully!</h3>
+            <p>
+              Thank you for registering your facility with the New Hampshire
+              Cancer Registry. Your registration has been submitted and is
+              pending review.
+            </p>
+            <p>
+              Your temporary facility ID is:
+              <strong id="temp-facility-id">TMP-12345</strong>
+            </p>
+            <p>
+              You will receive a confirmation email with further instructions
+              within 1-2 business days. If you have any questions, please
+              contact our support team.
+            </p>
+            <div class="success-actions">
+              <a href="index.html" class="btn secondary">Return to Home</a>
+              <a href="register-patient.html" class="btn primary"
+                >Register a Patient</a
+              >
             </div>
-
-            <div class="form-group">
-              <label for="software-version">Version *</label>
-              <input type="text" id="software-version" name="software-version" required>
-            </div>
-
-            <div class="form-group">
-              <div class="checkbox-item">
-                <input type="checkbox" id="is-cehrt-2014" name="is-cehrt-2014">
-                <label for="is-cehrt-2014">System is 2014 Certified Electronic Health Record Technology (CEHRT)</label>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <div class="checkbox-item">
-                <input type="checkbox" id="supports-hl7-cda" name="supports-hl7-cda">
-                <label for="supports-hl7-cda">EHR is capable of sending HL7 CDA R2</label>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="upgrade-date">Planned Software Upgrade Date</label>
-              <input type="date" id="upgrade-date" name="upgrade-date">
-              <div class="form-help">If planning to upgrade your software, indicate estimated date</div>
-            </div>
-
-            <div class="form-group">
-              <label for="transport-option">Transport Option for Electronic Data Submission *</label>
-              <select id="transport-option" name="transport-option" required>
-                <option value="">Select transport option</option>
-                <option value="nh-hie">NH Health Information Exchange (HIE)</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            <div class="form-group hidden" id="other-transport-group">
-              <label for="other-transport">Please Specify Other Transport Option *</label>
-              <input type="text" id="other-transport" name="other-transport">
-            </div>
-
-            <div class="form-group">
-              <label>Genomic Testing Capabilities (select all that apply)</label>
-              <div class="checkbox-group">
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-apc" name="genomic-tests[]" value="APC">
-                  <label for="genomic-apc">APC</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-bcr-abl" name="genomic-tests[]" value="BCR-ABL">
-                  <label for="genomic-bcr-abl">BCR-ABL</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-brca1" name="genomic-tests[]" value="BRCA1">
-                  <label for="genomic-brca1">BRCA1</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-brca2" name="genomic-tests[]" value="BRCA2">
-                  <label for="genomic-brca2">BRCA2</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-ca125" name="genomic-tests[]" value="CA 125">
-                  <label for="genomic-ca125">CA 125</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-er" name="genomic-tests[]" value="ER">
-                  <label for="genomic-er">ER</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-her2" name="genomic-tests[]" value="HER2">
-                  <label for="genomic-her2">HER2</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-kras" name="genomic-tests[]" value="KRAS">
-                  <label for="genomic-kras">KRAS</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-kit" name="genomic-tests[]" value="KIT">
-                  <label for="genomic-kit">KIT</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-pr" name="genomic-tests[]" value="PR">
-                  <label for="genomic-pr">PR</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-tp53" name="genomic-tests[]" value="TP53">
-                  <label for="genomic-tp53">TP53 (p53)</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-rb1" name="genomic-tests[]" value="RB1">
-                  <label for="genomic-rb1">RB1</label>
-                </div>
-                <div class="checkbox-item">
-                  <input type="checkbox" id="genomic-none" name="genomic-tests[]" value="none">
-                  <label for="genomic-none">My facility does not perform genomic testing</label>
-                </div>
-              </div>
-            </div>
-            
-            <div class="form-actions">
-              <button type="button" class="btn text prev-step"><i class="fas fa-arrow-left"></i> Back</button>
-              <button type="button" class="btn primary next-step">Review <i class="fas fa-arrow-right"></i></button>
-            </div>
-          </div>
-
-          <!-- Step 4: Review -->
-          <div class="form-step" data-step="4">
-            <h4>Review Registration Information</h4>
-            
-            <div id="review-summary">
-              <!-- Review summary will be populated via JavaScript -->
-            </div>
-            
-            <div class="form-actions">
-              <button type="button" class="btn text prev-step"><i class="fas fa-arrow-left"></i> Back</button>
-              <button type="submit" class="btn primary">Submit Registration <i class="fas fa-check"></i></button>
-            </div>
-          </div>
-        </form>
-        
-        <div id="registration-success" class="hidden">
-          <div class="success-icon">
-            <i class="fas fa-check-circle"></i>
-          </div>
-          <h3>Registration Submitted Successfully!</h3>
-          <p>Thank you for registering your facility with the New Hampshire Cancer Registry. Your registration has been submitted and is pending review.</p>
-          <p>Your temporary facility ID is: <strong id="temp-facility-id">TMP-12345</strong></p>
-          <p>You will receive a confirmation email with further instructions within 1-2 business days. If you have any questions, please contact our support team.</p>
-          <div class="success-actions">
-            <a href="index.html" class="btn secondary">Return to Home</a>
-            <a href="register-patient.html" class="btn primary">Register a Patient</a>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-  <footer>
-    <div class="container">
-      <div class="footer-bottom">
-        <p>&copy; 2025 Uganda National Patient Registry. All Rights Reserved.</p>
+    </section>
+    <footer>
+      <div class="container">
+        <div class="footer-bottom">
+          <p>
+            &copy; 2025 Uganda National Patient Registry. All Rights Reserved.
+          </p>
+        </div>
       </div>
-    </div>
-  </footer>
-  <script src="js/main.js"></script>
-  <script src="js/register-facility.js"></script>
-</body>
+    </footer>
+    <script src="js/main.js"></script>
+    <script src="js/register-facility.js"></script>
+  </body>
 </html>

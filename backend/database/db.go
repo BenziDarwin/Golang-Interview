@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
-	"golang-interview.com/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"patient-registry.com/models"
 )
 
 var DB *gorm.DB
@@ -32,12 +32,14 @@ func ConnectDB() *gorm.DB {
 		&models.Admin{},
 		&models.Facility{},
 		&models.Contact{},
-		&models.Technical{},
+		&models.Patient{},
 		&models.FacilityIdentification{},
-		&models.Diagnosis{},
+		&models.SickleCellPatient{},
+		&models.SickleCellDiagnosis{},
+		&models.CancerPatient{},
+		&models.CancerDiagnosis{},
 		&models.Referral{},
 		&models.Submitter{},
-		&models.Patient{},
 	)
 	if err != nil {
 		log.Fatal("AutoMigrate failed:", err)

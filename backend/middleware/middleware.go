@@ -39,10 +39,17 @@ type UserClaims struct {
 
 // Protected pages that require authentication
 var protectedPages = map[string]bool{
-	"register-patient.html": true,
-	"admin.html":            true,
-	"dashboard.html":        true,
-	"reports.html":          true,
+	"register-cancer-patient.html":      true,
+	"cancer-patients.html":              true,
+	"register-sickle-cell-patient.html": true,
+	"sickle-cell-patients.html":         true,
+	"external-referrals.html":           true,
+	"register-external-referral.html":   true,
+	"cancer-patient-detail.html":        true,
+	"sickle-cell-patient-detail.html":   true,
+	"admin.html":                        true,
+	"dashboard.html":                    true,
+	"reports.html":                      true,
 }
 
 // Public pages that are always accessible

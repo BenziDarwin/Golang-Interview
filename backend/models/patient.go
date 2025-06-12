@@ -8,11 +8,10 @@ import (
 
 type Patient struct {
 	gorm.Model
-	FacilityID       string      `json:"facility_id"`
+	FacilityID       uint        `json:"facility_id"`
 	PatientInfo      PatientInfo `json:"patient_info" gorm:"embedded;embeddedPrefix:patient_"`
-	Diagnosis        []Diagnosis `json:"diagnosis" gorm:"foreignKey:PatientID"`
-	Referrals        []Referral  `json:"referrals" gorm:"foreignKey:PatientID"`
-	Submitters       []Submitter `json:"submitter" gorm:"foreignKey:PatientID"`
+	Referrals        []Referral  `json:"referrals"` // GORM will figure it out from Referral.PatientID
+	Submitters       []Submitter `json:"submitter"` // Same
 	RegistrationID   string      `json:"registration_id" gorm:"unique"`
 	RegistrationDate time.Time   `json:"registration_date"`
 	Facility         Facility    `json:"facility" gorm:"foreignKey:FacilityID;references:ID"`
@@ -26,18 +25,6 @@ type PatientInfo struct {
 	Age        int       `json:"age,omitempty"` // Age can be calculated from DOB
 	Gender     string    `json:"gender"`
 	NationalId string    `json:"national_id"`
-}
-
-type Diagnosis struct {
-	gorm.Model
-	PrimarySite            string    `json:"primary_site"`
-	Histology              string    `json:"histology"`
-	DateOfDiagnosis        time.Time `json:"date_of_diagnosis"`
-	DiagnosticConfirmation string    `json:"diagnostic_confirmation"`
-	Stage                  string    `json:"stage"`
-	Laterality             string    `json:"laterality"`
-	PatientID              uint      `json:"patient_id"`
-	Patient                Patient   `json:"patient" gorm:"foreignKey:PatientID;references:ID"`
 }
 
 type Referral struct {

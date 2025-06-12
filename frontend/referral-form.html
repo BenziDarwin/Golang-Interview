@@ -1,141 +1,187 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Referral Form - NH Public Health Cancer Registry</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Referral Form - NH Public Health Cancer Registry</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  </head>
+  <body>
     <style>
-        .form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-}
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+      }
 
-.form-group.full-width {
-  grid-column: span 2;
-}
+      .form-group.full-width {
+        grid-column: span 2;
+      }
     </style>
 
-  <section class="form-section">
-    <div class="container">
-      <div class="form-container">
-        <form id="register-facility-form">
-          <div class="form-progress">
-            <div class="progress-step active" data-step="1">
-              <div class="step-number">1</div>
-              <div class="step-label">Basic Info</div>
-            </div>
-            <div class="progress-step" data-step="2">
-              <div class="step-number">2</div>
-              <div class="step-label">Review</div>
-            </div>
-          </div>
-          <!-- Step 1: Referral Details -->
-           <div class="form-step active" data-step="1">
-  <h4>Referral Details</h4>
-  <div class="form-grid">
-
-    <div class="form-group">
-      <label for="referred_by">Referred By *</label>
-      <input type="text" id="referred_by" name="referred_by" required>
-    </div>
-
-    <div class="form-group">
-      <label for="facility_name">Facility Name *</label>
-      <input type="text" id="facility_name" name="facility_name" required>
-    </div>
-
-    <div class="form-group">
-      <label for="diagnosis">Diagnosis *</label>
-      <input type="text" id="diagnosis" name="diagnosis" required>
-    </div>
-
-    <div class="form-group">
-      <label for="referred_to">Referred To *</label>
-      <input type="text" id="referred_to" name="referred_to" required>
-    </div>
-
-    <div class="form-group">
-      <label for="country">Country *</label>
-      <input type="text" id="country" name="country" required>
-    </div>
-
-    <div class="form-group">
-      <label for="city">City *</label>
-      <input type="text" id="city" name="city" required>
-    </div>
-
-    <div class="form-group">
-      <label for="facility">Receiving Facility *</label>
-      <input type="text" id="facility" name="facility" required>
-    </div>
-
-    <div class="form-group">
-      <label for="doctor">Doctor *</label>
-      <input type="text" id="doctor" name="doctor" required>
-    </div>
-
-    <div class="form-group full-width">
-      <label for="referral_date">Referral Date *</label>
-      <input type="date" id="referral_date" name="referral_date" required>
-    </div>
-
-  </div>
-
-  <div class="form-actions">
-    <button type="button" class="btn primary next-step">
-      Continue <i class="fas fa-arrow-right"></i>
-    </button>
-  </div>
-</div>
-
-
-
-          <!-- Step 2: Review -->
-          <div class="form-step" data-step="2">
-            <h4>Review Registration Information</h4>
-            
-            <div id="review-summary">
-              <!-- Review summary will be populated via JavaScript -->
-            </div>
-            
-            <div class="form-group">
-              <div class="checkbox-item">
-                <input type="checkbox" id="terms-agreement" name="terms-agreement" required>
-                <label for="terms-agreement">I certify that the information provided is accurate and complete. I understand that this facility will be required to report cancer cases to the Uganda National Cancer Registry as required by state law. *</label>
+    <section class="form-section">
+      <div class="container">
+        <div class="form-container">
+          <form id="register-facility-form">
+            <div class="form-progress">
+              <div class="progress-step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Basic Info</div>
+              </div>
+              <div class="progress-step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Review</div>
               </div>
             </div>
-            
-            <div class="form-actions">
-              <button type="button" class="btn text prev-step"><i class="fas fa-arrow-left"></i> Back</button>
-              <button type="submit" class="btn primary">Submit Registration <i class="fas fa-check"></i></button>
+            <!-- Step 1: Referral Details -->
+            <div class="form-step active" data-step="1">
+              <h4>Referral Details</h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="referred_by">Referred By *</label>
+                  <input
+                    type="text"
+                    id="referred_by"
+                    name="referred_by"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="facility_name">Facility Name *</label>
+                  <input
+                    type="text"
+                    id="facility_name"
+                    name="facility_name"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="diagnosis">Diagnosis *</label>
+                  <input type="text" id="diagnosis" name="diagnosis" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="referred_to">Referred To *</label>
+                  <input
+                    type="text"
+                    id="referred_to"
+                    name="referred_to"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="country">Country *</label>
+                  <input type="text" id="country" name="country" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="city">City *</label>
+                  <input type="text" id="city" name="city" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="facility">Receiving Facility *</label>
+                  <input type="text" id="facility" name="facility" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="doctor">Doctor *</label>
+                  <input type="text" id="doctor" name="doctor" required />
+                </div>
+
+                <div class="form-group full-width">
+                  <label for="referral_date">Referral Date *</label>
+                  <input
+                    type="date"
+                    id="referral_date"
+                    name="referral_date"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn primary next-step">
+                  Continue <i class="fas fa-arrow-right"></i>
+                </button>
+              </div>
             </div>
-          </div>
-        </form>
-        
-        <div id="registration-success" class="hidden">
-          <div class="success-icon">
-            <i class="fas fa-check-circle"></i>
-          </div>
-          <h3>Registration Submitted Successfully!</h3>
-          <p>Thank you for registering your facility with the New Hampshire Cancer Registry. Your registration has been submitted and is pending review.</p>
-          <p>Your temporary facility ID is: <strong id="temp-facility-id">TMP-12345</strong></p>
-          <p>You will receive a confirmation email with further instructions within 1-2 business days. If you have any questions, please contact our support team.</p>
-          <div class="success-actions">
-            <a href="index.html" class="btn secondary">Return to Home</a>
-            <a href="register-patient.html" class="btn primary">Register a Patient</a>
+
+            <!-- Step 2: Review -->
+            <div class="form-step" data-step="2">
+              <h4>Review Registration Information</h4>
+
+              <div id="review-summary">
+                <!-- Review summary will be populated via JavaScript -->
+              </div>
+
+              <div class="form-group">
+                <div class="checkbox-item">
+                  <input
+                    type="checkbox"
+                    id="terms-agreement"
+                    name="terms-agreement"
+                    required
+                  />
+                  <label for="terms-agreement"
+                    >I certify that the information provided is accurate and
+                    complete. I understand that this facility will be required
+                    to report cancer cases to the Uganda National Cancer
+                    Registry as required by state law. *</label
+                  >
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn text prev-step">
+                  <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <button type="submit" class="btn primary">
+                  Submit Registration <i class="fas fa-check"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <div id="registration-success" class="hidden">
+            <div class="success-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>Registration Submitted Successfully!</h3>
+            <p>
+              Thank you for registering your facility with the New Hampshire
+              Cancer Registry. Your registration has been submitted and is
+              pending review.
+            </p>
+            <p>
+              Your temporary facility ID is:
+              <strong id="temp-facility-id">TMP-12345</strong>
+            </p>
+            <p>
+              You will receive a confirmation email with further instructions
+              within 1-2 business days. If you have any questions, please
+              contact our support team.
+            </p>
+            <div class="success-actions">
+              <a href="index.html" class="btn secondary">Return to Home</a>
+              <a href="register-patient.html" class="btn primary"
+                >Register a Patient</a
+              >
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <script src="js/main.js"></script>
-  <script src="js/register-facility.js"></script>
-</body>
+    <script src="js/main.js"></script>
+    <script src="js/register-facility.js"></script>
+  </body>
 </html>

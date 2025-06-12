@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patients - Uganda National Cancer Registry</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+      /* Additional styles for patient list */
+      .patient-card {
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-2);
+        margin-bottom: var(--spacing-2);
+        background-color: var(--white);
+        box-shadow: var(--shadow-sm);
+        transition: box-shadow var(--transition-fast);
+      }
+
+      .patient-card:hover {
+        box-shadow: var(--shadow-md);
+      }
+
+      .patient-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: var(--spacing-1);
+      }
+
+      .patient-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin-bottom: var(--spacing-1);
+      }
+
+      .patient-id {
+        color: var(--gray-600);
+        font-size: 0.875rem;
+        margin-bottom: var(--spacing-1);
+      }
+
+      .patient-card-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: var(--spacing-2);
+        margin-bottom: var(--spacing-2);
+      }
+
+      .patient-card-item {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .patient-card-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--gray-600);
+        margin-bottom: 0.125rem;
+      }
+
+      .patient-card-value {
+        font-size: 0.9375rem;
+        font-weight: 500;
+      }
+
+      .patient-card-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-2);
+      }
+
+      /* Updated header layout */
+      .patients-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--spacing-3);
+        margin-bottom: var(--spacing-2);
+        flex-wrap: wrap;
+      }
+
+      .patients-header h3 {
+        margin: 0;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .header-center {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        flex: 1;
+        justify-content: center;
+      }
+
+      .search-input {
+        max-width: 400px;
+        min-width: 250px;
+        padding: var(--spacing-1) var(--spacing-2);
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-md);
+        font-size: 0.9rem;
+      }
+
+      .patients-count {
+        color: var(--gray-600);
+        font-size: 0.8rem;
+        white-space: nowrap;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        flex-shrink: 0;
+      }
+
+      /* Pagination styles */
+      .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: var(--spacing-2);
+        padding-top: var(--spacing-2);
+        border-top: 1px solid var(--gray-200);
+      }
+
+      .pagination {
+        display: flex;
+        gap: var(--spacing-1);
+        align-items: center;
+      }
+
+      .pagination-btn {
+        padding: var(--spacing-1) var(--spacing-2);
+        border: 1px solid var(--gray-300);
+        background-color: var(--white);
+        color: var(--gray-700);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        font-size: 0.875rem;
+      }
+
+      .pagination-btn:hover:not(:disabled) {
+        background-color: var(--gray-100);
+        border-color: var(--gray-400);
+      }
+
+      .pagination-btn.active {
+        background-color: var(--primary);
+        color: var(--white);
+        border-color: var(--primary);
+      }
+
+      .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .pagination-info {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+      }
+
+      .page-size-selector {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        font-size: 0.875rem;
+        color: var(--gray-600);
+      }
+
+      .page-size-selector select {
+        padding: var(--spacing-1) var(--spacing-2);
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-sm);
+        font-size: 0.875rem;
+      }
+
+      .pagination-ellipsis {
+        padding: var(--spacing-1) var(--spacing-2);
+        color: var(--gray-500);
+      }
+
+      /* === TABLE STYLING === */
+      .table-container {
+        overflow-x: auto;
+        width: 100%;
+        margin-top: var(--spacing-2);
+      }
+
+      .data-table {
+        width: 100%;
+        min-width: 800px;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+
+      .data-table thead {
+        background-color: var(--primary);
+        color: white;
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: var(--spacing-1) var(--spacing-2);
+        text-align: left;
+        white-space: nowrap;
+      }
+
+      .data-table th.sortable {
+        cursor: pointer;
+        position: relative;
+      }
+
+      .data-table th.sortable::after {
+        content: "\f0dc";
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        position: absolute;
+        right: 8px;
+        opacity: 0.5;
+        font-size: 0.8rem;
+      }
+
+      .data-table th.sort-asc::after,
+      .data-table th.sort-desc::after {
+        opacity: 1;
+        color: #fff;
+      }
+
+      .data-table tr:hover {
+        background-color: var(--gray-50);
+        transition: background-color 0.2s ease;
+      }
+
+      /* === STATUS BADGES === */
+      .status-badge {
+        display: inline-block;
+        padding: 0.2em 0.5em;
+        font-size: 0.7rem;
+        font-weight: bold;
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        border-radius: var(--radius-sm);
+      }
+
+      .status-active {
+        background-color: #28a745;
+      }
+      .status-inactive {
+        background-color: #dc3545;
+      }
+      .status-followup {
+        background-color: #ffc107;
+        color: #212529;
+      }
+      .status-recovered {
+        background-color: #17a2b8;
+      }
+
+      /* === ACTION BUTTONS === */
+      .action-buttons .action-btn {
+        background-color: transparent;
+        border: none;
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        margin-left: 4px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+      }
+
+      .action-buttons .action-btn:hover {
+        color: var(--primary);
+      }
+
+      .btn {
+        padding: var(--spacing-1) var(--spacing-2);
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+      }
+
+      .btn-secondary {
+        background-color: #e9ecef;
+        color: #495057;
+      }
+
+      .btn-secondary:hover {
+        background-color: #ced4da;
+      }
+
+      body {
+        min-height: 100vh;
+        padding: var(--spacing-2);
+      }
+
+      .form-section {
+        padding: var(--spacing-2) 0;
+      }
+
+      .form-container {
+        padding: var(--spacing-2);
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        .patients-header {
+          flex-direction: column;
+          align-items: stretch;
+          gap: var(--spacing-2);
+        }
+
+        .header-center {
+          justify-content: stretch;
+        }
+
+        .search-input {
+          min-width: auto;
+          width: 100%;
+        }
+
+        .header-right {
+          justify-content: center;
+        }
+
+        .data-table {
+          font-size: 0.8rem;
+        }
+
+        .data-table th,
+        .data-table td {
+          padding: 0.5rem 0.25rem;
+        }
+
+        body {
+          padding: var(--spacing-1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="form-section">
+      <div class="container">
+        <div class="form-container">
+          <div class="patients-header">
+            <h3>Registered Sickle Cell Patients</h3>
+
+            <div class="header-center">
+              <input
+                type="text"
+                id="patient-search"
+                class="search-input"
+                placeholder="Search patients by name, ID, or medical record number..."
+              />
+              <div class="patients-count">
+                <span id="patient-count">0</span> patients found
+              </div>
+            </div>
+
+            <div class="header-right">
+              <button
+                id="export-btn"
+                onclick="window.location.href='register-sickle-cell-patient.html'"
+                class="btn btn-secondary"
+              >
+                <i class="fas fa-dna"></i> Create Sickle Cell Patient
+              </button>
+              <button id="export-btn" class="btn btn-secondary">
+                <i class="fas fa-file-export"></i> Export CSV
+              </button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="sortable" data-sort="id">Patient ID</th>
+                  <th class="sortable" data-sort="name">Name</th>
+                  <th class="sortable" data-sort="dob">Date of Birth</th>
+                  <th class="sortable" data-sort="gender">Gender</th>
+                  <th class="sortable" data-sort="mrn">National ID</th>
+                  <th>Facility</th>
+                  <th class="sortable" data-sort="diagnosis">
+                    Primary Diagnosis
+                  </th>
+                  <th class="sortable" data-sort="stage">Stage</th>
+                  <th>Status</th>
+                  <th class="sortable" data-sort="registered">Registered</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="patients-table-body">
+                <!-- Rows will be injected here -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination-container">
+            <div class="page-size-selector">
+              <label for="page-size">Show:</label>
+              <select id="page-size">
+                <option value="5">5 per page</option>
+                <option value="10" selected>10 per page</option>
+                <option value="20">20 per page</option>
+                <option value="50">50 per page</option>
+              </select>
+            </div>
+
+            <div class="pagination-info" id="pagination-info">
+              <!-- Pagination info will be displayed here -->
+            </div>
+
+            <div class="pagination" id="pagination-controls">
+              <!-- Pagination buttons will be generated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <div class="footer-bottom">
+          <p>
+            &copy; 2025 Uganda National Patient Registry. All Rights Reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="../js/sickle-cell-patients.js"></script>
+    <script src="../js/main.js"></script>
+  </body>
+</html>

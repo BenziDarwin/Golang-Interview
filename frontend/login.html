@@ -506,7 +506,7 @@
             // Authentication function (replace with actual API call)
             async function authenticateUser(email, password) {
 
-                const res = await fetch("http://localhost:6060/api/v1/facilities/login", {
+                const res = await fetch("/api/v1/facilities/login", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -603,7 +603,6 @@
         Admin Login
     </a>
 </div>
-
 <style>
 .admin-btn {
     display: inline-flex;

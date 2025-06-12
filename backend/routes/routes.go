@@ -2,8 +2,8 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"golang-interview.com/middleware"
-	"golang-interview.com/service"
+	"patient-registry.com/middleware"
+	"patient-registry.com/service"
 )
 
 func SetupRoutes(app *fiber.App) {
@@ -36,26 +36,40 @@ func SetupRoutes(app *fiber.App) {
 		facility.Put("/status/:id", service.SetFacilityStatus)
 	}
 
-	patient := api.Group("/patients")
+	cancer_patient := api.Group("/cancer-patients")
 	{
-		patient.Post("/", service.CreatePatient)
-		patient.Get("/", service.GetPatients)
-		patient.Get("/:id", service.GetPatientByID)
-		patient.Get("/registration/:registrationId", service.GetPatientByRegistrationID)
-		patient.Delete("/:id", service.DeletePatient)
-		patient.Get("/facility/:id", service.GetPatientsByFacilityID)
+		cancer_patient.Post("/", service.CreateCancerPatient)
+		cancer_patient.Get("/", service.GetCancerPatients)
+		cancer_patient.Get("/:id", service.GetCancerPatientByID)
+		cancer_patient.Get("/registration/:registrationId", service.GetCancerPatientByRegistrationID)
+		cancer_patient.Delete("/:id", service.DeleteCancerPatient)
+		cancer_patient.Get("/facility/:id", service.GetCancerPatientsByFacilityID)
 
-		patient.Post("/:id/diagnosis", service.CreateDiagnosis)
-		patient.Get("/:id/diagnosis", service.GetDiagnosisByPatientID)
+		cancer_patient.Post("/:id/diagnosis", service.CreateCancerDiagnosis)
+		cancer_patient.Get("/:id/diagnosis", service.GetCancerDiagnosisByPatientID)
 
-		patient.Post("/:id/referral", service.CreateReferral)
-		patient.Get("/:id/referrals", service.GetReferralByPatientID)
+		cancer_patient.Post("/:id/referral", service.CreateCancerReferral)
+		cancer_patient.Get("/:id/referrals", service.GetCancerReferralByPatientID)
+	}
+
+	sickle_cell_patient := api.Group("/sickle-cell-patients")
+	{
+		sickle_cell_patient.Post("/", service.CreateSickleCellPatient)
+		sickle_cell_patient.Get("/", service.GetSickleCellPatients)
+		sickle_cell_patient.Get("/:id", service.GetSickleCellPatientByID)
+		sickle_cell_patient.Get("/registration/:registrationId", service.GetSickleCellPatientByRegistrationID)
+		sickle_cell_patient.Delete("/:id", service.DeleteSickleCellPatient)
+		sickle_cell_patient.Get("/facility/:id", service.GetSickleCellPatientsByFacilityID)
+
+		sickle_cell_patient.Post("/:id/diagnosis", service.CreateSickleCellDiagnosis)
+		sickle_cell_patient.Get("/:id/diagnosis", service.GetSickleCellDiagnosisByPatientID)
+
+		sickle_cell_patient.Post("/:id/referral", service.CreateSickleCellReferral)
+		sickle_cell_patient.Get("/:id/referrals", service.GetSickleCellReferralByPatientID)
 	}
 
 	admin := api.Group("/admin")
 	{
 		admin.Post("/login", service.LoginAdmin)
 	}
-
-	// Add similar routes for each model as needed
 }

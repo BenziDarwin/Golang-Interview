@@ -9,9 +9,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/joho/godotenv"
-	"golang-interview.com/database"
-	"golang-interview.com/routes"
-	"golang-interview.com/service"
+	"patient-registry.com/database"
+	"patient-registry.com/routes"
+	"patient-registry.com/service"
 )
 
 func main() {

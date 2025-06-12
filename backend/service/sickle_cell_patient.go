@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"golang-interview.com/database"
-	"golang-interview.com/models"
 	"gorm.io/gorm"
+	"patient-registry.com/database"
+	"patient-registry.com/models"
 )
 
-// CreatePatient handles POST /patients
-func CreatePatient(c *fiber.Ctx) error {
-	req := new(models.PatientCreateRequest)
+func CreateSickleCellPatient(c *fiber.Ctx) error {
+	req := new(models.SickleCellPatientCreateRequest)
 	if err := c.BodyParser(req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Cannot parse JSON",
@@ -21,14 +20,14 @@ func CreatePatient(c *fiber.Ctx) error {
 	}
 
 	// Validate required fields
-	if err := validatePatientRequest(req); err != nil {
+	if err := validateSickleCellPatientRequest(req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
 	// Check if facility exists
-	facility, err := checkFacilityExists(req.FacilityID)
+	facility, err := CheckFacilityExists(req.FacilityID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Database error while checking facility",
@@ -40,9 +39,9 @@ func CreatePatient(c *fiber.Ctx) error {
 		})
 	}
 
-	// Check for existing patient with same registration ID if provided
+	// Check for duplicate registration ID
 	if req.RegistrationID != "" {
-		exists, err := checkExistingPatientByRegistrationIDAndFacilityId(req.RegistrationID, req.FacilityID)
+		exists, err := checkExistingSickleCellPatientByRegistrationIDAndFacilityId(req.RegistrationID, req.FacilityID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Database error while checking existing patient",
@@ -58,7 +57,6 @@ func CreatePatient(c *fiber.Ctx) error {
 	// Parse DOB
 	var dob time.Time
 	if req.PatientInfo.DOB != nil {
-		var err error
 		dob, err = time.Parse("2006-01-02", *req.PatientInfo.DOB)
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -67,7 +65,7 @@ func CreatePatient(c *fiber.Ctx) error {
 		}
 	}
 
-	// Set registration date if provided, else now
+	// Parse registration date or use now
 	registrationDate := time.Now()
 	if req.RegistrationDate != "" {
 		if parsed, err := time.Parse(time.RFC3339, req.RegistrationDate); err == nil {
@@ -75,16 +73,16 @@ func CreatePatient(c *fiber.Ctx) error {
 		}
 	}
 
-	// Check if patient with this national ID already exists
-	var existingPatient models.Patient
-	err = database.DB.Where("patient_national_id = ?", req.PatientInfo.NationalId).First(&existingPatient).Error
+	// Check for existing patient with national ID
+	var existing models.Patient
+	err = database.DB.Where("patient_national_id  = ? AND facility_id = ?", req.PatientInfo.NationalId, req.FacilityID).First(&existing).Error
 	if err == nil {
-		// Patient exists - only add new submitter
+		// Patient exists — add new submitter only
 		newSubmitter := models.Submitter{
 			Name:      req.Submitter.Name,
 			Title:     req.Submitter.Title,
 			Email:     req.Submitter.Email,
-			PatientID: existingPatient.ID,
+			PatientID: existing.ID,
 		}
 
 		if err := database.DB.Create(&newSubmitter).Error; err != nil {
@@ -93,47 +91,58 @@ func CreatePatient(c *fiber.Ctx) error {
 			})
 		}
 
-		var updatedPatient models.Patient
-		if err := database.DB.Preload("Facility").
-			Preload("Submitters").
-			First(&updatedPatient, existingPatient.ID).Error; err != nil {
+		var updated models.SickleCellPatient
+		if err := database.DB.
+			Preload("Patient").
+			Preload("Patient.Facility").
+			Preload("Patient.Submitters").
+			Preload("Patient.Referrals").
+			Preload("SickleCellDiagnosis").
+			Where("patient_id = ?", existing.ID).
+			First(&updated).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to load updated patient",
 			})
 		}
 
-		return c.Status(fiber.StatusOK).JSON(updatedPatient)
+		return c.Status(fiber.StatusOK).JSON(updated)
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		// Some other DB error
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Database error while checking for existing patient",
+			"error": "Database error while checking national ID",
 		})
 	}
 
-	// No existing patient found - create a new one
-	patient := models.Patient{
-		FacilityID: strconv.FormatUint(uint64(facility.ID), 10),
-		PatientInfo: models.PatientInfo{
-			FirstName:  req.PatientInfo.FirstName,
-			MiddleName: req.PatientInfo.MiddleName,
-			LastName:   req.PatientInfo.LastName,
-			DOB:        dob,
-			Age:        req.PatientInfo.Age,
-			Gender:     req.PatientInfo.Gender,
-			NationalId: req.PatientInfo.NationalId,
+	// No patient found, create everything new
+	patient := models.SickleCellPatient{
+		Patient: models.Patient{
+			FacilityID: facility.ID,
+			PatientInfo: models.PatientInfo{
+				FirstName:  req.PatientInfo.FirstName,
+				MiddleName: req.PatientInfo.MiddleName,
+				LastName:   req.PatientInfo.LastName,
+				DOB:        dob,
+				Age:        req.PatientInfo.Age,
+				Gender:     req.PatientInfo.Gender,
+				NationalId: req.PatientInfo.NationalId,
+			},
+			RegistrationID:   req.RegistrationID,
+			RegistrationDate: registrationDate,
+			Submitters: []models.Submitter{
+				{
+					Name:  req.Submitter.Name,
+					Title: req.Submitter.Title,
+					Email: req.Submitter.Email,
+				},
+			},
 		},
-		Diagnosis: []models.Diagnosis{
+		SickleCellDiagnosis: []models.SickleCellDiagnosis{
 			{
-
 				DateOfDiagnosis:        registrationDate,
-				PrimarySite:            req.Diagnosis.PrimarySite,
-				Histology:              req.Diagnosis.Histology,
-				DiagnosticConfirmation: req.Diagnosis.DiagnosticConfirmation,
-				Laterality:             req.Diagnosis.Laterality,
-				Stage:                  req.Diagnosis.Stage,
-			}},
-		RegistrationID:   req.RegistrationID,
-		RegistrationDate: registrationDate,
+				DiagnosticConfirmation: req.SickleCellDiagnosis.DiagnosticConfirmation,
+				DiseaseType:            req.SickleCellDiagnosis.DiseaseType,
+				Stage:                  req.SickleCellDiagnosis.Stage,
+			},
+		},
 	}
 
 	if err := database.DB.Create(&patient).Error; err != nil {
@@ -142,21 +151,25 @@ func CreatePatient(c *fiber.Ctx) error {
 		})
 	}
 
-	var createdPatient models.Patient
-	if err := database.DB.Preload("Facility").
-		Preload("Submitters").
-		First(&createdPatient, patient.ID).Error; err != nil {
+	var created models.SickleCellPatient
+	if err := database.DB.
+		Preload("Patient").
+		Preload("Patient.Facility").
+		Preload("Patient.Submitters").
+		Preload("Patient.Referrals").
+		Preload("SickleCellDiagnosis").
+		First(&created, patient.ID).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to load created patient",
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(createdPatient)
+	return c.Status(fiber.StatusCreated).JSON(created)
 }
 
 // GetPatients handles GET /patients
-func GetPatients(c *fiber.Ctx) error {
-	var patients []models.Patient
+func GetSickleCellPatients(c *fiber.Ctx) error {
+	var patients []models.SickleCellPatient
 	database.DB.
 		Preload("Facility").
 		Preload("Facility.Identification").
@@ -170,20 +183,20 @@ func GetPatients(c *fiber.Ctx) error {
 }
 
 // GetPatientByID handles GET /patients/:id
-func GetPatientByID(c *fiber.Ctx) error {
+func GetSickleCellPatientByID(c *fiber.Ctx) error {
 	id := c.Params("id")
-
-	var patient models.Patient
-
+	var patient models.SickleCellPatient
 	if err := database.DB.
-		Joins("JOIN facilities ON facilities.id = patients.facility_id").
-		Where("patients.id = ?", id).
-		Preload("Facility.Identification").
-		Preload("Facility.Contacts").
-		Preload("Facility.Technical").
-		Preload("Diagnosis").
-		Preload("Referrals").
-		Preload("Submitters").
+		Table("cancer_patients").
+		Joins("LEFT JOIN patients ON patients.id = cancer_patients.patient_id").
+		Joins("LEFT JOIN facilities ON facilities.id = patients.facility_id").
+		Where("cancer_patients.id = ?", id).
+		Preload("Patient").
+		Preload("Patient.Facility.Identification").
+		Preload("Patient.Facility.Contacts").
+		Preload("SickleCellDiagnosis").
+		Preload("Patient.Referrals").
+		Preload("Patient.Submitters").
 		First(&patient).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Patient not found",
@@ -194,10 +207,9 @@ func GetPatientByID(c *fiber.Ctx) error {
 }
 
 // DeletePatient handles DELETE /patients/:id
-func DeletePatient(c *fiber.Ctx) error {
+func DeleteSickleCellPatient(c *fiber.Ctx) error {
 	id := c.Params("id")
-
-	var patient models.Patient
+	var patient models.SickleCellPatient
 	if err := database.DB.First(&patient, id).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Patient not found",
@@ -216,10 +228,10 @@ func DeletePatient(c *fiber.Ctx) error {
 }
 
 // GetPatientsByFacility handles GET /facilities/:id/patients
-func GetPatientsByFacility(c *fiber.Ctx) error {
+func GetSickleCellPatientsByFacility(c *fiber.Ctx) error {
 	facilityID := c.Params("id")
 
-	var patients []models.Patient
+	var patients []models.SickleCellPatient
 	if err := database.DB.
 		Where("facility_id = ?", facilityID).
 		Preload("Facility").
@@ -233,13 +245,14 @@ func GetPatientsByFacility(c *fiber.Ctx) error {
 }
 
 // GetPatientByRegistrationID handles GET /patients/registration/:registrationId
-func GetPatientByRegistrationID(c *fiber.Ctx) error {
+func GetSickleCellPatientByRegistrationID(c *fiber.Ctx) error {
 	registrationID := c.Params("registrationId")
 
-	var patients []models.Patient
+	var patients []models.SickleCellPatient
 	likePattern := "%" + registrationID + "%"
 	result := database.DB.
-		Where("registration_id LIKE ?", likePattern).
+		Preload("Patient").
+		Where("patient.registration_id LIKE ?", likePattern).
 		Preload("Facility").
 		Find(&patients)
 
@@ -253,15 +266,22 @@ func GetPatientByRegistrationID(c *fiber.Ctx) error {
 }
 
 // GetPatientByName handles GET /patients/name/:name
-func GetPatientByName(c *fiber.Ctx) error {
+func GetSickleCellPatientByName(c *fiber.Ctx) error {
 	name := c.Params("name")
-
-	var patients []models.Patient
 	likePattern := "%" + name + "%"
+
+	var patients []models.SickleCellPatient
+
 	result := database.DB.
+		Table("cancer_patients").
+		Joins("JOIN patients ON patients.id = cancer_patients.patient_id").
 		Where("patient_first_name LIKE ? OR patient_middle_name LIKE ? OR patient_last_name LIKE ?",
 			likePattern, likePattern, likePattern).
-		Preload("Facility").
+		Preload("Patient").
+		Preload("Patient.Facility").
+		Preload("Patient.Referrals").
+		Preload("Patient.Submitters").
+		Preload("SickleCellDiagnosis").
 		Find(&patients)
 
 	if result.Error != nil {
@@ -273,22 +293,24 @@ func GetPatientByName(c *fiber.Ctx) error {
 	return c.JSON(patients)
 }
 
-func GetPatientsByFacilityID(c *fiber.Ctx) error {
+func GetSickleCellPatientsByFacilityID(c *fiber.Ctx) error {
 	facilityID := c.Params("id")
-	var patients []models.Patient
+	var patients []models.SickleCellPatient
 
 	err := database.DB.
+		Table("sickle_cell_patients").
+		Joins("JOIN patients ON patients.id = sickle_cell_patients.patient_id").
 		Joins("JOIN facilities ON facilities.id = patients.facility_id").
 		Joins("JOIN facility_identifications ON facility_identifications.facility_id = facilities.id").
 		Where("facility_identifications.registry_id = ?", facilityID).
-		Preload("Diagnosis").
-		Preload("Referrals").
-		Preload("Submitters").
+		Preload("SickleCellDiagnosis").
+		Preload("Patient.Referrals").
+		Preload("Patient.Submitters").
 		Find(&patients).Error
 
-	if err != nil || len(patients) == 0 {
+	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "No patients found for this facility",
+			"error": "Error in retrieving patients for facility",
 		})
 	}
 
@@ -296,9 +318,9 @@ func GetPatientsByFacilityID(c *fiber.Ctx) error {
 }
 
 // CreateDiagnosis handles POST /patients/:id/diagnosis
-func CreateDiagnosis(c *fiber.Ctx) error {
+func CreateSickleCellDiagnosis(c *fiber.Ctx) error {
 	patientID := c.Params("id")
-	var diagnosis models.Diagnosis
+	var diagnosis models.SickleCellDiagnosis
 
 	if err := c.BodyParser(&diagnosis); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
@@ -308,7 +330,7 @@ func CreateDiagnosis(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid patient ID"})
 	}
-	diagnosis.PatientID = uint(patientIDUint)
+	diagnosis.SickleCellPatientID = uint(patientIDUint)
 	if err := database.DB.Create(&diagnosis).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create diagnosis"})
 	}
@@ -317,7 +339,7 @@ func CreateDiagnosis(c *fiber.Ctx) error {
 }
 
 // CreateReferral handles POST /patients/:id/referral
-func CreateReferral(c *fiber.Ctx) error {
+func CreateSickleCellReferral(c *fiber.Ctx) error {
 	patientID := c.Params("id")
 	var referral models.Referral
 
@@ -339,9 +361,9 @@ func CreateReferral(c *fiber.Ctx) error {
 }
 
 // GetDiagnosisByPatientID handles GET /patients/:id/diagnosis
-func GetDiagnosisByPatientID(c *fiber.Ctx) error {
+func GetSickleCellDiagnosisByPatientID(c *fiber.Ctx) error {
 	patientID := c.Params("id")
-	var diagnosis []models.Diagnosis
+	var diagnosis []models.SickleCellDiagnosis
 
 	if err := database.DB.Where("patient_id = ?", patientID).Find(&diagnosis).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve diagnosis"})
@@ -351,7 +373,7 @@ func GetDiagnosisByPatientID(c *fiber.Ctx) error {
 }
 
 // GetReferralByPatientID handles GET /patients/:id/referrals
-func GetReferralByPatientID(c *fiber.Ctx) error {
+func GetSickleCellReferralByPatientID(c *fiber.Ctx) error {
 	patientID := c.Params("id")
 	var referrals []models.Referral
 
@@ -363,8 +385,8 @@ func GetReferralByPatientID(c *fiber.Ctx) error {
 }
 
 // Helper function to validate patient request
-func validatePatientRequest(req *models.PatientCreateRequest) error {
-	if req.FacilityID == "" {
+func validateSickleCellPatientRequest(req *models.SickleCellPatientCreateRequest) error {
+	if req.FacilityID == 0 {
 		return fiber.NewError(fiber.StatusBadRequest, "Facility ID is required")
 	}
 	if req.PatientInfo.FirstName == "" {
@@ -379,24 +401,12 @@ func validatePatientRequest(req *models.PatientCreateRequest) error {
 	return nil
 }
 
-// Helper function to check if facility exists
-func checkFacilityExists(facilityID string) (models.Facility, error) {
-	var facility models.Facility
-	err := database.DB.
-		Preload("Identification").
-		Model(&models.Facility{}).
-		Joins("JOIN facility_identifications ON facilities.id = facility_identifications.facility_id").
-		Where("facility_identifications.registry_id LIKE ?", facilityID).
-		First(&facility).Error
-
-	return facility, err
-}
-
-func checkExistingPatientByRegistrationIDAndFacilityId(registrationID, facilityId string) (bool, error) {
+func checkExistingSickleCellPatientByRegistrationIDAndFacilityId(registrationID string, facilityId uint) (bool, error) {
 	var count int64
 	err := database.DB.
-		Model(&models.Patient{}).
-		Where("registration_id = ? AND facility_id = ?", registrationID, facilityId).
+		Model(&models.SickleCellPatient{}).
+		Joins("JOIN patients ON patients.id = sickle_cell_patients.patient_id").
+		Where("patients.registration_id = ? AND patients.facility_id = ?", registrationID, facilityId).
 		Count(&count).Error
 
 	return count > 0, err

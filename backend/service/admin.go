@@ -5,11 +5,11 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
-	"golang-interview.com/database"
-	"golang-interview.com/middleware"
-	"golang-interview.com/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"patient-registry.com/database"
+	"patient-registry.com/middleware"
+	"patient-registry.com/models"
 )
 
 func CreateAdmin(username, password, email string, DB *gorm.DB) error {

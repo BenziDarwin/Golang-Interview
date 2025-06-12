@@ -1,8 +1,6 @@
 package models
 
 import (
-	"time"
-
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -18,47 +16,24 @@ type Contact struct {
 	Phone      string `json:"phone"`
 }
 
-// Technical represents technical information for a facility
-type Technical struct {
-	gorm.Model
-	FacilityID      uint       `json:"facility_id"`
-	SoftwareVendor  string     `json:"software_vendor"`
-	SoftwareProduct string     `json:"software_product"`
-	SoftwareVersion string     `json:"software_version"`
-	IsCEHRT2014     bool       `json:"is_cehrt2014"`
-	SupportsHL7CDA  bool       `json:"supports_hl7cda"`
-	UpgradeDate     *time.Time `json:"upgrade_date"`
-	TransportOption string     `json:"transport_option"`
-}
-
 // Facility represents the main facility structure
 type Facility struct {
 	gorm.Model
-	Name              string `json:"name"`
-	OrganizationName  string `json:"organization_name"`
-	ProviderSpecialty string `json:"provider_specialty"`
-	Status            string `json:"status"`
-
-	// Organization details
-	OrganizationType pq.StringArray `gorm:"type:text[]" json:"organization_type"`
-	YearlyCases      string         `json:"yearly_cases"`
-	GenomicTests     pq.StringArray `gorm:"type:text[]" json:"genomic_tests"`
-
-	// Legacy fields (keeping for backward compatibility)
-	Address      string `json:"address,omitempty"`
-	RegistryType string `json:"registry_type,omitempty"`
+	Name              string         `json:"name"`
+	ProviderSpecialty string         `json:"provider_specialty"`
+	Status            string         `json:"status"`
+	YearlyCases       string         `json:"yearly_cases"`
+	GenomicTests      pq.StringArray `gorm:"type:text[]" json:"genomic_tests"`
 
 	// Relationships
 	Contacts       []Contact              `json:"contacts" gorm:"foreignKey:FacilityID;constraint:OnDelete:CASCADE"`
-	Technical      Technical              `json:"technical" gorm:"foreignKey:FacilityID;constraint:OnDelete:CASCADE"`
 	Identification FacilityIdentification `json:"identification" gorm:"foreignKey:FacilityID;constraint:OnDelete:CASCADE"`
-	Patients       []Patient              `json:"patients" gorm:"foreignKey:FacilityID"`
 }
 
 type FacilityIdentification struct {
 	gorm.Model
 	NPI        string `json:"npi"`
-	RegistryID string `json:"registry_id"`
+	RegistryID string `json:"registry_id"` // Optional for backward compatibility
 	FacilityID uint   `json:"facility_id"`
 
 	// Optional: Add back reference
@@ -66,27 +41,27 @@ type FacilityIdentification struct {
 }
 
 // Helper methods for easier contact access
-func (f *Facility) GetMeaningfulUseContact() *Contact {
+func (f *Facility) GetFacilityInchargeContact() *Contact {
 	for _, contact := range f.Contacts {
-		if contact.Type == "meaningful_use" {
+		if contact.Type == "facility_incharge" {
 			return &contact
 		}
 	}
 	return nil
 }
 
-func (f *Facility) GetRegistryLeadContact() *Contact {
+func (f *Facility) GetRegistryFocalPersonContact() *Contact {
 	for _, contact := range f.Contacts {
-		if contact.Type == "registry_lead" {
+		if contact.Type == "registry_focal_person" {
 			return &contact
 		}
 	}
 	return nil
 }
 
-func (f *Facility) GetNetworkLeadContact() *Contact {
+func (f *Facility) GetAlternativeRegistryFocalPersonContact() *Contact {
 	for _, contact := range f.Contacts {
-		if contact.Type == "network_lead" {
+		if contact.Type == "alt_registry_focal_person" {
 			return &contact
 		}
 	}
@@ -94,53 +69,42 @@ func (f *Facility) GetNetworkLeadContact() *Contact {
 }
 
 // SetContacts is a helper method to set all contacts at once
-func (f *Facility) SetContacts(meaningfulUse, registryLead, networkLead Contact) {
-	meaningfulUse.Type = "meaningful_use"
-	registryLead.Type = "registry_lead"
-	networkLead.Type = "network_lead"
+func (f *Facility) SetContacts(facilityIncharge, registryFocalPerson, altRegistryFocalPerson Contact) {
+	facilityIncharge.Type = "facility_incharge"
+	registryFocalPerson.Type = "registry_focal_person"
+	altRegistryFocalPerson.Type = "alt_registry_focal_person"
 
-	f.Contacts = []Contact{meaningfulUse, registryLead, networkLead}
+	f.Contacts = []Contact{facilityIncharge, registryFocalPerson, altRegistryFocalPerson}
 }
 
 type FacilityCreateRequest struct {
 	Name              string   `json:"name"`
-	OrganizationName  string   `json:"organization_name"`
 	ProviderSpecialty string   `json:"provider_specialty"`
 	Status            string   `json:"status"`
-	OrganizationType  []string `json:"organization_type"`
 	YearlyCases       string   `json:"yearly_cases"`
 	GenomicTests      []string `json:"genomic_tests"`
 
 	Contact struct {
-		MeaningfulUse struct {
+		FacilityIncharge struct {
 			Name  string `json:"name"`
 			Email string `json:"email"`
 			Phone string `json:"phone"`
-		} `json:"meaningful_use"`
-		RegistryLead struct {
+		} `json:"facility_incharge"`
+		RegistryFocalPerson struct {
 			Name  string `json:"name"`
 			Email string `json:"email"`
 			Phone string `json:"phone"`
-		} `json:"registry_lead"`
-		NetworkLead struct {
+		} `json:"registry_focal_person"`
+		AltRegistryFocalPerson struct {
 			Name  string `json:"name"`
 			Email string `json:"email"`
 			Phone string `json:"phone"`
-		} `json:"network_lead"`
+		} `json:"alt_registry_focal_person"`
 	} `json:"contact"`
 
-	Technical struct {
-		SoftwareVendor  string `json:"software_vendor"`
-		SoftwareProduct string `json:"software_product"`
-		SoftwareVersion string `json:"software_version"`
-		IsCEHRT2014     bool   `json:"is_cehrt2014"`
-		SupportsHL7CDA  bool   `json:"supports_hl7cda"`
-		UpgradeDate     string `json:"upgrade_date"` // Will parse to time.Time
-		TransportOption string `json:"transport_option"`
-	} `json:"technical"`
-
 	Identification struct {
-		RegistryID string `json:"registry_id"`
+		FacilityID string `json:"facility_id"`
+		RegistryID string `json:"registry_id"`   // Optional for backward compatibility
 		NPI        string `json:"npi,omitempty"` // Optional for backward compatibility
 	} `json:"identification"`
 }
@@ -149,35 +113,22 @@ type FacilityCreateRequest struct {
 
 type FacilityUpdateRequest struct {
 	Name              string                `json:"name,omitempty"`
-	OrganizationName  string                `json:"organization_name,omitempty"`
 	ProviderSpecialty string                `json:"provider_specialty,omitempty"`
 	Status            string                `json:"status,omitempty"`
-	OrganizationType  []string              `json:"organization_type,omitempty"`
 	YearlyCases       string                `json:"yearly_cases,omitempty"`
 	GenomicTests      []string              `json:"genomic_tests,omitempty"`
 	Contact           *ContactUpdate        `json:"contacts,omitempty"`
-	Technical         *TechnicalUpdate      `json:"technical,omitempty"`
 	Identification    *IdentificationUpdate `json:"identification,omitempty"`
 }
 
 type ContactUpdate struct {
-	MeaningfulUse *ContactInput `json:"meaningful_use,omitempty"`
-	RegistryLead  *ContactInput `json:"registry_lead,omitempty"`
-	NetworkLead   *ContactInput `json:"network_lead,omitempty"`
-}
-
-type TechnicalUpdate struct {
-	SoftwareVendor  string `json:"software_vendor,omitempty"`
-	SoftwareProduct string `json:"software_product,omitempty"`
-	SoftwareVersion string `json:"software_version,omitempty"`
-	TransportOption string `json:"transport_option,omitempty"`
-	UpgradeDate     string `json:"upgrade_date,omitempty"` // Format: YYYY-MM-DD
-	IsCEHRT2014     bool   `json:"is_cehrt2014"`
-	SupportsHL7CDA  bool   `json:"supports_hl7cda"`
+	FacilityIncharge       *ContactInput `json:"facility_incharge,omitempty"`
+	RegistryFocalPerson    *ContactInput `json:"registry_focal_person,omitempty"`
+	AltRegistryFocalPerson *ContactInput `json:"alt_registry_focal_person,omitempty"`
 }
 
 type IdentificationUpdate struct {
-	RegistryID string `json:"registry_id,omitempty"`
+	FacilityID string `json:"facility_id,omitempty"`
 	NPI        string `json:"npi,omitempty"`
 }
 

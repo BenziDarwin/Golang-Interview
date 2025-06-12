@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register Patient - Uganda National Cancer Registry</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  </head>
+  <body>
+    <style>
+      .gender-radio-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 0.5rem;
+      }
+
+      .gender-option {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 0.6rem 1.2rem;
+        border-radius: 999px;
+        background-color: #f1f1f1;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .gender-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .gender-label {
+        margin-left: 0.5rem;
+        font-size: 0.95rem;
+        color: #333;
+        user-select: none;
+        z-index: 1;
+        transition: color 0.3s ease;
+      }
+
+      /* Custom circle icon */
+      .gender-option::before {
+        content: "";
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid #ccc;
+        background-color: white;
+        margin-right: 0.5rem;
+        transition: all 0.3s ease;
+        z-index: 1;
+      }
+
+      /* Checked state styling */
+      .gender-option input[type="radio"]:checked + .gender-label {
+        color: #007bff;
+        font-weight: bold;
+      }
+
+      .gender-option input[type="radio"]:checked::before {
+        background-color: #007bff;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+      }
+
+      /* Hover effect */
+      .gender-option:hover {
+        background-color: #e9ecef;
+      }
+
+      #patient-review-summary {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Two equal columns */
+        gap: 1rem 2rem; /* row gap and column gap */
+      }
+
+      .review-item {
+        display: contents; /* Let inner elements define grid structure */
+      }
+
+      .review-label {
+        font-weight: bold;
+        white-space: nowrap;
+      }
+
+      .review-value {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    </style>
+    <section class="form-section">
+      <div class="container">
+        <div class="form-container">
+          <!-- Loading Facility Information -->
+          <div id="facility-loading" class="loading-section">
+            <div class="loading-spinner">
+              <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <p>Loading your facility information...</p>
+          </div>
+
+          <!-- Facility Error State -->
+          <div id="facility-error" class="error-section hidden">
+            <div class="error-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3>Unable to Load Facility Information</h3>
+            <p id="facility-error-message">
+              We couldn't find your facility information. Please contact support
+              or try again.
+            </p>
+            <div class="error-actions">
+              <button id="retry-facility" class="btn primary">Try Again</button>
+              <a href="index.html" class="btn secondary">Return to Home</a>
+            </div>
+          </div>
+
+          <!-- Patient Registration Form -->
+          <form id="register-patient-form" class="hidden">
+            <div class="form-progress">
+              <div class="progress-step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Patient & Diagnosis Info</div>
+              </div>
+              <div class="progress-step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Review</div>
+              </div>
+            </div>
+
+            <!-- Facility Information (dynamically loaded) -->
+            <div id="selected-facility" class="selected-facility">
+              <span class="label">Your Facility:</span>
+              <span id="selected-facility-name">Loading...</span>
+              <span id="selected-facility-id">ID: Loading...</span>
+              <span id="facility-status">Loading...</span>
+            </div>
+
+            <!-- Patient Information Section -->
+            <div class="form-step active" data-step="1">
+              <div class="section-title">Patient Information</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="patient-last-name">Last Name *</label>
+                  <input
+                    type="text"
+                    id="patient-last-name"
+                    name="patient-last-name"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="patient-first-name">First Name *</label>
+                  <input
+                    type="text"
+                    id="patient-first-name"
+                    name="patient-first-name"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="patient-middle-name">Middle Name</label>
+                  <input
+                    type="text"
+                    id="patient-middle-name"
+                    name="patient-middle-name"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="patient-dob">Date of Birth *</label>
+                  <input type="date" id="patient-dob" name="patient-dob" />
+                </div>
+
+                <div class="form-group">
+                  <label for="patient-age">Age</label>
+                  <input type="text" id="patient-age" name="patient-age" />
+                </div>
+
+                <div class="form-group">
+                  <label>Gender *</label>
+                  <div class="gender-radio-group">
+                    <label class="gender-option">
+                      <input
+                        type="radio"
+                        name="patient-gender"
+                        value="male"
+                        required
+                      />
+                      <span class="gender-label">Male</span>
+                    </label>
+                    <label class="gender-option">
+                      <input
+                        type="radio"
+                        name="patient-gender"
+                        value="female"
+                        required
+                      />
+                      <span class="gender-label">Female</span>
+                    </label>
+                    <label class="gender-option">
+                      <input
+                        type="radio"
+                        name="patient-gender"
+                        value="other"
+                        required
+                      />
+                      <span class="gender-label">Other</span>
+                    </label>
+                    <label class="gender-option">
+                      <input
+                        type="radio"
+                        name="patient-gender"
+                        value="unknown"
+                        required
+                      />
+                      <span class="gender-label">Unknown</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="national-id">National ID Number *</label>
+                <input
+                  type="text"
+                  id="national-id"
+                  name="national-id"
+                  required
+                  placeholder="Enter National ID"
+                />
+                <div class="form-help">
+                  For patient identification purposes only
+                </div>
+              </div>
+
+              <div class="section-title">Cancer Diagnosis Information</div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="date-of-diagnosis">Date of Diagnosis *</label>
+                  <input
+                    type="date"
+                    id="date-of-diagnosis"
+                    name="date-of-diagnosis"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="diagnostic-confirmation"
+                    >Diagnostic Confirmation *</label
+                  >
+                  <select
+                    id="diagnostic-confirmation"
+                    name="diagnostic-confirmation"
+                    required
+                  >
+                    <option value="">Select method</option>
+                    <option value="newborn-screening">Newborn Screening</option>
+                    <option value="hemoglobin-electrophoresis">
+                      Hemoglobin Electrophoresis
+                    </option>
+                    <option value="hplc">
+                      High Performance Liquid Chromatography (HPLC)
+                    </option>
+                    <option value="genetic-testing">Genetic Testing</option>
+                    <option value="clinical-history">
+                      Clinical History & Symptoms
+                    </option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="disease-type">Sickle Cell Disease Type *</label>
+                  <select id="disease-type" name="disease-type" required>
+                    <option value="">Select type</option>
+                    <option value="hbSS">HbSS (Sickle Cell Anemia)</option>
+                    <option value="hbSC">HbSC</option>
+                    <option value="hbS-beta0">HbS Beta 0 Thalassemia</option>
+                    <option value="hbS-beta+">HbS Beta+ Thalassemia</option>
+                    <option value="other">Other Variant</option>
+                    <option value="unknown">Unknown</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <div></div>
+                <button type="button" class="btn primary next-step">
+                  Continue <i class="fas fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 2: Review Information -->
+            <div class="form-step" data-step="2">
+              <h4>Review Patient Information</h4>
+
+              <div id="patient-review-summary">
+                <!-- Review summary will be populated via JavaScript -->
+              </div>
+
+              <div class="form-group">
+                <label for="submitter-name">Your Name *</label>
+                <input
+                  type="text"
+                  id="submitter-name"
+                  name="submitter-name"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="submitter-title">Your Title/Position *</label>
+                <input
+                  type="text"
+                  id="submitter-title"
+                  name="submitter-title"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="submitter-email">Your Email *</label>
+                <input
+                  type="email"
+                  id="submitter-email"
+                  name="submitter-email"
+                  required
+                />
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn text prev-step">
+                  <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <button type="submit" class="btn primary">
+                  Submit Registration <i class="fas fa-check"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <div id="patient-registration-success" class="hidden">
+            <div class="success-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>Patient Registration Submitted Successfully!</h3>
+            <p>
+              Thank you for registering this patient with the Uganda National
+              Cancer Registry. The information has been submitted successfully.
+            </p>
+            <p>
+              Patient registration ID:
+              <strong id="patient-reg-id">PR-67890</strong>
+            </p>
+            <p>
+              A confirmation email will be sent to the address provided. If you
+              have any questions, please contact our support team.
+            </p>
+            <div class="success-actions">
+              <button id="register-another" class="btn secondary">
+                Register Another Patient
+              </button>
+              <a href="index.html" class="btn primary">Return to Home</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer>
+      <div class="container">
+        <div class="footer-bottom">
+          <p>
+            &copy; 2025 Uganda National Patient Registry. All Rights Reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+    <script src="../js/register-sickle-cell-patient.js"></script>
+    <script src="../js/main.js"></script>
+  </body>
+</html>

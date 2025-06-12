@@ -491,7 +491,9 @@ textarea {
   border: 1px solid var(--gray-300);
   border-radius: var(--radius-sm);
   font-size: 1rem;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 input:focus,
