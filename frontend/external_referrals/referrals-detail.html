@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Patient Details - Uganda National Sickle Cell Registry</title>
+    <title>Patient Details - Uganda National Cancer Registry</title>
     <link rel="stylesheet" href="../css/styles.css" />
-    <link rel="stylesheet" href="../css/patient-detail-styles.css" />
+    <link rel="stylesheet" href="../css/referral-detail-styles.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-      <style>
-      /* Compressed styles for patient detail */
+    <style>
+      /* Compressed styles for referral detail */
       body {
         min-height: 100vh;
         padding: var(--spacing-1);
@@ -30,7 +30,7 @@
         margin-bottom: var(--spacing-2);
       }
 
-      .patient-detail-header {
+      .referral-detail-header {
         background-color: var(--white);
         border-radius: var(--radius-md);
         padding: var(--spacing-2);
@@ -43,14 +43,14 @@
         gap: var(--spacing-2);
       }
 
-      .patient-name-header {
+      .referral-name-header {
         font-size: 1.25rem;
         color: var(--primary);
         margin: 0;
         flex-shrink: 0;
       }
 
-      .patient-basic-info {
+      .referral-basic-info {
         display: flex;
         gap: var(--spacing-3);
         flex-wrap: wrap;
@@ -368,12 +368,12 @@
 
       /* Responsive adjustments */
       @media (max-width: 768px) {
-        .patient-detail-header {
+        .referral-detail-header {
           flex-direction: column;
           align-items: stretch;
         }
 
-        .patient-basic-info {
+        .referral-basic-info {
           justify-content: flex-start;
           gap: var(--spacing-2);
         }
@@ -397,14 +397,14 @@
     <section class="form-section">
       <div class="container">
         <div class="back-button">
-          <a href="./sickle-cell-patients.html" class="btn text">
-            <i class="fas fa-arrow-left"></i> Back to Patients
+          <a href="./external-referrals.html" class="btn text">
+            <i class="fas fa-arrow-left"></i> Back to Referrals
           </a>
         </div>
 
-        <div class="patient-detail-header">
-          <h2 class="patient-name-header" id="patient-name">Loading...</h2>
-          <div class="patient-basic-info" id="patient-basic-info">
+        <div class="referral-detail-header">
+          <h2 class="referral-name-header" id="referral-name">Loading...</h2>
+          <div class="referral-basic-info" id="referral-basic-info">
             <!-- Basic info will be loaded here -->
           </div>
         </div>
@@ -416,24 +416,9 @@
           </div>
 
           <div class="tabs">
-            <button class="tab active" data-tab="diagnoses">
-              <i class="fas fa-stethoscope"></i> Sickle Cell Diagnoses
-            </button>
             <button class="tab" data-tab="referrals">
               <i class="fas fa-share-square"></i> Referrals
             </button>
-          </div>
-
-          <div id="diagnoses-tab" class="tab-content active">
-            <div class="tab-header">
-              <h4>Sickle Cell Diagnoses</h4>
-              <button class="btn primary" id="add-diagnosis-btn">
-                <i class="fas fa-plus"></i> Add New Diagnosis
-              </button>
-            </div>
-            <div class="table-accordion" id="diagnoses-accordion">
-              <!-- Diagnoses table will be loaded here -->
-            </div>
           </div>
 
           <div id="referrals-tab" class="tab-content">
@@ -450,90 +435,6 @@
         </div>
       </div>
     </section>
-
-    <!-- Diagnosis Edit Modal -->
-    <div id="diagnosis-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 class="modal-title">Diagnosis Details</h3>
-          <button class="close">&times;</button>
-        </div>
-        <form id="diagnosis-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="primary-site">Primary Site</label>
-              <input
-                type="text"
-                id="primary-site"
-                name="primary_site"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="histology">Histology</label>
-              <input type="text" id="histology" name="histology" required />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="diagnosis-date">Date of Diagnosis</label>
-              <input
-                type="date"
-                id="diagnosis-date"
-                name="date_of_diagnosis"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="diagnostic-confirmation"
-                >Diagnostic Confirmation</label
-              >
-              <select
-                id="diagnostic-confirmation"
-                name="diagnostic_confirmation"
-                required
-              >
-                <option value="">Select confirmation method</option>
-                <option value="Histologic">Histologic</option>
-                <option value="Cytologic">Cytologic</option>
-                <option value="Clinical">Clinical</option>
-                <option value="Imaging">Imaging</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="stage">Stage</label>
-              <select id="stage" name="stage" required>
-                <option value="">Select stage</option>
-                <option value="Stage 0">Stage 0</option>
-                <option value="Stage I">Stage I</option>
-                <option value="Stage II">Stage II</option>
-                <option value="Stage III">Stage III</option>
-                <option value="Stage IV">Stage IV</option>
-                <option value="Unknown">Unknown</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="laterality">Laterality</label>
-              <select id="laterality" name="laterality" required>
-                <option value="">Select laterality</option>
-                <option value="Left">Left</option>
-                <option value="Right">Right</option>
-                <option value="Bilateral">Bilateral</option>
-                <option value="N/A">N/A</option>
-              </select>
-            </div>
-          </div>
-        </form>
-        <div class="modal-actions">
-          <button class="btn text" id="cancel-diagnosis-btn">Cancel</button>
-          <button class="btn primary" id="save-diagnosis-btn">
-            Save Diagnosis
-          </button>
-        </div>
-      </div>
-    </div>
 
     <!-- Referral Edit Modal -->
     <div id="referral-modal" class="modal">
@@ -842,8 +743,17 @@
         </div>
       </div>
     </div>
+    <footer>
+      <div class="container">
+        <div class="footer-bottom">
+          <p>
+            &copy; 2025 Uganda National Patient Registry. All Rights Reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
 
-    <script src="../js/sickle-cell-patient-detail.js"></script>
+    <script src="../js/referrals-detail.js"></script>
     <script src="../js/main.js"></script>
   </body>
 </html>

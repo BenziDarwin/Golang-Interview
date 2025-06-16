@@ -68,6 +68,13 @@ func SetupRoutes(app *fiber.App) {
 		sickle_cell_patient.Get("/:id/referrals", service.GetSickleCellReferralByPatientID)
 	}
 
+	referrals := api.Group("/referrals")
+	{
+		referrals.Post("/", service.CreateReferral)
+		referrals.Get("/", service.GetReferrals)
+		referrals.Get("/patient/:id", service.GetReferralByPatientID)
+	}
+
 	admin := api.Group("/admin")
 	{
 		admin.Post("/login", service.LoginAdmin)

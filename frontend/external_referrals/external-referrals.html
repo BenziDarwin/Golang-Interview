@@ -11,8 +11,8 @@
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <style>
-      /* Additional styles for patient list */
-      .patient-card {
+      /* Additional styles for referral list */
+      .referral-card {
         border: 1px solid var(--gray-300);
         border-radius: var(--radius-md);
         padding: var(--spacing-2);
@@ -22,62 +22,62 @@
         transition: box-shadow var(--transition-fast);
       }
 
-      .patient-card:hover {
+      .referral-card:hover {
         box-shadow: var(--shadow-md);
       }
 
-      .patient-card-header {
+      .referral-card-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         margin-bottom: var(--spacing-1);
       }
 
-      .patient-name {
+      .referral-name {
         font-size: 1.25rem;
         font-weight: 600;
         color: var(--gray-900);
         margin-bottom: var(--spacing-1);
       }
 
-      .patient-id {
+      .referral-id {
         color: var(--gray-600);
         font-size: 0.875rem;
         margin-bottom: var(--spacing-1);
       }
 
-      .patient-card-content {
+      .referral-card-content {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: var(--spacing-2);
         margin-bottom: var(--spacing-2);
       }
 
-      .patient-card-item {
+      .referral-card-item {
         display: flex;
         flex-direction: column;
       }
 
-      .patient-card-label {
+      .referral-card-label {
         font-size: 0.75rem;
         text-transform: uppercase;
         color: var(--gray-600);
         margin-bottom: 0.125rem;
       }
 
-      .patient-card-value {
+      .referral-card-value {
         font-size: 0.9375rem;
         font-weight: 500;
       }
 
-      .patient-card-actions {
+      .referral-card-actions {
         display: flex;
         justify-content: flex-end;
         gap: var(--spacing-2);
       }
 
       /* Updated header layout */
-      .patients-header {
+      .referrals-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -86,7 +86,7 @@
         flex-wrap: wrap;
       }
 
-      .patients-header h3 {
+      .referrals-header h3 {
         margin: 0;
         white-space: nowrap;
         flex-shrink: 0;
@@ -109,7 +109,7 @@
         font-size: 0.9rem;
       }
 
-      .patients-count {
+      .referrals-count {
         color: var(--gray-600);
         font-size: 0.8rem;
         white-space: nowrap;
@@ -317,7 +317,7 @@
 
       /* Responsive design */
       @media (max-width: 768px) {
-        .patients-header {
+        .referrals-header {
           flex-direction: column;
           align-items: stretch;
           gap: var(--spacing-2);
@@ -355,17 +355,17 @@
     <section class="form-section">
       <div class="container">
         <div class="form-container">
-          <div class="patients-header">
+          <div class="referrals-header">
             <h3>External Referrals</h3>
             <div class="header-center">
               <input
                 type="text"
-                id="patient-search"
+                id="referral-search"
                 class="search-input"
-                placeholder="Search patients by name, ID, or medical record number..."
+                placeholder="Search referrals by name, ID, or medical record number..."
               />
-              <div class="patients-count">
-                <span id="patient-count">0</span> patients found
+              <div class="referrals-count">
+                <span id="referral-count">0</span> referrals found
               </div>
             </div>
 
@@ -387,22 +387,17 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th class="sortable" data-sort="id">Patient ID</th>
                   <th class="sortable" data-sort="name">Name</th>
                   <th class="sortable" data-sort="dob">Date of Birth</th>
                   <th class="sortable" data-sort="gender">Gender</th>
                   <th class="sortable" data-sort="mrn">National ID</th>
                   <th>Facility</th>
-                  <th class="sortable" data-sort="diagnosis">
-                    Primary Diagnosis
-                  </th>
-                  <th class="sortable" data-sort="stage">Stage</th>
                   <th>Status</th>
                   <th class="sortable" data-sort="registered">Registered</th>
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody id="patients-table-body">
+              <tbody id="referrals-table-body">
                 <!-- Rows will be injected here -->
               </tbody>
             </table>

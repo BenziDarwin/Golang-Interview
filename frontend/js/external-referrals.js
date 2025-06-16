@@ -8,54 +8,21 @@ function getCookie(name) {
 
 $(document).ready(async function () {
   const facilityId = getCookie("facility_id");
-  let allPatients = [];
-  let filteredPatients = [];
+  let allReferrals = [];
+  let filteredReferrals = [];
   let currentPage = 1;
   let pageSize = 10;
   let totalPages = 1;
   let sortColumn = "";
   let sortDirection = "asc";
+  
   if (!facilityId) {
     alert("Facility ID not found. Please register a facility first.");
     window.location.href = "register-facility.html";
     return;
   }
 
-  // Show loading state
-  $("#loading-state").show();
-  $(".table-container").hide();
-
-  // Fetch patients from the API
-  try {
-    const response = await fetch(
-      `/api/v1/sickle-cell-patients/facility/${facilityId}`,
-    );
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const samplePatients = await response.json();
-
-    $("#loading-state").hide();
-
-    if (!Array.isArray(samplePatients) || samplePatients.length === 0) {
-      console.warn("No patients found or data is not in expected format.");
-      $("#empty-state").show();
-      return;
-    }
-
-    // Initialize data
-    allPatients = samplePatients;
-    filteredPatients = samplePatients;
-
-    // Initial render
-    renderPatientsTable(allPatients);
-  } catch (error) {
-    console.error("Error fetching patients:", error);
-    $("#loading-state").hide();
-    alert("Failed to load patients. Please try again later.");
-    return;
-  }
-
+  // Define utility functions first
   function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-GB", {
@@ -81,19 +48,52 @@ $(document).ready(async function () {
     return age;
   }
 
-  function renderPatientsTable(patients) {
-    const tableBody = $("#patients-table-body");
-    const patientCount = $("#patient-count");
+  // Show loading state
+  $("#loading-state").show();
+  $(".table-container").hide();
+
+  // Fetch referrals from the API
+  try {
+    const response = await fetch(`/api/v1/referrals`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const sampleReferrals = await response.json();
+
+    $("#loading-state").hide();
+
+    if (!Array.isArray(sampleReferrals) || sampleReferrals.length === 0) {
+      console.warn("No referrals found or data is not in expected format.");
+      $("#empty-state").show();
+      return;
+    }
+
+    // Initialize data
+    allReferrals = sampleReferrals;
+    filteredReferrals = sampleReferrals;
+
+    // Initial render
+    renderReferralsTable(allReferrals);
+  } catch (error) {
+    console.error("Error fetching referrals:", error);
+    $("#loading-state").hide();
+    alert("Failed to load referrals. Please try again later.");
+    return;
+  }
+
+  function renderReferralsTable(referrals) {
+    const tableBody = $("#referrals-table-body");
+    const referralCount = $("#referral-count");
 
     // Calculate pagination
-    totalPages = Math.ceil(patients.length / pageSize);
+    totalPages = Math.ceil(referrals.length / pageSize);
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    const paginatedPatients = patients.slice(startIndex, endIndex);
+    const paginatedReferrals = referrals.slice(startIndex, endIndex);
 
-    patientCount.text(patients.length);
+    referralCount.text(referrals.length);
 
-    if (patients.length === 0) {
+    if (referrals.length === 0) {
       $(".table-container").hide();
       $("#empty-state").show();
       $("#pagination-controls").empty();
@@ -104,48 +104,44 @@ $(document).ready(async function () {
     $("#empty-state").hide();
     $(".table-container").show();
 
-    const tableRows = paginatedPatients
-      .map((patient) => {
-                const patientId = patient.ID || patient.id;
-        patient = patient.patient || patient; // Handle both formats
-        const fullName =
-          `${patient.patient_info.first_name} ${patient.patient_info.middle_name || ""} ${patient.patient_info.last_name}`.trim();
-        const age = calculateAge(patient.patient_info.dob);
+    const tableRows = paginatedReferrals
+      .map((referral) => {
+        const patientInfo = referral.patient.patient_info;
+        
+        if (!patientInfo) {
+          console.warn("Patient info not found for referral:", referral);
+          return "";
+        }
 
-        // Get the most recent diagnosis (first in array since they're ordered by creation date)
-        const latestDiagnosis =
-          patient.diagnosis && patient.diagnosis.length > 0
-            ? patient.diagnosis[0]
-            : null;
-        const primarySite = latestDiagnosis
-          ? latestDiagnosis.primary_site
-          : "Not specified";
-        const stage = latestDiagnosis ? latestDiagnosis.stage : "Not specified";
-        const diagnosisDate = latestDiagnosis
-          ? formatDate(latestDiagnosis.date_of_diagnosis)
-          : "Not specified";
+        const fullName = `${patientInfo.first_name} ${patientInfo.middle_name || ""} ${patientInfo.last_name}`.trim();
+        const age = calculateAge(patientInfo.dob);
+        
+        // Use referral ID - based on the structure, it's referral.ID
+        const patientId = referral.patient.ID;
 
-        // Determine status based on patient data (you may need to adjust this logic)
-        const status = patient.status || "active"; // Default to active if no status field
+        // Status from referral
+        const status = referral.status || "active";
+
+        // Handle date display - check if age is provided or calculate from DOB
+        const dobDisplay = patientInfo.age 
+          ? `${patientInfo.age} years (${formatDate(patientInfo.dob)})` 
+          : `${formatDate(patientInfo.dob)} (${age} years)`;
 
         return `
                 <tr>
-                    <td><strong>${patient.registration_id}</strong></td>
                     <td>${fullName}</td>
-                    <td>${patient.patient_info.dob && patient.patient_info.dob.includes("0001-01-01") ? `${patient.patient_info.age} years` : formatDate(patient.patient_info.dob)` (${age} years)`}</td>
-                    <td>${patient.patient_info.gender}</td>
-                    <td>${patient.patient_info.national_id || "Not provided"}</td>
-                    <td>${patient.facility_name || "Current Facility"}</td>
-                    <td>${primarySite}</td>
-                    <td>${stage}</td>
-                    <td><span class="status-badge status-${status}">${status}</span></td>
-                    <td>${formatDate(patient.registration_date)}</td>
+                    <td>${dobDisplay}</td>
+                    <td>${patientInfo.gender || "Not specified"}</td>
+                    <td>${patientInfo.national_id || "Not provided"}</td>
+                    <td>${referral.facility || referral.facility_name || "Current Facility"}</td>
+                    <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
+                    <td>${formatDate(referral.patient.registration_date)}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn view-patient" title="View Details" data-patient-id="${patientId}">
+                            <button class="action-btn view-referral" title="View Details" data-patient-id="${patientId}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="action-btn delete" title="Delete Patient" data-patient-id="${patientId}">
+                            <button class="action-btn delete" title="Delete Referral" data-patient-id="${patientId}">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -156,7 +152,7 @@ $(document).ready(async function () {
       .join("");
 
     tableBody.html(tableRows);
-    renderPagination(patients.length);
+    renderPagination(referrals.length);
   }
 
   function renderPagination(totalItems) {
@@ -173,7 +169,7 @@ $(document).ready(async function () {
     const startItem = (currentPage - 1) * pageSize + 1;
     const endItem = Math.min(currentPage * pageSize, totalItems);
     paginationInfo.text(
-      `Showing ${startItem}-${endItem} of ${totalItems} patients`,
+      `Showing ${startItem}-${endItem} of ${totalItems} referrals`,
     );
 
     // Generate pagination buttons
@@ -219,82 +215,76 @@ $(document).ready(async function () {
     paginationControls.html(paginationHtml);
   }
 
-  function filterPatients(searchTerm) {
+  function filterReferrals(searchTerm) {
     currentPage = 1; // Reset to first page when filtering
     if (!searchTerm.trim()) {
-      filteredPatients = allPatients;
+      filteredReferrals = allReferrals;
     } else {
       const term = searchTerm.toLowerCase();
-      filteredPatients = allPatients.filter((patient) => {
-        const fullName =
-          `${patient.patient_info.first_name} ${patient.patient_info.middle_name || ""} ${patient.patient_info.last_name}`.toLowerCase();
-        const registrationId = patient.registration_id.toLowerCase();
-        const nationalId = (
-          patient.patient_info.national_id || ""
-        ).toLowerCase();
+      filteredReferrals = allReferrals.filter((referral) => {
+        const patientInfo = referral.patient.patient_info;
+        
+        if (!patientInfo) return false;
 
-        // Search in diagnosis primary sites
-        const primarySites = patient.diagnosis
-          ? patient.diagnosis.map((d) => d.primary_site.toLowerCase()).join(" ")
-          : "";
+        const fullName = `${patientInfo.first_name} ${patientInfo.middle_name || ""} ${patientInfo.last_name}`.toLowerCase();
+        const registrationId = (referral.patient.registration_id || "").toLowerCase();
+        const nationalId = (patientInfo.national_id || "").toLowerCase();
+
+        // Search in diagnosis - it's a string in this structure
+        const diagnosis = (referral.diagnosis || "").toLowerCase();
 
         return (
           fullName.includes(term) ||
           registrationId.includes(term) ||
           nationalId.includes(term) ||
-          primarySites.includes(term)
+          diagnosis.includes(term)
         );
       });
     }
-    renderPatientsTable(filteredPatients);
+    renderReferralsTable(filteredReferrals);
   }
 
-  function sortPatients(column, direction) {
-    filteredPatients.sort((a, b) => {
+  function sortReferrals(column, direction) {
+    filteredReferrals.sort((a, b) => {
       let aVal, bVal;
+      
+      const aPatientInfo = a.patient.patient_info;
+      const bPatientInfo = b.patient.patient_info;
 
       switch (column) {
         case "id":
-          aVal = a.registration_id;
-          bVal = b.registration_id;
+          aVal = a.patient.registration_id || "";
+          bVal = b.patient.registration_id || "";
           break;
         case "name":
-          aVal =
-            `${a.patient_info.first_name} ${a.patient_info.last_name}`.toLowerCase();
-          bVal =
-            `${b.patient_info.first_name} ${b.patient_info.last_name}`.toLowerCase();
+          aVal = aPatientInfo ? `${aPatientInfo.first_name} ${aPatientInfo.last_name}`.toLowerCase() : "";
+          bVal = bPatientInfo ? `${bPatientInfo.first_name} ${bPatientInfo.last_name}`.toLowerCase() : "";
           break;
         case "dob":
-          aVal = new Date(a.patient_info.dob);
-          bVal = new Date(b.patient_info.dob);
+          aVal = aPatientInfo ? new Date(aPatientInfo.dob) : new Date(0);
+          bVal = bPatientInfo ? new Date(bPatientInfo.dob) : new Date(0);
           break;
         case "gender":
-          aVal = a.patient_info.gender;
-          bVal = b.patient_info.gender;
+          aVal = aPatientInfo?.gender || "";
+          bVal = bPatientInfo?.gender || "";
           break;
         case "mrn":
-          aVal = a.patient_info.national_id || "";
-          bVal = b.patient_info.national_id || "";
+          aVal = aPatientInfo?.national_id || "";
+          bVal = bPatientInfo?.national_id || "";
           break;
         case "diagnosis":
-          aVal =
-            a.diagnosis && a.diagnosis.length > 0
-              ? a.diagnosis[0].primary_site
-              : "";
-          bVal =
-            b.diagnosis && b.diagnosis.length > 0
-              ? b.diagnosis[0].primary_site
-              : "";
+          aVal = a.diagnosis || "";
+          bVal = b.diagnosis || "";
           break;
         case "stage":
-          aVal =
-            a.diagnosis && a.diagnosis.length > 0 ? a.diagnosis[0].stage : "";
-          bVal =
-            b.diagnosis && b.diagnosis.length > 0 ? b.diagnosis[0].stage : "";
+          // Since diagnosis is a string, we can't extract stage easily
+          // You might want to parse it or add a separate stage field
+          aVal = "";
+          bVal = "";
           break;
         case "registered":
-          aVal = new Date(a.registration_date);
-          bVal = new Date(b.registration_date);
+          aVal = new Date(a.patient.registration_date);
+          bVal = new Date(b.patient.registration_date);
           break;
         default:
           return 0;
@@ -305,32 +295,32 @@ $(document).ready(async function () {
       return 0;
     });
 
-    renderPatientsTable(filteredPatients);
+    renderReferralsTable(filteredReferrals);
   }
 
   // Event handlers
-  $("#patient-search").on("input", function () {
+  $("#referral-search").on("input", function () {
     const searchTerm = $(this).val();
-    filterPatients(searchTerm);
+    filterReferrals(searchTerm);
   });
 
-  // View patient button click
-  $(document).on("click", ".view-patient", function () {
+  // View referral button click
+  $(document).on("click", ".view-referral", function () {
     const patientId = $(this).data("patient-id");
-    window.location.href = `patient-detail.html?id=${patientId}`;
+    window.location.href = `/external_referrals/referrals-detail.html?id=${patientId}`;
   });
 
-  // Delete patient button click
+  // Delete referral button click
   $(document).on("click", ".action-btn.delete", function () {
     const patientId = $(this).data("patient-id");
     if (
       confirm(
-        "Are you sure you want to delete this patient? This action cannot be undone.",
+        "Are you sure you want to delete this referral? This action cannot be undone.",
       )
     ) {
       // Implement delete functionality
-      alert(`Delete patient functionality - Patient ID: ${patientId}`);
-      // You would typically make an API call here to delete the patient
+      alert(`Delete referral functionality - Referral ID: ${patientId}`);
+      // You would typically make an API call here to delete the referral
     }
   });
 
@@ -349,78 +339,72 @@ $(document).ready(async function () {
     $(".sortable").removeClass("sort-asc sort-desc");
     $(this).addClass(sortDirection === "asc" ? "sort-asc" : "sort-desc");
 
-    sortPatients(column, sortDirection);
+    sortReferrals(column, sortDirection);
   });
 
   // Pagination event handlers
   $(document).on("click", ".page-btn", function () {
     currentPage = parseInt($(this).data("page"));
-    renderPatientsTable(filteredPatients);
+    renderReferralsTable(filteredReferrals);
   });
 
   $(document).on("click", "#prev-page", function () {
     if (currentPage > 1) {
       currentPage--;
-      renderPatientsTable(filteredPatients);
+      renderReferralsTable(filteredReferrals);
     }
   });
 
   $(document).on("click", "#next-page", function () {
     if (currentPage < totalPages) {
       currentPage++;
-      renderPatientsTable(filteredPatients);
+      renderReferralsTable(filteredReferrals);
     }
   });
 
   $("#page-size").on("change", function () {
     pageSize = parseInt($(this).val());
     currentPage = 1;
-    renderPatientsTable(filteredPatients);
+    renderReferralsTable(filteredReferrals);
   });
 
   // Export functionality
   $("#export-btn").on("click", function () {
     const headers = [
-      "Patient ID",
+      "Referral ID",
       "Name",
       "Date of Birth",
+      "Age",
       "Gender",
       "National ID",
       "Facility",
-      "Primary Diagnosis",
-      "Stage",
+      "Diagnosis",
       "Status",
+      "Referral Date",
       "Registered",
     ];
     const csvContent = [
       headers.join(","),
-      ...filteredPatients.map((patient) => {
-        const fullName =
-          `${patient.patient_info.first_name} ${patient.patient_info.middle_name || ""} ${patient.patient_info.last_name}`.trim();
-        const latestDiagnosis =
-          patient.diagnosis && patient.diagnosis.length > 0
-            ? patient.diagnosis[0]
-            : null;
-        const primarySite = latestDiagnosis
-          ? latestDiagnosis.primary_site
-          : "Not specified";
-        const stage = latestDiagnosis ? latestDiagnosis.stage : "Not specified";
-        const status = patient.status || "active";
+      ...filteredReferrals.map((referral) => {
+        const patientInfo = referral.patient.patient_info;
+        
+        if (!patientInfo) return "";
+
+        const fullName = `${patientInfo.first_name} ${patientInfo.middle_name || ""} ${patientInfo.last_name}`.trim();
+        const status = referral.status || "active";
 
         return [
-          patient.registration_id,
+          referral.ID || "",
           `"${fullName}"`,
-          patient.patient_info.dob &&
-          patient.patient_info.dob.includes("0001-01-01")
-            ? `${patient.patient_info.age} years`
-            : formatDate(patient.patient_info.dob),
-          patient.patient_info.gender,
-          patient.patient_info.national_id || "Not provided",
-          `"${patient.facility_name || "Current Facility"}"`,
-          `"${primarySite}"`,
-          stage,
+          formatDate(patientInfo.dob),
+          patientInfo.age || calculateAge(patientInfo.dob),
+          patientInfo.gender || "Not specified",
+          patientInfo.national_id || "Not provided",
+          `"${referral.facility_name || referral.facility || "Current Facility"}"`,
+          `"${referral.diagnosis || "Not specified"}"`,
           status,
-          formatDate(patient.registration_date),
+          formatDate(referral.referral_date),
+          formatDate(referral.patient.registration_date),
         ].join(",");
       }),
     ].join("\n");
@@ -429,7 +413,7 @@ $(document).ready(async function () {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "patients_export.csv";
+    a.download = "referrals_export.csv";
     a.click();
     window.URL.revokeObjectURL(url);
   });

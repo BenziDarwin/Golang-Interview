@@ -609,7 +609,7 @@ $(document).ready(async function () {
     };
 
     try {
-      const response = await fetch(`/api/v1/patients/${patientId}/referral`, {
+      const response = await fetch(`/api/v1/cancer-patients/${patientId}/referral`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
