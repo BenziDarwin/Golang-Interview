@@ -17,7 +17,7 @@ func SetupRoutes(app *fiber.App) {
 
 	// Frontend routes with authentication middleware
 	app.Use(middleware.AuthMiddleware())
-	app.Static("/", "../frontend")
+	app.Static("/", "./frontend")
 
 	api := app.Group("/api/v1")
 
