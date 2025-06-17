@@ -29,7 +29,7 @@ $(document).ready(async function () {
     ? patientData.diagnosis
     : [];
   let currentEditingDiagnosis = null;
-  let referrals = Array.isArray(patient.referrals) ? patient.treatments : [];
+  let referrals = Array.isArray(patient.referrals) ? patient.referrals : [];
 
   function formatDate(dateString) {
     if (!dateString) return "Not specified";
@@ -64,12 +64,6 @@ $(document).ready(async function () {
 
     // Set patient name
     $("#patient-name").text(fullName);
-
-    // Get submitter info (first submitter if multiple)
-    const submitter =
-      patient.submitter && patient.submitter.length > 0
-        ? patient.submitter[0]
-        : null;
 
     // Render basic info with improved grid layout
     const basicInfoHtml = `
@@ -251,123 +245,6 @@ $(document).ready(async function () {
         `;
 
     $("#diagnoses-accordion").html(tableHtml);
-  }
-
-  function renderTreatmentsTable() {
-    console.log(
-      "Rendering treatments table with",
-      treatments.length,
-      "treatments",
-    );
-
-    if (!treatments || treatments.length === 0) {
-      $("#treatments-accordion").html(`
-                <div class="empty-state">
-                    <i class="fas fa-pills"></i>
-                    <h4>No Treatments Recorded</h4>
-                    <p>No cancer treatments have been recorded for this patient yet.</p>
-                </div>
-            `);
-      return;
-    }
-
-    const tableHtml = `
-            <div class="accordion-table-container">
-                <table class="accordion-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 30%;">Treatment Types</th>
-                            <th style="width: 25%;">Treating Physician</th>
-                            <th style="width: 20%;">First Treatment Date</th>
-                            <th style="width: 15%;">Source</th>
-                            <th style="width: 10%;">Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${treatments
-                          .map((treatment, index) => {
-                            const treatmentTypes = treatment.types
-                              ? treatment.types.split(",").map((t) => t.trim())
-                              : [];
-
-                            return `
-                                <tr class="accordion-row">
-                                    <tr class="accordion-header-row" data-target="treatment-${treatment.ID}">
-                                        <td style="width: 30%;">
-                                            <div class="cell-content">
-                                                <div class="treatment-types-preview">
-                                                    ${treatmentTypes
-                                                      .slice(0, 2)
-                                                      .map(
-                                                        (type) =>
-                                                          `<span class="treatment-type-badge">${type}</span>`,
-                                                      )
-                                                      .join("")}
-                                                    ${treatmentTypes.length > 2 ? `<span class="more-badge">+${treatmentTypes.length - 2}</span>` : ""}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td style="width: 25%;">
-                                            <div class="cell-content">${treatment.treating_physician || "Not specified"}</div>
-                                        </td>
-                                        <td style="width: 20%;">
-                                            <div class="cell-content">${formatDate(treatment.first_treatment_date)}</div>
-                                        </td>
-                                        <td style="width: 15%;">
-                                            <div class="cell-content">${treatment.reporting_source || "Not specified"}</div>
-                                        </td>
-                                        <td style="width: 10%;">
-                                            <div class="accordion-actions">
-                                                <i class="fas fa-chevron-down accordion-icon"></i>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="accordion-content-row" id="treatment-${treatment.ID}">
-                                        <td colspan="5" class="accordion-content-cell">
-                                            <div class="accordion-content-inner">
-                                                <div class="treatment-details-section">
-                                                    <div class="treatment-types-full">
-                                                        <h5>Treatment Types</h5>
-                                                        <div class="treatment-types-list">
-                                                            ${treatmentTypes.map((type) => `<span class="treatment-type-badge">${type}</span>`).join("")}
-                                                        </div>
-                                                    </div>
-                                                    <div class="accordion-details-grid">
-                                                        <div class="detail-group">
-                                                            <div class="detail-item">
-                                                                <div class="detail-label">First Treatment Date</div>
-                                                                <div class="detail-value">${formatDate(treatment.first_treatment_date)}</div>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <div class="detail-label">Treating Physician</div>
-                                                                <div class="detail-value">${treatment.treating_physician || "Not specified"}</div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="detail-group">
-                                                            <div class="detail-item">
-                                                                <div class="detail-label">Reporting Source</div>
-                                                                <div class="detail-value">${treatment.reporting_source || "Not specified"}</div>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <div class="detail-label">Notes</div>
-                                                                <div class="detail-value">${treatment.notes || "No notes"}</div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tr>
-                            `;
-                          })
-                          .join("")}
-                    </tbody>
-                </table>
-            </div>
-        `;
-
-    $("#treatments-accordion").html(tableHtml);
   }
 
   function renderReferralsTable() {
@@ -609,7 +486,7 @@ $(document).ready(async function () {
     };
 
     try {
-      const response = await fetch(`/api/v1/cancer-patients/${patientId}/referral`, {
+      const response = await fetch(`/api/v1/cancer-patients/${patientData.patient_id}/referral`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -750,6 +627,5 @@ $(document).ready(async function () {
   // Initialize the page
   renderPatientDetails();
   renderDiagnosesTable();
-  renderTreatmentsTable();
   renderReferralsTable();
 });

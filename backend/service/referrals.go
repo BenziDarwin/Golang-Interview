@@ -17,9 +17,22 @@ func CreateReferral(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 	}
 
+	// Check if facility exists
+	facility, err := CheckFacilityExists(req.Patient.FacilityID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Database error while checking facility",
+		})
+	}
+	if facility.ID == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Facility not found",
+		})
+	}
+
 	// Check for existing patient with the same national_id and facility_id
 	var existingPatient models.Patient
-	err := database.DB.Where("patient_national_id = ? AND facility_id = ?", req.Patient.PatientInfo.NationalId, req.Patient.FacilityID).First(&existingPatient).Error
+	err = database.DB.Where("patient_national_id = ? AND facility_id = ?", req.Patient.PatientInfo.NationalId, facility.ID).First(&existingPatient).Error
 
 	var patientID uint
 
@@ -44,7 +57,7 @@ func CreateReferral(c *fiber.Ctx) error {
 	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		// Patient doesn't exist, create a new one
 		newPatient := models.Patient{
-			FacilityID: req.Patient.FacilityID,
+			FacilityID: facility.ID,
 			PatientInfo: models.PatientInfo{
 				FirstName:  req.Patient.PatientInfo.FirstName,
 				MiddleName: req.Patient.PatientInfo.MiddleName,

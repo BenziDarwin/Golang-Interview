@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Register Patient - Uganda National Cancer Registry</title>
+    <title>Patient Referral - Uganda National Registry</title>
     <link rel="stylesheet" href="../css/styles.css" />
     <link
       rel="stylesheet"
@@ -97,6 +97,67 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+
+      .status-radio-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 0.5rem;
+      }
+
+      .status-option {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 0.6rem 1.2rem;
+        border-radius: 999px;
+        background-color: #f1f1f1;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .status-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .status-label {
+        margin-left: 0.5rem;
+        font-size: 0.95rem;
+        color: #333;
+        user-select: none;
+        z-index: 1;
+        transition: color 0.3s ease;
+      }
+
+      .status-option::before {
+        content: "";
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid #ccc;
+        background-color: white;
+        margin-right: 0.5rem;
+        transition: all 0.3s ease;
+        z-index: 1;
+      }
+
+      .status-option input[type="radio"]:checked + .status-label {
+        color: #007bff;
+        font-weight: bold;
+      }
+
+      .status-option input[type="radio"]:checked::before {
+        background-color: #007bff;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+      }
+
+      .status-option:hover {
+        background-color: #e9ecef;
+      }
     </style>
     <section class="form-section">
       <div class="container">
@@ -125,12 +186,12 @@
             </div>
           </div>
 
-          <!-- Patient Registration Form -->
-          <form id="register-patient-form" class="hidden">
+          <!-- Patient Referral Form -->
+          <form id="referral-patient-form" class="hidden">
             <div class="form-progress">
               <div class="progress-step active" data-step="1">
                 <div class="step-number">1</div>
-                <div class="step-label">Patient & Diagnosis Info</div>
+                <div class="step-label">Patient & Referral Info</div>
               </div>
               <div class="progress-step" data-step="2">
                 <div class="step-number">2</div>
@@ -248,103 +309,113 @@
                 </div>
               </div>
 
-              <div class="section-title">Cancer Diagnosis Information</div>
+              <div class="section-title">Referral Information</div>
 
               <div class="form-row">
                 <div class="form-group">
-                  <label for="primary-site">Primary Site *</label>
-                  <select id="primary-site" name="primary-site" required>
-                    <option value="">Select primary site</option>
-                    <option value="breast">Breast</option>
-                    <option value="cervix">Cervix</option>
-                    <option value="colon">Colon</option>
-                    <option value="lung">Lung</option>
-                    <option value="prostate">Prostate</option>
-                    <option value="liver">Liver</option>
-                    <option value="skin">Skin</option>
-                    <option value="stomach">Stomach</option>
-                    <option value="esophagus">Esophagus</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div class="form-group hidden" id="other-site-group">
-                  <label for="other-site">Please Specify Primary Site *</label>
-                  <input type="text" id="other-site" name="other-site" />
-                </div>
-
-                <div class="form-group">
-                  <label for="histology">Histology/Behavior *</label>
-                  <select id="histology" name="histology" required>
-                    <option value="">Select histology</option>
-                    <option value="adenocarcinoma">Adenocarcinoma</option>
-                    <option value="squamous">Squamous Cell Carcinoma</option>
-                    <option value="melanoma">Melanoma</option>
-                    <option value="basal">Basal Cell Carcinoma</option>
-                    <option value="lymphoma">Lymphoma</option>
-                    <option value="leukemia">Leukemia</option>
-                    <option value="sarcoma">Sarcoma</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="date-of-diagnosis">Date of Diagnosis *</label>
+                  <label for="referred-by">Referred By *</label>
                   <input
-                    type="date"
-                    id="date-of-diagnosis"
-                    name="date-of-diagnosis"
+                    type="text"
+                    id="referred-by"
+                    name="referred-by"
                     required
+                    placeholder="Enter referring doctor/practitioner name"
                   />
                 </div>
 
                 <div class="form-group">
-                  <label for="diagnostic-confirmation"
-                    >Diagnostic Confirmation *</label
-                  >
-                  <select
-                    id="diagnostic-confirmation"
-                    name="diagnostic-confirmation"
+                  <label for="facility-name">Referring Facility *</label>
+                  <input
+                    type="text"
+                    id="facility-name"
+                    name="facility-name"
                     required
-                  >
-                    <option value="">Select method</option>
-                    <option value="positive-histology">
-                      Positive Histology
-                    </option>
-                    <option value="positive-cytology">Positive Cytology</option>
-                    <option value="positive-microscopic">
-                      Positive Microscopic Confirmation
-                    </option>
-                    <option value="clinical">Clinical Diagnosis Only</option>
-                    <option value="radiography">Radiography</option>
-                    <option value="other">Other</option>
-                  </select>
+                    placeholder="Enter referring facility name"
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="diagnosis">Diagnosis *</label>
+                <textarea
+                  id="diagnosis"
+                  name="diagnosis"
+                  required
+                  rows="3"
+                  placeholder="Enter detailed diagnosis or reason for referral"
+                ></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="referred-to">Referred To *</label>
+                  <input
+                    type="text"
+                    id="referred-to"
+                    name="referred-to"
+                    required
+                    placeholder="Enter specialist/department name"
+                  />
                 </div>
 
                 <div class="form-group">
-                  <label for="stage">Stage at Diagnosis *</label>
-                  <select id="stage" name="stage" required>
-                    <option value="">Select stage</option>
-                    <option value="in-situ">In Situ</option>
-                    <option value="localized">Localized</option>
-                    <option value="regional">Regional</option>
-                    <option value="distant">Distant</option>
-                    <option value="unknown">Unknown</option>
-                  </select>
+                  <label for="receiving-facility">Receiving Facility *</label>
+                  <input
+                    type="text"
+                    id="receiving-facility"
+                    name="receiving-facility"
+                    required
+                    placeholder="Enter destination facility name"
+                  />
                 </div>
               </div>
 
               <div class="form-row">
                 <div class="form-group">
-                  <label for="laterality">Laterality</label>
-                  <select id="laterality" name="laterality">
-                    <option value="">Select laterality</option>
-                    <option value="right">Right</option>
-                    <option value="left">Left</option>
-                    <option value="bilateral">Bilateral</option>
-                    <option value="not-applicable">Not Applicable</option>
+                  <label for="country">Country *</label>
+                  <select id="country" name="country" required>
+                    <option value="">Select country</option>
+                    <option value="Uganda" selected>Uganda</option>
+                    <option value="Kenya">Kenya</option>
+                    <option value="Tanzania">Tanzania</option>
+                    <option value="Rwanda">Rwanda</option>
+                    <option value="South Sudan">South Sudan</option>
+                    <option value="Democratic Republic of Congo">Democratic Republic of Congo</option>
+                    <option value="Other">Other</option>
                   </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="city">City *</label>
+                  <input
+                    type="text"
+                    id="city"
+                    name="city"
+                    required
+                    placeholder="Enter city name"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="receiving-doctor">Receiving Doctor</label>
+                  <input
+                    type="text"
+                    id="receiving-doctor"
+                    name="receiving-doctor"
+                    placeholder="Enter receiving doctor name (if known)"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="referral-date">Referral Date *</label>
+                  <input
+                    type="date"
+                    id="referral-date"
+                    name="referral-date"
+                    required
+                  />
                 </div>
               </div>
 
@@ -358,7 +429,7 @@
 
             <!-- Step 2: Review Information -->
             <div class="form-step" data-step="2">
-              <h4>Review Patient Information</h4>
+              <h4>Review Referral Information</h4>
 
               <div id="patient-review-summary">
                 <!-- Review summary will be populated via JavaScript -->
@@ -399,34 +470,34 @@
                   <i class="fas fa-arrow-left"></i> Back
                 </button>
                 <button type="submit" class="btn primary">
-                  Submit Registration <i class="fas fa-check"></i>
+                  Submit Referral <i class="fas fa-check"></i>
                 </button>
               </div>
             </div>
           </form>
 
-          <div id="patient-registration-success" class="hidden">
+          <div id="referral-success" class="hidden">
             <div class="success-icon">
               <i class="fas fa-check-circle"></i>
             </div>
-            <h3>Patient Registration Submitted Successfully!</h3>
+            <h3>Patient Referral Submitted Successfully!</h3>
             <p>
-              Thank you for registering this patient with the Uganda National
-              Cancer Registry. The information has been submitted successfully.
+              Thank you for submitting this patient referral. The information has been 
+              processed and the receiving facility will be notified.
             </p>
             <p>
-              Patient registration ID:
-              <strong id="patient-reg-id">PR-67890</strong>
+              Referral ID:
+              <strong id="referral-id">REF-67890</strong>
             </p>
             <p>
               A confirmation email will be sent to the address provided. If you
               have any questions, please contact our support team.
             </p>
             <div class="success-actions">
-              <button id="register-another" class="btn secondary">
-                Register Another Patient
+              <button id="create-another-referral" class="btn secondary">
+                Create Another Referral
               </button>
-              <a href="index.html" class="btn primary">Return to Home</a>
+              <a href="./external-referrals.html" class="btn primary">Return to External Referrals</a>
             </div>
           </div>
         </div>
@@ -441,7 +512,7 @@
         </div>
       </div>
     </footer>
-    <script src="../js/register-cancer-patient.js"></script>
+    <script src="../js/register-referral.js"></script>
     <script src="../js/main.js"></script>
   </body>
 </html>
