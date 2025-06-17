@@ -13,14 +13,35 @@ import (
 var DB *gorm.DB
 
 func ConnectDB() *gorm.DB {
-	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		getEnv("DB_HOST", "localhost"),
-		getEnv("DB_USER", "postgres"),
-		getEnv("DB_PASSWORD", "yourpassword"),
-		getEnv("DB_NAME", "registry_db"),
-		getEnv("DB_PORT", "5432"),
-	)
+	// Create variables for default values
+	defaultHost := "localhost"
+	defaultUser := "postgres"
+	defaultPassword := "yourpassword"
+	defaultDBName := "registry_db"
+	defaultSSLMode := "disable"
+	port := getEnv("DB_PORT", nil)
+
+	var dsn string
+	if port != "" {
+		dsn = fmt.Sprintf(
+			"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+			getEnv("DB_HOST", &defaultHost),
+			getEnv("DB_USER", &defaultUser),
+			getEnv("DB_PASSWORD", &defaultPassword),
+			getEnv("DB_NAME", &defaultDBName),
+			port,
+			getEnv("DB_SSLMODE", &defaultSSLMode),
+		)
+	} else {
+		dsn = fmt.Sprintf(
+			"host=%s user=%s password=%s dbname=%s sslmode=%s",
+			getEnv("DB_HOST", &defaultHost),
+			getEnv("DB_USER", &defaultUser),
+			getEnv("DB_PASSWORD", &defaultPassword),
+			getEnv("DB_NAME", &defaultDBName),
+			getEnv("DB_SSLMODE", &defaultSSLMode),
+		)
+	}
 
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -47,9 +68,12 @@ func ConnectDB() *gorm.DB {
 	return DB
 }
 
-func getEnv(key, fallback string) string {
+func getEnv(key string, fallback *string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value
 	}
-	return fallback
+	if fallback != nil {
+		return *fallback
+	}
+	return ""
 }
