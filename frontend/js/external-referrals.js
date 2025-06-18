@@ -16,7 +16,7 @@ $(document).ready(async function () {
   let sortColumn = "";
   let sortDirection = "asc";
   let expandedRows = new Set(); // Track expanded rows
-  
+
   if (!facilityId) {
     alert("Facility ID not found. Please register a facility first.");
     window.location.href = "register-facility.html";
@@ -166,15 +166,16 @@ $(document).ready(async function () {
         const patientInfo = referral.patient.patient_info;
         const referralId = referral.ID;
         const isExpanded = expandedRows.has(referralId);
-        
+
         if (!patientInfo) {
           console.warn("Patient info not found for referral:", referral);
           return "";
         }
 
-        const fullName = `${patientInfo.first_name} ${patientInfo.middle_name || ""} ${patientInfo.last_name}`.trim();
+        const fullName =
+          `${patientInfo.first_name} ${patientInfo.middle_name || ""} ${patientInfo.last_name}`.trim();
         const age = patientInfo.age || calculateAge(patientInfo.dob);
-        
+
         // Use referral ID
         const patientId = referral.patient.ID;
 
@@ -182,15 +183,16 @@ $(document).ready(async function () {
         const status = referral.status || "active";
 
         // Handle date display - check if age is provided or calculate from DOB
-        const dobDisplay = patientInfo.dob && !patientInfo.dob.includes("0001-01-01")
-          ? `${formatDate(patientInfo.dob)} (${age} years)` 
-          : `${age} years`;
+        const dobDisplay =
+          patientInfo.dob && !patientInfo.dob.includes("0001-01-01")
+            ? `${formatDate(patientInfo.dob)} (${age} years)`
+            : `${age} years`;
 
         return `
-                <tr class="patient-row ${isExpanded ? 'expanded' : ''}" data-referral-id="${referralId}">
+                <tr class="patient-row ${isExpanded ? "expanded" : ""}" data-referral-id="${referralId}">
                     <td>
                         <div class="expand-toggle">
-                            <i class="fas fa-chevron-${isExpanded ? 'down' : 'right'}"></i>
+                            <i class="fas fa-chevron-${isExpanded ? "down" : "right"}"></i>
                         </div>
                         <strong>REF-${referralId}</strong>
                     </td>
@@ -212,7 +214,7 @@ $(document).ready(async function () {
                         </div>
                     </td>
                 </tr>
-                <tr class="patient-details-row ${isExpanded ? 'show' : ''}" data-referral-id="${referralId}">
+                <tr class="patient-details-row ${isExpanded ? "show" : ""}" data-referral-id="${referralId}">
                     <td colspan="9">
                         ${generateDetailedReferralInfo(referral)}
                     </td>
@@ -294,11 +296,14 @@ $(document).ready(async function () {
       const term = searchTerm.toLowerCase();
       filteredReferrals = allReferrals.filter((referral) => {
         const patientInfo = referral.patient.patient_info;
-        
+
         if (!patientInfo) return false;
 
-        const fullName = `${patientInfo.first_name} ${patientInfo.middle_name || ""} ${patientInfo.last_name}`.toLowerCase();
-        const registrationId = (referral.patient.registration_id || "").toLowerCase();
+        const fullName =
+          `${patientInfo.first_name} ${patientInfo.middle_name || ""} ${patientInfo.last_name}`.toLowerCase();
+        const registrationId = (
+          referral.patient.registration_id || ""
+        ).toLowerCase();
         const nationalId = (patientInfo.national_id || "").toLowerCase();
         const referralId = `REF-${referral.ID}`.toLowerCase();
 
@@ -324,7 +329,7 @@ $(document).ready(async function () {
   function sortReferrals(column, direction) {
     filteredReferrals.sort((a, b) => {
       let aVal, bVal;
-      
+
       const aPatientInfo = a.patient.patient_info;
       const bPatientInfo = b.patient.patient_info;
 
@@ -334,8 +339,12 @@ $(document).ready(async function () {
           bVal = b.ID || 0;
           break;
         case "name":
-          aVal = aPatientInfo ? `${aPatientInfo.first_name} ${aPatientInfo.last_name}`.toLowerCase() : "";
-          bVal = bPatientInfo ? `${bPatientInfo.first_name} ${bPatientInfo.last_name}`.toLowerCase() : "";
+          aVal = aPatientInfo
+            ? `${aPatientInfo.first_name} ${aPatientInfo.last_name}`.toLowerCase()
+            : "";
+          bVal = bPatientInfo
+            ? `${bPatientInfo.first_name} ${bPatientInfo.last_name}`.toLowerCase()
+            : "";
           break;
         case "dob":
           aVal = aPatientInfo ? new Date(aPatientInfo.dob) : new Date(0);
@@ -382,26 +391,28 @@ $(document).ready(async function () {
   // Accordion toggle functionality
   $(document).on("click", ".patient-row", function (e) {
     // Prevent toggle when clicking on action buttons
-    if ($(e.target).closest('.action-buttons').length > 0) {
+    if ($(e.target).closest(".action-buttons").length > 0) {
       return;
     }
-    
+
     const referralId = $(this).data("referral-id");
-    const detailsRow = $(`.patient-details-row[data-referral-id="${referralId}"]`);
-    const chevron = $(this).find('.expand-toggle i');
-    
+    const detailsRow = $(
+      `.patient-details-row[data-referral-id="${referralId}"]`,
+    );
+    const chevron = $(this).find(".expand-toggle i");
+
     if (expandedRows.has(referralId)) {
       // Collapse
       expandedRows.delete(referralId);
-      $(this).removeClass('expanded');
-      detailsRow.removeClass('show');
-      chevron.removeClass('fa-chevron-down').addClass('fa-chevron-right');
+      $(this).removeClass("expanded");
+      detailsRow.removeClass("show");
+      chevron.removeClass("fa-chevron-down").addClass("fa-chevron-right");
     } else {
       // Expand
       expandedRows.add(referralId);
-      $(this).addClass('expanded');
-      detailsRow.addClass('show');
-      chevron.removeClass('fa-chevron-right').addClass('fa-chevron-down');
+      $(this).addClass("expanded");
+      detailsRow.addClass("show");
+      chevron.removeClass("fa-chevron-right").addClass("fa-chevron-down");
     }
   });
 
@@ -499,17 +510,20 @@ $(document).ready(async function () {
       headers.join(","),
       ...filteredReferrals.map((referral) => {
         const patientInfo = referral.patient.patient_info;
-        
+
         if (!patientInfo) return "";
 
-        const fullName = `${patientInfo.first_name} ${patientInfo.middle_name || ""} ${patientInfo.last_name}`.trim();
+        const fullName =
+          `${patientInfo.first_name} ${patientInfo.middle_name || ""} ${patientInfo.last_name}`.trim();
         const status = referral.status || "active";
         const age = patientInfo.age || calculateAge(patientInfo.dob);
 
         return [
           `REF-${referral.ID}`,
           `"${fullName}"`,
-          patientInfo.dob && !patientInfo.dob.includes("0001-01-01") ? formatDate(patientInfo.dob) : "Not specified",
+          patientInfo.dob && !patientInfo.dob.includes("0001-01-01")
+            ? formatDate(patientInfo.dob)
+            : "Not specified",
           age,
           patientInfo.gender || "Not specified",
           patientInfo.national_id || "Not provided",

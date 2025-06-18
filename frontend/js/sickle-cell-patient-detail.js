@@ -25,7 +25,9 @@ $(document).ready(async function () {
 
   // Use the patient data directly
   let patient = patientData.patient;
-  let diagnoses = Array.isArray(patientData.diagnosis) ? patientData.diagnosis : [];
+  let diagnoses = Array.isArray(patientData.diagnosis)
+    ? patientData.diagnosis
+    : [];
   let referrals = Array.isArray(patient.referrals) ? patient.referrals : [];
   let currentEditingDiagnosis = null;
 
@@ -484,13 +486,16 @@ $(document).ready(async function () {
     };
 
     try {
-      const response = await fetch(`/api/v1/sickle-cell-patients/${patientData.patient_id}/referral`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/v1/sickle-cell-patients/${patientData.patient_id}/referral`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
         },
-        body: JSON.stringify(formData),
-      });
+      );
 
       if (!response.ok) {
         throw new Error("Failed to save referral");

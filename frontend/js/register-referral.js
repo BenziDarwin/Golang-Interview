@@ -14,19 +14,21 @@ function formatDateToISO(dateString) {
 }
 
 // Check if jQuery is loaded
-if (typeof jQuery === 'undefined') {
-  console.error('jQuery is not loaded!');
-  alert('Error: jQuery library is not loaded. Please check your HTML head section.');
+if (typeof jQuery === "undefined") {
+  console.error("jQuery is not loaded!");
+  alert(
+    "Error: jQuery library is not loaded. Please check your HTML head section.",
+  );
 }
 
 $(document).ready(async function () {
-  console.log('DOM ready, starting form initialization...');
-  
+  console.log("DOM ready, starting form initialization...");
+
   // Load facility information on page load
   try {
     await loadFacilityInformation();
   } catch (error) {
-    console.error('Failed to load facility information:', error);
+    console.error("Failed to load facility information:", error);
   }
 
   // Format National ID input
@@ -54,7 +56,7 @@ $(document).ready(async function () {
   });
 
   // Set default referral date to today
-  $("#referral-date").val(new Date().toISOString().split('T')[0]);
+  $("#referral-date").val(new Date().toISOString().split("T")[0]);
 
   function validatePatientInfo() {
     const dob = $("#patient-dob").val();
@@ -97,7 +99,7 @@ $(document).ready(async function () {
     // Move to next step
     currentStep.removeClass("active");
     $(`.form-step[data-step="${stepNumber + 1}"]`).addClass("active");
-    
+
     // Update progress
     $(`.progress-step[data-step="${stepNumber}"]`).removeClass("active");
     $(`.progress-step[data-step="${stepNumber + 1}"]`).addClass("active");
@@ -110,7 +112,7 @@ $(document).ready(async function () {
     // Move to previous step
     currentStep.removeClass("active");
     $(`.form-step[data-step="${stepNumber - 1}"]`).addClass("active");
-    
+
     // Update progress
     $(`.progress-step[data-step="${stepNumber}"]`).removeClass("active");
     $(`.progress-step[data-step="${stepNumber - 1}"]`).addClass("active");
@@ -191,14 +193,26 @@ $(document).ready(async function () {
     const referralContent = referralSection.find(".review-content");
 
     addReviewItem(referralContent, "Referred By", $("#referred-by").val());
-    addReviewItem(referralContent, "Referring Facility", $("#facility-name").val());
+    addReviewItem(
+      referralContent,
+      "Referring Facility",
+      $("#facility-name").val(),
+    );
     addReviewItem(referralContent, "Diagnosis", $("#diagnosis").val());
     addReviewItem(referralContent, "Referred To", $("#referred-to").val());
-    addReviewItem(referralContent, "Receiving Facility", $("#receiving-facility").val());
+    addReviewItem(
+      referralContent,
+      "Receiving Facility",
+      $("#receiving-facility").val(),
+    );
     addReviewItem(referralContent, "Country", $("#country").val());
     addReviewItem(referralContent, "City", $("#city").val());
     if ($("#receiving-doctor").val()) {
-      addReviewItem(referralContent, "Receiving Doctor", $("#receiving-doctor").val());
+      addReviewItem(
+        referralContent,
+        "Receiving Doctor",
+        $("#receiving-doctor").val(),
+      );
     }
     addReviewItem(
       referralContent,
@@ -348,8 +362,12 @@ $(document).ready(async function () {
           first_name: $("#patient-first-name").val(),
           middle_name: $("#patient-middle-name").val() || null,
           last_name: $("#patient-last-name").val(),
-          dob: $("#patient-dob").val() ? formatDateToISO($("#patient-dob").val()) : null,
-          age: $("#patient-age").val() ? parseInt($("#patient-age").val()) : null,
+          dob: $("#patient-dob").val()
+            ? formatDateToISO($("#patient-dob").val())
+            : null,
+          age: $("#patient-age").val()
+            ? parseInt($("#patient-age").val())
+            : null,
           gender: $('input[name="patient-gender"]:checked').val(),
           national_id: $("#national-id").val(),
         },
@@ -358,7 +376,7 @@ $(document).ready(async function () {
             name: $("#submitter-name").val(),
             title: $("#submitter-title").val(),
             email: $("#submitter-email").val(),
-          }
+          },
         ],
       },
     };
@@ -395,7 +413,6 @@ $(document).ready(async function () {
         },
         500,
       );
-
     } catch (error) {
       console.error("Error submitting referral:", error);
       alert(
@@ -415,14 +432,14 @@ $(document).ready(async function () {
     $('.form-step[data-step="1"]').addClass("active");
     $(".progress-step").removeClass("active");
     $('.progress-step[data-step="1"]').addClass("active");
-    
+
     // Reset default referral date
-    $("#referral-date").val(new Date().toISOString().split('T')[0]);
-    
+    $("#referral-date").val(new Date().toISOString().split("T")[0]);
+
     // Re-enable age/dob fields
     $("#patient-age").prop("disabled", false);
     $("#patient-dob").prop("disabled", false);
-    
+
     $("html, body").animate(
       {
         scrollTop: $("#referral-patient-form").offset().top - 100,

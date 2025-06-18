@@ -341,7 +341,9 @@ $(document).ready(async function () {
     const patientRegId = "PR-" + Math.floor(10000 + Math.random() * 90000);
     // Collect form data
     const formData = {
-      facility_id: parseInt($("#selected-facility-id").text().replace("ID: ", "")),
+      facility_id: parseInt(
+        $("#selected-facility-id").text().replace("ID: ", ""),
+      ),
       patient_info: {
         first_name: $("#patient-first-name").val(),
         middle_name: $("#patient-middle-name").val(),

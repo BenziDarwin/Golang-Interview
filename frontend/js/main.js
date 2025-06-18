@@ -34,7 +34,9 @@ const SessionManager = {
 
   // Get user name from cookie
   getUserName: function () {
-    return this.getCookie("user_name")? this.getCookie("user_name").replace(/"/g, "") || "User": "";
+    return this.getCookie("user_name")
+      ? this.getCookie("user_name").replace(/"/g, "") || "User"
+      : "";
   },
 
   // Logout user

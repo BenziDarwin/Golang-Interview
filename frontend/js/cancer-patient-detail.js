@@ -486,13 +486,16 @@ $(document).ready(async function () {
     };
 
     try {
-      const response = await fetch(`/api/v1/cancer-patients/${patientData.patient_id}/referral`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/v1/cancer-patients/${patientData.patient_id}/referral`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
         },
-        body: JSON.stringify(formData),
-      });
+      );
 
       if (!response.ok) {
         throw new Error("Failed to save referral");

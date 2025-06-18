@@ -16,14 +16,18 @@ $(document).ready(async function () {
   // Try to fetch patient data
   try {
     const response = await fetch(`/api/v1/referrals/patient/${patientId}`);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const referralData = await response.json();
 
-    if (!referralData || !Array.isArray(referralData) || referralData.length === 0) {
+    if (
+      !referralData ||
+      !Array.isArray(referralData) ||
+      referralData.length === 0
+    ) {
       alert("No patient data found.");
       window.location.href = "patients.html";
       return;
@@ -32,11 +36,12 @@ $(document).ready(async function () {
     // Extract patient data from the first referral
     patient = referralData[0].patient;
     referrals = referralData;
-
   } catch (error) {
     console.error("Error fetching patient data:", error);
-    alert("Failed to load patient data. Please check your connection and try again.");
-    
+    alert(
+      "Failed to load patient data. Please check your connection and try again.",
+    );
+
     // For testing purposes, use mock data
     patient = {
       registration_id: "TEST123",
@@ -50,13 +55,13 @@ $(document).ready(async function () {
         gender: "Male",
         phone: "+256700123456",
         district: "Kampala",
-        age: 34
+        age: 34,
       },
       facility: {
-        name: "Mulago National Referral Hospital"
-      }
+        name: "Mulago National Referral Hospital",
+      },
     };
-    
+
     referrals = [
       {
         ID: 1,
@@ -70,18 +75,18 @@ $(document).ready(async function () {
         facility: "UCI Mulago",
         doctor: "Dr. Johnson",
         referral_date: "2024-02-01T00:00:00Z",
-        status: "Pending"
-      }
+        status: "Pending",
+      },
     ];
   }
 
   function formatDate(dateString) {
     if (!dateString) return "Not specified";
-    
+
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return "Invalid date";
-      
+
       return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
@@ -95,17 +100,20 @@ $(document).ready(async function () {
 
   function calculateAge(dob) {
     if (!dob) return 0;
-    
+
     try {
       const today = new Date();
       const birthDate = new Date(dob);
-      
+
       if (isNaN(birthDate.getTime())) return 0;
-      
+
       let age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
 
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+      ) {
         age--;
       }
 
@@ -123,8 +131,11 @@ $(document).ready(async function () {
     }
 
     const patientInfo = patient.patient_info || {};
-    const fullName = `${patientInfo.first_name || ""} ${patientInfo.middle_name || ""} ${patientInfo.last_name || ""}`.trim();
-    const age = patientInfo.dob ? calculateAge(patientInfo.dob) : (patientInfo.age || 0);
+    const fullName =
+      `${patientInfo.first_name || ""} ${patientInfo.middle_name || ""} ${patientInfo.last_name || ""}`.trim();
+    const age = patientInfo.dob
+      ? calculateAge(patientInfo.dob)
+      : patientInfo.age || 0;
 
     // Set patient name
     $("#referral-name").text(fullName || "Unknown Patient");
@@ -186,8 +197,12 @@ $(document).ready(async function () {
   }
 
   function renderReferralsTable() {
-    console.log("Rendering referrals table with", referrals.length, "referrals");
-    
+    console.log(
+      "Rendering referrals table with",
+      referrals.length,
+      "referrals",
+    );
+
     if (!referrals || referrals.length === 0) {
       $("#referrals-accordion").html(`
         <div class="empty-state">
@@ -299,7 +314,7 @@ $(document).ready(async function () {
     `;
 
     $("#referrals-accordion").html(tableHtml);
-    
+
     // Make sure the referrals tab is active
     $(".tab").removeClass("active");
     $(".tab[data-tab='referrals']").addClass("active");
@@ -315,19 +330,22 @@ $(document).ready(async function () {
     if (referral) {
       $("#referral-modal-title").text("Edit Referral");
       $("#referred-by").val(referral.referred_by || "");
-      $("#facility-name").val(referral.facility_name || (patient.facility ? patient.facility.name : ""));
+      $("#facility-name").val(
+        referral.facility_name ||
+          (patient.facility ? patient.facility.name : ""),
+      );
       $("#referral-diagnosis").val(referral.diagnosis || "");
       $("#referred-to").val(referral.referred_to || "");
       $("#country").val(referral.country || "");
       $("#city").val(referral.city || "");
       $("#referral-facility").val(referral.facility || "");
       $("#doctor").val(referral.doctor || "");
-      
+
       // Format date for input field
       if (referral.referral_date) {
         const date = new Date(referral.referral_date);
         if (!isNaN(date.getTime())) {
-          $("#referral-date").val(date.toISOString().split('T')[0]);
+          $("#referral-date").val(date.toISOString().split("T")[0]);
         }
       }
     } else {
@@ -355,7 +373,7 @@ $(document).ready(async function () {
 
     const date = new Date(referralDateInput);
     const isoDate = date.toISOString();
-    
+
     const formData = {
       referred_by: $("#referred-by").val(),
       facility_name: $("#facility-name").val(),
@@ -370,7 +388,12 @@ $(document).ready(async function () {
     };
 
     // Validate required fields
-    if (!formData.referred_by || !formData.diagnosis || !formData.referred_to || !formData.country) {
+    if (
+      !formData.referred_by ||
+      !formData.diagnosis ||
+      !formData.referred_to ||
+      !formData.country
+    ) {
       alert("Please fill in all required fields.");
       return;
     }
@@ -389,21 +412,25 @@ $(document).ready(async function () {
       }
 
       const savedReferral = await response.json();
-      
+
       if (currentEditingReferral) {
         // Update existing referral
-        const index = referrals.findIndex(r => r.ID === currentEditingReferral.ID);
+        const index = referrals.findIndex(
+          (r) => r.ID === currentEditingReferral.ID,
+        );
         if (index !== -1) {
-          referrals[index] = { ...savedReferral, ID: currentEditingReferral.ID };
+          referrals[index] = {
+            ...savedReferral,
+            ID: currentEditingReferral.ID,
+          };
         }
       } else {
         // Add new referral
         referrals.push({ ...savedReferral, ID: Date.now() }); // Use timestamp as ID for demo
       }
-      
+
       renderReferralsTable();
       closeReferralModal();
-      
     } catch (error) {
       console.error("Error saving referral:", error);
       alert("An error occurred while saving the referral. Please try again.");
@@ -466,9 +493,13 @@ $(document).ready(async function () {
   });
 
   // Modal events
-  $(document).on("click", "#close-referral-modal, #cancel-referral-btn", function () {
-    closeReferralModal();
-  });
+  $(document).on(
+    "click",
+    "#close-referral-modal, #cancel-referral-btn",
+    function () {
+      closeReferralModal();
+    },
+  );
 
   $(document).on("click", "#save-referral-btn", function () {
     saveReferral();

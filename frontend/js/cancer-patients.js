@@ -16,7 +16,7 @@ $(document).ready(async function () {
   let sortColumn = "";
   let sortDirection = "asc";
   let expandedRows = new Set(); // Track expanded rows
-  
+
   if (!facilityId) {
     alert("Facility ID not found. Please register a facility first.");
     window.location.href = "register-facility.html";
@@ -85,9 +85,18 @@ $(document).ready(async function () {
 
   function generateDetailedPatientInfo(cancer_patient) {
     let patient = cancer_patient.patient || cancer_patient; // Handle both formats
-    const latestDiagnosis = cancer_patient.diagnosis && cancer_patient.diagnosis.length > 0 ? cancer_patient.diagnosis[0] : null;
-    const latestReferral = patient.referrals && patient.referrals.length > 0 ? patient.referrals[0] : null;
-    const submitter = patient.submitter && patient.submitter.length > 0 ? patient.submitter[0] : null;
+    const latestDiagnosis =
+      cancer_patient.diagnosis && cancer_patient.diagnosis.length > 0
+        ? cancer_patient.diagnosis[0]
+        : null;
+    const latestReferral =
+      patient.referrals && patient.referrals.length > 0
+        ? patient.referrals[0]
+        : null;
+    const submitter =
+      patient.submitter && patient.submitter.length > 0
+        ? patient.submitter[0]
+        : null;
 
     return `
       <div class="patient-details-container">
@@ -95,7 +104,9 @@ $(document).ready(async function () {
           <!-- Diagnosis Information -->
           <div class="detail-section">
             <h4><i class="fas fa-stethoscope"></i> Diagnosis</h4>
-            ${latestDiagnosis ? `
+            ${
+              latestDiagnosis
+                ? `
               <div class="detail-row">
                 <span><strong>Site:</strong> ${latestDiagnosis.primary_site}</span>
                 <span><strong>Stage:</strong> ${latestDiagnosis.stage}</span>
@@ -104,13 +115,17 @@ $(document).ready(async function () {
                 <span><strong>Histology:</strong> ${latestDiagnosis.histology}</span>
                 <span><strong>Date:</strong> ${formatDate(latestDiagnosis.date_of_diagnosis)}</span>
               </div>
-            ` : '<div class="detail-row">No diagnosis information available</div>'}
+            `
+                : '<div class="detail-row">No diagnosis information available</div>'
+            }
           </div>
 
           <!-- Referral Information -->
           <div class="detail-section">
             <h4><i class="fas fa-share-alt"></i> Latest Referral</h4>
-            ${latestReferral ? `
+            ${
+              latestReferral
+                ? `
               <div class="detail-row">
                 <span><strong>To:</strong> ${latestReferral.referred_to}</span>
                 <span><strong>Doctor:</strong> ${latestReferral.doctor}</span>
@@ -119,18 +134,24 @@ $(document).ready(async function () {
                 <span><strong>Status:</strong> <span class="status-badge status-${latestReferral.status.toLowerCase()}">${latestReferral.status}</span></span>
                 <span><strong>Date:</strong> ${formatDate(latestReferral.referral_date)}</span>
               </div>
-            ` : '<div class="detail-row">No referral information available</div>'}
+            `
+                : '<div class="detail-row">No referral information available</div>'
+            }
           </div>
 
           <!-- Contact Information -->
           <div class="detail-section">
             <h4><i class="fas fa-user-md"></i> Contact</h4>
-            ${submitter ? `
+            ${
+              submitter
+                ? `
               <div class="detail-row">
                 <span><strong>Submitted by:</strong> ${submitter.title} ${submitter.name}</span>
                 <span></span>
               </div>
-            ` : '<div class="detail-row">No contact information available</div>'}
+            `
+                : '<div class="detail-row">No contact information available</div>'
+            }
             <div class="detail-row">
               <span><strong>Registration:</strong> ${patient.registration_id}</span>
               <span><strong>Reg. Date:</strong> ${formatDate(patient.registration_date)}</span>
@@ -168,9 +189,9 @@ $(document).ready(async function () {
       .map((patient) => {
         const patientId = patient.ID || patient.id;
         const isExpanded = expandedRows.has(patientId);
-         let cancer_patient = patient;
+        let cancer_patient = patient;
         patient = patient.patient || patient; // Handle both formats
-       
+
         const fullName =
           `${patient.patient_info.first_name} ${patient.patient_info.middle_name || ""} ${patient.patient_info.last_name}`.trim();
         const age = calculateAge(patient.patient_info.dob);
@@ -189,10 +210,10 @@ $(document).ready(async function () {
         const status = patient.status || "active"; // Default to active if no status field
 
         return `
-                <tr class="patient-row ${isExpanded ? 'expanded' : ''}" data-patient-id="${patientId}">
+                <tr class="patient-row ${isExpanded ? "expanded" : ""}" data-patient-id="${patientId}">
                     <td>
                         <div class="expand-toggle">
-                            <i class="fas fa-chevron-${isExpanded ? 'down' : 'right'}"></i>
+                            <i class="fas fa-chevron-${isExpanded ? "down" : "right"}"></i>
                         </div>
                         <strong>${patient.registration_id}</strong>
                     </td>
@@ -214,7 +235,7 @@ $(document).ready(async function () {
                         </div>
                     </td>
                 </tr>
-                <tr class="patient-details-row ${isExpanded ? 'show' : ''}" data-patient-id="${patientId}">
+                <tr class="patient-details-row ${isExpanded ? "show" : ""}" data-patient-id="${patientId}">
                     <td colspan="9">
                         ${generateDetailedPatientInfo(cancer_patient)}
                     </td>
@@ -295,7 +316,7 @@ $(document).ready(async function () {
     } else {
       const term = searchTerm.toLowerCase();
       filteredPatients = allPatients.filter((patient) => {
-              patient = patient.patient || patient; // Handle both formats
+        patient = patient.patient || patient; // Handle both formats
         const fullName =
           `${patient.patient_info.first_name} ${patient.patient_info.middle_name || ""} ${patient.patient_info.last_name}`.toLowerCase();
         const registrationId = patient.registration_id.toLowerCase();
@@ -387,26 +408,28 @@ $(document).ready(async function () {
   // Accordion toggle functionality
   $(document).on("click", ".patient-row", function (e) {
     // Prevent toggle when clicking on action buttons
-    if ($(e.target).closest('.action-buttons').length > 0) {
+    if ($(e.target).closest(".action-buttons").length > 0) {
       return;
     }
-    
+
     const patientId = $(this).data("patient-id");
-    const detailsRow = $(`.patient-details-row[data-patient-id="${patientId}"]`);
-    const chevron = $(this).find('.expand-toggle i');
-    
+    const detailsRow = $(
+      `.patient-details-row[data-patient-id="${patientId}"]`,
+    );
+    const chevron = $(this).find(".expand-toggle i");
+
     if (expandedRows.has(patientId)) {
       // Collapse
       expandedRows.delete(patientId);
-      $(this).removeClass('expanded');
-      detailsRow.removeClass('show');
-      chevron.removeClass('fa-chevron-down').addClass('fa-chevron-right');
+      $(this).removeClass("expanded");
+      detailsRow.removeClass("show");
+      chevron.removeClass("fa-chevron-down").addClass("fa-chevron-right");
     } else {
       // Expand
       expandedRows.add(patientId);
-      $(this).addClass('expanded');
-      detailsRow.addClass('show');
-      chevron.removeClass('fa-chevron-right').addClass('fa-chevron-down');
+      $(this).addClass("expanded");
+      detailsRow.addClass("show");
+      chevron.removeClass("fa-chevron-right").addClass("fa-chevron-down");
     }
   });
 

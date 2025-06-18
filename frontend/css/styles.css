@@ -1094,8 +1094,8 @@ footer {
   background: white;
   margin: 5px;
   border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  border-left: 3px solid #2196F3;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-left: 3px solid #2196f3;
 }
 
 .details-grid {
@@ -1122,7 +1122,7 @@ footer {
 }
 
 .detail-section h4 i {
-  color: #2196F3;
+  color: #2196f3;
   font-size: 16px;
 }
 
@@ -1222,21 +1222,21 @@ footer {
     grid-template-columns: 1fr;
     gap: 10px;
   }
-  
+
   .patient-details-container {
     margin: 3px;
     padding: 10px;
   }
-  
+
   .detail-section {
     padding: 8px;
   }
-  
+
   .detail-row {
     flex-direction: column;
     gap: 2px;
   }
-  
+
   .detail-row span {
     font-size: 12px;
   }
@@ -1248,7 +1248,7 @@ footer {
 }
 
 .table-container table tbody tr.patient-row.expanded {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Ensure proper spacing for the first column with toggle */
@@ -1257,7 +1257,15 @@ footer {
 }
 
 /* Custom styling for different sections */
-.detail-section:nth-child(1) h4 i { color: #4CAF50; } /* Patient info - green */
-.detail-section:nth-child(2) h4 i { color: #FF9800; } /* Diagnosis - orange */
-.detail-section:nth-child(3) h4 i { color: #9C27B0; } /* Referral - purple */
-.detail-section:nth-child(4) h4 i { color: #607D8B; } /* Submitter - blue-grey */
+.detail-section:nth-child(1) h4 i {
+  color: #4caf50;
+} /* Patient info - green */
+.detail-section:nth-child(2) h4 i {
+  color: #ff9800;
+} /* Diagnosis - orange */
+.detail-section:nth-child(3) h4 i {
+  color: #9c27b0;
+} /* Referral - purple */
+.detail-section:nth-child(4) h4 i {
+  color: #607d8b;
+} /* Submitter - blue-grey */

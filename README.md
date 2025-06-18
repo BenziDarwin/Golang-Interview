@@ -26,9 +26,9 @@ cancer-registry-system/
 
 #### Requirements:
 
-* [Go](https://golang.org/dl/)
-* PostgreSQL or MySQL database
-* A `.env` file for DB configuration
+- [Go](https://golang.org/dl/)
+- PostgreSQL or MySQL database
+- A `.env` file for DB configuration
 
 #### `.env` File Example:
 
@@ -93,11 +93,11 @@ All endpoints are versioned under `/api/v1` and grouped by entity:
 
 Same structure as cancer patients:
 
-* Register
-* Retrieve
-* Diagnose
-* Refer
-* Delete
+- Register
+- Retrieve
+- Diagnose
+- Refer
+- Delete
 
 ---
 
