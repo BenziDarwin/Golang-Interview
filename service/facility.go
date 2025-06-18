@@ -162,7 +162,7 @@ func CreateFacility(c *fiber.Ctx) error {
 <body style="font-family: Arial, sans-serif; line-height: 1.6;">
   <p>Dear %s,</p>
 
-  <p>Your facility has been successfully registered in the <strong>Uganda Cancer Registry</strong>.</p>
+  <p>Your facility has been successfully registered in the <strong>Uganda National Patient Registry</strong>.</p>
 
   <p>Please use the following credentials to access the registry portal:</p>
 
@@ -182,7 +182,7 @@ func CreateFacility(c *fiber.Ctx) error {
   <p style="color: #888;">If you did not request this registration or believe this message was sent in error, please contact our support team immediately.</p>
 
   <p>Best regards,<br>
-  <strong>Uganda Cancer Registry Team</strong></p>
+  <strong>Uganda Patient Registry</strong></p>
 </body>
 </html>
 `, facilityIncharge.Name, processedFacilityID, password)
