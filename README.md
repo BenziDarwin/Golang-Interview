@@ -1,57 +1,36 @@
-# 🧬 Cancer Registry System
+## 🧬 National Patient Registry System
 
-This is a Cancer Registry System built with a **Go (Golang)** backend and a basic **HTML/CSS** frontend. It allows users to register, manage, and view cancer patient data efficiently.
+A secure and scalable system to register, manage, and view patient data for cancer and sickle cell cases. Built with a **Golang (Fiber)** backend and a lightweight **HTML/CSS** frontend, this project is designed to enhance patient tracking, diagnostics, and referrals at national scale.
+
+---
 
 ## 📁 Project Structure
 
 ```
 cancer-registry-system/
-├── backend/         # Golang API server
-│   ├── main.go
-│   ├── .env         # Environment variables (DB credentials)
+├── main.go               # Go backend entry point
+├── .env                  # Environment variables (DB config)
+├── frontend/             # Static HTML/CSS frontend
+│   ├── index.html
 │   └── ...
-└── frontend/        # Basic HTML/CSS interface
-    ├── index.html
-    └── ...
+├── routes/               # Fiber API route definitions
+├── service/              # Core business logic
+└── middleware/           # HTTP middleware (auth, logging, CORS, etc.)
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-### 🖥️ Frontend
-
-The frontend is a static interface built with HTML and CSS. No build tools or servers required.
-
-#### Steps to Run:
-
-1. Navigate to the `frontend` folder.
-2. Open `index.html` in your browser.
-
-```bash
-cd frontend
-open index.html     # macOS
-# OR
-start index.html    # Windows
-# OR
-xdg-open index.html # Linux
-```
-
 ---
 
-### 🔧 Backend
+#### Requirements:
 
-The backend is built with Go and connects to a relational database (e.g., PostgreSQL, MySQL).
+* [Go](https://golang.org/dl/)
+* PostgreSQL or MySQL database
+* A `.env` file for DB configuration
 
-#### Prerequisites:
-
-* [Go](https://golang.org/dl/) installed
-* A running SQL database (PostgreSQL/MySQL)
-* `.env` file configured
-
-#### .env File Format:
-
-Create a `.env` file inside the `backend` folder with the following keys:
+#### `.env` File Example:
 
 ```env
 DB_HOST=localhost
@@ -61,64 +40,92 @@ DB_PASSWORD=your_db_password
 DB_NAME=your_db_name
 ```
 
-#### Steps to Run:
+#### Run Backend:
 
 ```bash
-cd backend
 go run main.go
 ```
 
-The server will start and listen on the specified port (usually `localhost:6060` or as defined in the code).
+The server will listen on `localhost:6060` or another port defined in your `main.go`.
 
 ---
 
-## 🔌 API Endpoints
+## 🔌 API Overview
 
-### 📡 API Route Overview (from `routes/routes.go`)
-
-This file registers all route groups under the `/api/v1` path and connects them with corresponding service functions. The structure makes it easy to scale by grouping endpoints logically.
+All endpoints are versioned under `/api/v1` and grouped by entity:
 
 ---
 
-#### 🏥 Facility Routes (`/api/v1/facilities`)
+### 🏥 Facility API (`/api/v1/facilities`)
 
-| Method | Endpoint                | Description                       |
-| ------ | ----------------------- | --------------------------------- |
-| POST   | `/`                     | Create a new facility             |
-| GET    | `/`                     | Retrieve all facilities           |
-| GET    | `/name/:name`           | Find a facility by its name       |
-| GET    | `/registry/:registryId` | Find facilities by registry ID    |
-| PUT    | `/status/:id`           | Update status of a facility by ID |
+| Method | Endpoint                       | Description                     |
+| ------ | ------------------------------ | ------------------------------- |
+| POST   | `/`                            | Create a new facility           |
+| POST   | `/login`                       | Facility login                  |
+| GET    | `/`                            | Get all facilities              |
+| GET    | `/name/:name`                  | Search facility by name         |
+| GET    | `/name/exists/:name`           | Check if a facility name exists |
+| GET    | `/registry/:registryId`        | Get facilities by registry ID   |
+| GET    | `/registry/exists/:registryId` | Check if registry ID exists     |
+| PUT    | `/:id`                         | Update facility details         |
+| PUT    | `/status/:id`                  | Update facility status          |
 
-#### 👨‍⚕️ Patient Routes (`/api/v1/patients`)
+---
 
-| Method | Endpoint                        | Description                     |
-| ------ | ------------------------------- | ------------------------------- |
-| POST   | `/`                             | Register a new patient          |
-| GET    | `/`                             | Get all patients                |
-| GET    | `/:id`                          | Get patient details by ID       |
-| GET    | `/registration/:registrationId` | Find patient by registration ID |
-| PUT    | `/:id`                          | Update patient record by ID     |
-| DELETE | `/:id`                          | Delete a patient record by ID   |
+### 👨‍⚕️ Cancer Patient API (`/api/v1/cancer-patients`)
+
+| Method | Endpoint                        | Description                    |
+| ------ | ------------------------------- | ------------------------------ |
+| POST   | `/`                             | Register a new cancer patient  |
+| GET    | `/`                             | Get all cancer patients        |
+| GET    | `/:id`                          | Get patient by ID              |
+| GET    | `/registration/:registrationId` | Get patient by registration ID |
+| GET    | `/facility/:id`                 | Get patients by facility       |
+| DELETE | `/:id`                          | Delete patient by ID           |
+| POST   | `/:id/diagnosis`                | Add a diagnosis for a patient  |
+| GET    | `/:id/diagnosis`                | Get diagnoses for a patient    |
+| POST   | `/:id/referral`                 | Create referral for a patient  |
+| GET    | `/:id/referrals`                | Get referrals for a patient    |
+
+---
+
+### 🧬 Sickle Cell Patient API (`/api/v1/sickle-cell-patients`)
+
+Same structure as cancer patients:
+
+* Register
+* Retrieve
+* Diagnose
+* Refer
+* Delete
+
+---
+
+### 🔁 Referral API (`/api/v1/referrals`)
+
+| Method | Endpoint       | Description                 |
+| ------ | -------------- | --------------------------- |
+| POST   | `/`            | Create a referral           |
+| GET    | `/`            | Get all referrals           |
+| GET    | `/patient/:id` | Get referrals for a patient |
+
+---
+
+### 🔐 Admin API (`/api/v1/admin`)
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| POST   | `/login` | Admin login |
 
 ---
 
 ## 🛠 Tech Stack
 
-* **Backend**: Golang
-* **Database**: PostgreSQL (Configurable)
-* **Frontend**: HTML, CSS
+| Layer      | Technology                    |
+| ---------- | ----------------------------- |
+| Backend    | Go (Fiber framework)          |
+| Database   | PostgreSQL / MySQL (via GORM) |
+| Frontend   | HTML, CSS                     |
+| Middleware | Logging, Auth, CORS           |
 
 ---
-
-## 📌 Notes
-
-* Ensure your database is running and credentials are correct in the `.env` file.
-* The frontend and backend are loosely coupled; you may use tools like Postman or browser-based calls to test the API manually.
-
----
-
-## 🧪 Future Improvements
-
-* Implement authentication and role-based access
-* Deploy with Docker
