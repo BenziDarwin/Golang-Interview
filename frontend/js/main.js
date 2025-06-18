@@ -34,7 +34,7 @@ const SessionManager = {
 
   // Get user name from cookie
   getUserName: function () {
-    return this.getCookie("user_name") || "User";
+    return this.getCookie("user_name").replace(/"/g, "") || "User";
   },
 
   // Logout user
@@ -154,7 +154,7 @@ const NavigationManager = {
 
   // Generate user dropdown menu
   generateUserDropdown: function () {
-    const userName = SessionManager.getUserName().replace(/"/g, "");
+    const userName = SessionManager.getUserName();
     const userRole = SessionManager.getUserRole();
     const userInitials = this.getUserInitials();
 
