@@ -22,12 +22,16 @@ func SetupRoutes(app *fiber.App) {
 	api := app.Group("/api/v1")
 
 	facility := api.Group("/facilities")
-	facility.Use(middleware.RequireAuth())
+	// Unauthenticated routes for facilities
 	{
 		facility.Post("/", service.CreateFacility)
 		facility.Post("/login", service.LoginFacility)
-		facility.Get("/", service.GetFacilities)
+	}
 
+	// Authenticated routes for facilities
+	facility.Use(middleware.RequireAuth())
+	{
+		facility.Get("/", service.GetFacilities)
 		facility.Get("/name/:name", service.GetFacilityByName)
 		facility.Get("/name/exists/:name", service.GetExistsFacilityByName)
 		facility.Get("/registry/:registryId", service.GetFacilityByRegistryID)
@@ -79,7 +83,8 @@ func SetupRoutes(app *fiber.App) {
 	}
 
 	admin := api.Group("/admin")
-	admin.Use(middleware.RequireAuth())
+
+	// Unauthenticated routes for admin
 	{
 		admin.Post("/login", service.LoginAdmin)
 	}
