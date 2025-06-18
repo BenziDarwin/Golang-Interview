@@ -202,7 +202,7 @@ const NavigationManager = {
       <header>
         <div class="container">
           <div class="logo">
-            <img src="../assets/logo.png" alt="Uganda National Patient Registry Logo" style="height: 50px;">
+            <img src="../assets/images/logo.png" alt="Uganda National Patient Registry Logo" style="height: 50px;">
             <h1>Uganda National Patient Registry</h1>
           </div>
         
