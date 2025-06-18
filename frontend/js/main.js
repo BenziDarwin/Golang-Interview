@@ -154,7 +154,7 @@ const NavigationManager = {
 
   // Generate user dropdown menu
   generateUserDropdown: function () {
-    const userName = SessionManager.getUserName();
+    const userName = SessionManager.getUserName().replace(/"/g, "");
     const userRole = SessionManager.getUserRole();
     const userInitials = this.getUserInitials();
 
