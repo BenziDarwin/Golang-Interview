@@ -187,10 +187,10 @@ func GetSickleCellPatientByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var patient models.SickleCellPatient
 	if err := database.DB.
-		Table("cancer_patients").
-		Joins("LEFT JOIN patients ON patients.id = cancer_patients.patient_id").
+		Table("sickle_cell_patients").
+		Joins("LEFT JOIN patients ON patients.id = sickle_cell_patients.patient_id").
 		Joins("LEFT JOIN facilities ON facilities.id = patients.facility_id").
-		Where("cancer_patients.id = ?", id).
+		Where("sickle_cell_patients.id = ?", id).
 		Preload("Patient").
 		Preload("Patient.Facility.Identification").
 		Preload("Patient.Facility.Contacts").
@@ -273,8 +273,8 @@ func GetSickleCellPatientByName(c *fiber.Ctx) error {
 	var patients []models.SickleCellPatient
 
 	result := database.DB.
-		Table("cancer_patients").
-		Joins("JOIN patients ON patients.id = cancer_patients.patient_id").
+		Table("sickle_cell_patients").
+		Joins("JOIN patients ON patients.id = sickle_cell_patients.patient_id").
 		Where("patient_first_name LIKE ? OR patient_middle_name LIKE ? OR patient_last_name LIKE ?",
 			likePattern, likePattern, likePattern).
 		Preload("Patient").
