@@ -22,7 +22,7 @@ func SetupRoutes(app *fiber.App) {
 	api := app.Group("/api/v1")
 
 	facility := api.Group("/facilities")
-
+	facility.Use(middleware.RequireAuth())
 	{
 		facility.Post("/", service.CreateFacility)
 		facility.Post("/login", service.LoginFacility)
@@ -37,6 +37,7 @@ func SetupRoutes(app *fiber.App) {
 	}
 
 	cancer_patient := api.Group("/cancer-patients")
+	cancer_patient.Use(middleware.RequireAuth())
 	{
 		cancer_patient.Post("/", service.CreateCancerPatient)
 		cancer_patient.Get("/", service.GetCancerPatients)
@@ -53,6 +54,7 @@ func SetupRoutes(app *fiber.App) {
 	}
 
 	sickle_cell_patient := api.Group("/sickle-cell-patients")
+	sickle_cell_patient.Use(middleware.RequireAuth())
 	{
 		sickle_cell_patient.Post("/", service.CreateSickleCellPatient)
 		sickle_cell_patient.Get("/", service.GetSickleCellPatients)
@@ -69,6 +71,7 @@ func SetupRoutes(app *fiber.App) {
 	}
 
 	referrals := api.Group("/referrals")
+	referrals.Use(middleware.RequireAuth())
 	{
 		referrals.Post("/", service.CreateReferral)
 		referrals.Get("/", service.GetReferrals)
@@ -76,6 +79,7 @@ func SetupRoutes(app *fiber.App) {
 	}
 
 	admin := api.Group("/admin")
+	admin.Use(middleware.RequireAuth())
 	{
 		admin.Post("/login", service.LoginAdmin)
 	}
