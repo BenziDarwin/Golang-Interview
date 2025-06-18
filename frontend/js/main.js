@@ -225,16 +225,16 @@ const NavigationManager = {
         .header-right {
           display: flex;
           align-items: center;
-              gap: 20px;
+          gap: 20px;
         }
 
-          .nav-items {
-        display: flex;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        gap: 15px;
-      }
+        .nav-items {
+          display: flex;
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          gap: 15px;
+        }
         
         .user-dropdown {
           position: fixed;
@@ -251,31 +251,31 @@ const NavigationManager = {
           transform: scale(1.05);
         }
         
-#login {
-    position: fixed;
-    right: 30px;
-    top: 20px;
-    background-color: #0C4296;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
+        #login {
+          position: fixed;
+          right: 30px;
+          top: 20px;
+          background-color: #0C4296;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 10px 20px;
+          font-size: 16px;
+          font-weight: bold;
+          cursor: pointer;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          transition: background-color 0.3s ease, transform 0.2s ease;
+          text-decoration: none;
+        }
 
-#login i {
-    margin-right: 8px;
-}
+        #login i {
+          margin-right: 8px;
+        }
 
-#login:hover {
-    background-color: #093577; /* A darker hover shade of #0C4296 */
-    transform: scale(1.05);
-}
-
+        #login:hover {
+          background-color: #093577; /* A darker hover shade of #0C4296 */
+          transform: scale(1.05);
+        }
         
         .avatar-circle {
           width: 40px;
@@ -374,14 +374,128 @@ const NavigationManager = {
         
         /* Mobile responsiveness */
         @media (max-width: 768px) {
+          .container {
+            flex-wrap: wrap;
+            position: relative;
+          }
+
+          .logo {
+            flex: 1;
+            min-width: 200px;
+          }
+
+          .logo h1 {
+            font-size: 16px;
+          }
+
+          .logo img {
+            height: 35px !important;
+          }
+          
           .header-right {
             order: 2;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+          }
+
+          .mobile-menu-toggle {
+            display: block !important;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #333;
+            padding: 5px;
+          }
+
+          nav {
+            order: 3;
+            width: 100%;
+            display: none;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 10px;
+            border-radius: 8px;
+          }
+
+          nav.active {
+            display: block;
+          }
+
+          .nav-items {
+            flex-direction: column;
+            gap: 0;
+            padding: 10px 0;
+          }
+
+          .nav-items li a {
+            display: block;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            border-bottom: 1px solid #eee;
+          }
+
+          .nav-items li:last-child a {
+            border-bottom: none;
+          }
+
+          .nav-items li a:hover,
+          .nav-items li a.active {
+            background-color: #f8f9fa;
+            color: #0C4296;
+          }
+
+          /* Adjust login button position for mobile */
+          #login {
+            position: static;
+            margin-left: 10px;
+            padding: 8px 12px;
+            font-size: 14px;
+          }
+
+          /* Adjust user dropdown position for mobile */
+          .user-dropdown {
+            position: static;
+            margin-left: 10px;
           }
           
           .dropdown-menu {
             right: -10px;
             min-width: 180px;
           }
+        }
+
+        @media (max-width: 480px) {
+          .logo h1 {
+            font-size: 14px;
+          }
+
+          .logo img {
+            height: 30px !important;
+          }
+
+          #login {
+            padding: 6px 10px;
+            font-size: 12px;
+          }
+
+          #login span {
+            display: none;
+          }
+
+          .avatar-circle {
+            width: 35px;
+            height: 35px;
+            font-size: 14px;
+          }
+        }
+
+        /* Hide mobile menu toggle by default */
+        .mobile-menu-toggle {
+          display: none;
         }
       </style>
     `;
