@@ -197,7 +197,6 @@ $(document).ready(async function () {
   }
 
   function renderReferralsTable() {
-
     if (!referrals || referrals.length === 0) {
       $("#referrals-accordion").html(`
         <div class="empty-state">
@@ -223,15 +222,15 @@ $(document).ready(async function () {
               </thead>
               <tbody>
                    ${referrals
-                          .map((referral, index) => {
-                            const statusClass =
-                              referral.status === "Completed"
-                                ? "status-completed"
-                                : referral.status === "Pending"
-                                  ? "status-pending"
-                                  : "status-inactive";
+                     .map((referral, index) => {
+                       const statusClass =
+                         referral.status === "Completed"
+                           ? "status-completed"
+                           : referral.status === "Pending"
+                             ? "status-pending"
+                             : "status-inactive";
 
-                            return `
+                       return `
                                 <tr class="accordion-row">
                                     <tr class="accordion-header-row" data-target="referral-${referral.id}">
                                         <td style="width: 25%;">
@@ -299,8 +298,8 @@ $(document).ready(async function () {
                                     </tr>
                                 </tr>
                             `;
-                          })
-                          .join("")}
+                     })
+                     .join("")}
               </tbody>
           </table>
       </div>
