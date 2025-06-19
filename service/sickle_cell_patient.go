@@ -306,7 +306,7 @@ func GetSickleCellPatientsByFacilityID(c *fiber.Ctx) error {
 		Preload("SickleCellDiagnosis").
 		Preload("Patient.Referrals").
 		Preload("Patient.Submitters").
-		Order("referrals.id desc").
+		Order("sickle_cell_patients.id desc").
 		Find(&patients).Error
 
 	if err != nil {

@@ -232,7 +232,7 @@ func UpdateFacility(c *fiber.Ctx) error {
 	var req models.FacilityUpdateRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Cannot parse JSON",
+			"error": "Cannot parse JSON" + err.Error(),
 		})
 	}
 
@@ -249,12 +249,12 @@ func UpdateFacility(c *fiber.Ctx) error {
 
 	// Validate and process identification fields if provided
 	if req.Identification != nil {
-		processedFacilityID, err := validateAndProcessIdentification(struct {
+		_, err := validateAndProcessIdentification(struct {
 			RegistryId string `json:"registry_id"`
 			FacilityId uint   `json:"facility_id"`
 			NPI        string `json:"npi,omitempty"`
 		}{
-			RegistryId: req.Identification.FacilityID,
+			RegistryId: req.Identification.RegistryID,
 			FacilityId: 0, // Not used in the function
 			NPI:        req.Identification.NPI,
 		})
@@ -278,25 +278,6 @@ func UpdateFacility(c *fiber.Ctx) error {
 				})
 			}
 		}
-
-		// Check for duplicate Registry ID
-		if req.Identification.FacilityID != "" && req.Identification.FacilityID != facility.Identification.RegistryID {
-			exists, err := checkExistingFacilityByRegistryID(req.Identification.FacilityID)
-			if err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"error": "Database error while checking existing facility",
-				})
-			}
-			if exists {
-				return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-					"error": "Facility with this Registry ID already exists",
-				})
-			}
-		}
-
-		// Update identification fields
-		facility.Identification.RegistryID = processedFacilityID
-		facility.Identification.NPI = req.Identification.NPI
 	}
 
 	// Update general information if provided

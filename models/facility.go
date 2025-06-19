@@ -128,7 +128,7 @@ type ContactUpdate struct {
 }
 
 type IdentificationUpdate struct {
-	FacilityID string `json:"facility_id,omitempty"`
+	RegistryID string `json:"registry_id,omitempty"`
 	NPI        string `json:"npi,omitempty"`
 }
 

@@ -219,7 +219,6 @@ class FacilityProfile {
       },
       identification: {
         registry_id: $("#registry_id").val(),
-        npi: $("#npi").val(),
       },
     };
   }

@@ -308,7 +308,7 @@ func GetCancerPatientsByFacilityID(c *fiber.Ctx) error {
 		Preload("CancerDiagnosis").
 		Preload("Patient.Referrals").
 		Preload("Patient.Submitters").
-		Order("referrals.id desc").
+		Order("cancer_patients.id desc").
 		Find(&patients).Error
 
 	if err != nil {
