@@ -39,13 +39,6 @@ class FacilityProfile {
   }
 
   bindMultiSelectEvents() {
-    $("#organization_type_select").on("change", (e) => {
-      if ($(e.target).val() && this.isEditMode) {
-        this.addTag("organization_type", $(e.target).val());
-        $(e.target).val("");
-      }
-    });
-
     $("#genomic_tests_select").on("change", (e) => {
       if ($(e.target).val() && this.isEditMode) {
         this.addTag("genomic_tests", $(e.target).val());
@@ -81,7 +74,7 @@ class FacilityProfile {
 
   toggleFormInputs(disabled) {
     $(
-      ".form-input, .form-select, .checkbox-input, #organization_type_select, #genomic_tests_select",
+      ".form-input, .form-select, .checkbox-input, #genomic_tests_select",
     ).prop("disabled", disabled);
   }
 
@@ -125,16 +118,13 @@ class FacilityProfile {
     console.log("Populating form with data:", data);
 
     $("#facilityName").text(data.name);
-    $("#organizationName").text(data.organization_name);
 
     $("#name").val(data.name || "");
-    $("#organization_name").val(data.organization_name || "");
     $("#provider_specialty").val(data.provider_specialty || "");
     $("#status").val(data.status || "");
     $("#yearly_cases").val(data.yearly_cases || "");
     $("#address").val(data.address || "");
 
-    this.populateMultiSelect("organization_type", data.organization_type || []);
     this.populateMultiSelect("genomic_tests", data.genomic_tests || []);
 
     // Handle contacts array -> map by type
@@ -254,8 +244,7 @@ class FacilityProfile {
     const data = this.collectFormData();
 
     if (!data.name.trim()) errors.push("Facility name is required");
-    if (!data.organization_name.trim())
-      errors.push("Organization name is required");
+
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[\+]?[0-9\-\s\(\)]+$/;
@@ -310,7 +299,6 @@ class FacilityProfile {
       this.currentData = { ...formData };
 
       $("#facilityName").text(formData.name);
-      $("#organizationName").text(formData.organization_name);
 
       this.toggleEditMode(false);
       this.showAlert("Facility profile updated successfully!");
