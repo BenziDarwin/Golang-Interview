@@ -197,11 +197,6 @@ $(document).ready(async function () {
   }
 
   function renderReferralsTable() {
-    console.log(
-      "Rendering referrals table with",
-      referrals.length,
-      "referrals",
-    );
 
     if (!referrals || referrals.length === 0) {
       $("#referrals-accordion").html(`
@@ -218,96 +213,94 @@ $(document).ready(async function () {
       <div class="accordion-table-container">
           <table class="accordion-table">
               <thead>
-                  <tr>
-                      <th style="width: 25%;">Referred To</th>
-                      <th style="width: 20%;">Location</th>
-                      <th style="width: 20%;">Facility</th>
-                      <th style="width: 15%;">Date</th>
-                      <th style="width: 20%;">Status & Actions</th>
-                  </tr>
+                       <tr>
+                            <th style="width: 25%;">Referred To</th>
+                            <th style="width: 20%;">Referred By</th>
+                            <th style="width: 20%;">Referred From</th>
+                            <th style="width: 15%;">Facility Referred To</th>
+                            <th style="width: 20%;">Status & Actions</th>
+                        </tr>
               </thead>
               <tbody>
-                  ${referrals
-                    .map((referral) => {
-                      const statusClass =
-                        referral.status === "Completed"
-                          ? "status-completed"
-                          : referral.status === "Pending"
-                            ? "status-pending"
-                            : "status-inactive";
+                   ${referrals
+                          .map((referral, index) => {
+                            const statusClass =
+                              referral.status === "Completed"
+                                ? "status-completed"
+                                : referral.status === "Pending"
+                                  ? "status-pending"
+                                  : "status-inactive";
 
-                      return `
-                        <tr class="accordion-row">
-                            <td class="accordion-header-row" data-target="referral-${referral.ID}" colspan="5">
-                                <div style="display: flex; width: 100%;">
-                                    <div style="width: 25%;">
-                                        <div class="cell-content">${referral.referred_to || "Not specified"}</div>
-                                    </div>
-                                    <div style="width: 20%;">
-                                        <div class="cell-content">${referral.country || "Not specified"}, ${referral.city || "Not specified"}</div>
-                                    </div>
-                                    <div style="width: 20%;">
-                                        <div class="cell-content">${referral.facility || "Not specified"}</div>
-                                    </div>
-                                    <div style="width: 15%;">
-                                        <div class="cell-content">${formatDate(referral.referral_date)}</div>
-                                    </div>
-                                    <div style="width: 20%;">
-                                        <div class="cell-content">
-                                            <span class="status-badge ${statusClass}">${referral.status || "Unknown"}</span>
-                                            <div class="accordion-actions">
-                                                <button class="btn small text edit-referral" data-referral-id="${referral.ID}" title="Edit">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn small danger delete-referral" data-referral-id="${referral.ID}" title="Delete">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                                <i class="fas fa-chevron-down accordion-icon"></i>
+                            return `
+                                <tr class="accordion-row">
+                                    <tr class="accordion-header-row" data-target="referral-${referral.id}">
+                                        <td style="width: 25%;">
+                                            <div class="cell-content">${referral.referred_to}</div>
+                                        </td>
+                                        <td style="width: 20%;">
+                                            <div class="cell-content">${referral.referred_by}</div>
+                                        </td>
+                                        <td style="width: 20%;">
+                                            <div class="cell-content">${referral.facility_name}</div>
+                                        </td>
+                                        <td style="width: 15%;">
+                                            <div class="cell-content">${referral.facility}</div>
+                                        </td>
+                                        <td style="width: 20%;">
+                                            <div class="cell-content">
+                                                <span class="status-badge ${statusClass}">${referral.status}</span>
+                                                <div class="accordion-actions">
+                                                    <button class="btn small text edit-referral" data-referral-id="${referral.id}" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn small danger delete-referral" data-referral-id="${referral.id}" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                    <i class="fas fa-chevron-down accordion-icon"></i>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="accordion-content-row" id="referral-${referral.ID}">
-                            <td colspan="5" class="accordion-content-cell">
-                                <div class="accordion-content-inner">
-                                    <div class="accordion-details-grid">
-                                        <div class="detail-group">
-                                            <div class="detail-item">
-                                                <div class="detail-label">Referred By</div>
-                                                <div class="detail-value">${referral.referred_by || "Not specified"}</div>
+                                        </td>
+                                    </tr>
+                                    <tr class="accordion-content-row" id="referral-${referral.id}">
+                                        <td colspan="5" class="accordion-content-cell">
+                                            <div class="accordion-content-inner">
+                                                <div class="accordion-details-grid">
+                                                    <div class="detail-group">
+                                                        <div class="detail-item">
+                                                            <div class="detail-label">Referred By</div>
+                                                            <div class="detail-value">${referral.referred_by}</div>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <div class="detail-label">Facility Name</div>
+                                                            <div class="detail-value">${referral.facility_name}</div>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <div class="detail-label">Diagnosis</div>
+                                                            <div class="detail-value">${referral.diagnosis}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="detail-group">
+                                                        <div class="detail-item">
+                                                            <div class="detail-label">Referred To</div>
+                                                            <div class="detail-value">${referral.referred_to}</div>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <div class="detail-label">Doctor</div>
+                                                            <div class="detail-value">${referral.doctor}</div>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <div class="detail-label">Referral Date</div>
+                                                            <div class="detail-value">${formatDate(referral.referral_date)}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="detail-item">
-                                                <div class="detail-label">Facility Name</div>
-                                                <div class="detail-value">${referral.facility_name || "Not specified"}</div>
-                                            </div>
-                                            <div class="detail-item">
-                                                <div class="detail-label">Diagnosis</div>
-                                                <div class="detail-value">${referral.diagnosis || "Not specified"}</div>
-                                            </div>
-                                        </div>
-                                        <div class="detail-group">
-                                            <div class="detail-item">
-                                                <div class="detail-label">Referred To</div>
-                                                <div class="detail-value">${referral.referred_to || "Not specified"}</div>
-                                            </div>
-                                            <div class="detail-item">
-                                                <div class="detail-label">Doctor</div>
-                                                <div class="detail-value">${referral.doctor || "Not specified"}</div>
-                                            </div>
-                                            <div class="detail-item">
-                                                <div class="detail-label">Referral Date</div>
-                                                <div class="detail-value">${formatDate(referral.referral_date)}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                      `;
-                    })
-                    .join("")}
+                                        </td>
+                                    </tr>
+                                </tr>
+                            `;
+                          })
+                          .join("")}
               </tbody>
           </table>
       </div>

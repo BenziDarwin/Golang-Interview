@@ -4,8 +4,10 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"gorm.io/gorm"
 	"patient-registry.com/database"
+	"patient-registry.com/middleware"
 	"patient-registry.com/models"
 )
 
@@ -116,12 +118,39 @@ func CreateReferral(c *fiber.Ctx) error {
 }
 
 func GetReferrals(c *fiber.Ctx) error {
+	tokenStr := c.Cookies("session_token")
+	if tokenStr == "" {
+		return fiber.NewError(fiber.StatusUnauthorized, "Missing session token")
+	}
+
+	token, err := jwt.ParseWithClaims(tokenStr, &middleware.UserClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(middleware.DefaultAuthConfig().JWTSecret), nil
+	})
+
+	if err != nil || !token.Valid {
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid or expired session token")
+	}
+
+	claims, ok := token.Claims.(*middleware.UserClaims)
+	if !ok {
+		return fiber.NewError(fiber.StatusUnauthorized, "Failed to parse user claims")
+	}
+
 	var referrals []models.Referral
 
-	err := database.DB.Preload("Patient").Find(&referrals).Error
+	err = database.DB.
+		Joins("JOIN patients ON patients.id = referrals.patient_id").
+		Joins("JOIN facilities ON facilities.id = patients.facility_id").
+		Joins("JOIN facility_identifications ON facility_identifications.facility_id = facilities.id").
+		Where("facility_identifications.registry_id = ?", claims.FacilityID). // or .npi depending on your case
+		Preload("Patient").
+		Order("referrals.id desc").
+		Find(&referrals).Error
+
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to retrieve referrals")
 	}
+
 	return c.JSON(referrals)
 }
 

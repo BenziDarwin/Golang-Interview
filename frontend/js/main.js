@@ -46,7 +46,7 @@ const SessionManager = {
     this.removeCookie("user_name");
     this.removeCookie("user_email");
     this.removeCookie("facility_id");
-    window.location.href = "index.html";
+    window.location.href = "/index.html";
   },
 };
 

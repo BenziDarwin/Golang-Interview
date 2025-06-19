@@ -31,9 +31,10 @@ func DefaultAuthConfig() AuthConfig {
 
 // UserClaims represents JWT claims structure
 type UserClaims struct {
-	UserID   string `json:"user_id"`
-	UserName string `json:"user_name"`
-	Role     string `json:"role"`
+	UserID     string `json:"user_id"`
+	UserName   string `json:"user_name"`
+	Role       string `json:"role"`
+	FacilityID string `json:"facility_id"`
 	jwt.RegisteredClaims
 }
 
@@ -195,9 +196,10 @@ func CreateSession(c *fiber.Ctx, name, email, facility_id string, role string) (
 	}
 	// Create JWT claims
 	claims := UserClaims{
-		UserID:   email, // or generate a proper user ID
-		UserName: name,
-		Role:     role,
+		UserID:     email, // or generate a proper user ID
+		UserName:   name,
+		Role:       role,
+		FacilityID: facility_id,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(cfg.SessionDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

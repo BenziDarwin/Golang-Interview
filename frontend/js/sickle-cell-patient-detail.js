@@ -265,9 +265,9 @@ $(document).ready(async function () {
                     <thead>
                         <tr>
                             <th style="width: 25%;">Referred To</th>
-                            <th style="width: 20%;">Location</th>
-                            <th style="width: 20%;">Facility</th>
-                            <th style="width: 15%;">Date</th>
+                            <th style="width: 20%;">Referred By</th>
+                            <th style="width: 20%;">Referred From</th>
+                            <th style="width: 15%;">Facility Referred To</th>
                             <th style="width: 20%;">Status & Actions</th>
                         </tr>
                     </thead>
@@ -288,13 +288,13 @@ $(document).ready(async function () {
                                             <div class="cell-content">${referral.referred_to}</div>
                                         </td>
                                         <td style="width: 20%;">
-                                            <div class="cell-content">${referral.country}, ${referral.city}</div>
+                                            <div class="cell-content">${referral.referred_by}</div>
                                         </td>
                                         <td style="width: 20%;">
-                                            <div class="cell-content">${referral.facility}</div>
+                                            <div class="cell-content">${referral.facility_name}</div>
                                         </td>
                                         <td style="width: 15%;">
-                                            <div class="cell-content">${formatDate(referral.referral_date)}</div>
+                                            <div class="cell-content">${referral.facility}</div>
                                         </td>
                                         <td style="width: 20%;">
                                             <div class="cell-content">
