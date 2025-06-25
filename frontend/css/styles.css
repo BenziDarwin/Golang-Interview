@@ -7,11 +7,11 @@
   --secondary: #20b2aa;
   --secondary-light: #4dc8c2;
   --secondary-dark: #178f89;
-  --accent: #ffd700;
-  --accent-light: #ffe347;
-  --accent-dark: #ccac00;
+  --accent: #a67d00;
+  --accent-light: #a67d00;
+  --accent-dark: #947e00;
   --success: #28a745;
-  --warning: #ffc107;
+  --warning: #a67d00;
   --danger: #dc3545;
   --info: #17a2b8;
 
@@ -1164,7 +1164,7 @@ footer {
 
 .status-pending {
   background-color: #fff3e0;
-  color: #f57c00;
+  color: #9d4f00;
 }
 
 .status-inactive {

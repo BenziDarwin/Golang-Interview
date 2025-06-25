@@ -1,13 +1,20 @@
 $(document).ready(async function () {
+  console.log("Referral detail page loaded");
+  
   // Get patient data from URL parameter
   const urlParams = new URLSearchParams(window.location.search);
   const patientId = urlParams.get("id");
 
+  console.log("Patient ID from URL:", patientId);
+
   if (!patientId) {
     alert("Patient ID not found in URL.");
-    window.location.href = "patients.html";
+    window.location.href = "external-referrals.html";
     return;
   }
+
+  // Show loading state
+  $("#referrals-table").html('<div class="loading"><i class="fas fa-spinner"></i> Loading referrals...</div>');
 
   let patient = null;
   let referrals = [];
@@ -15,6 +22,7 @@ $(document).ready(async function () {
 
   // Try to fetch patient data
   try {
+    console.log(`Fetching from: /api/v1/referrals/patient/${patientId}`);
     const response = await fetch(`/api/v1/referrals/patient/${patientId}`);
 
     if (!response.ok) {
@@ -22,91 +30,46 @@ $(document).ready(async function () {
     }
 
     const referralData = await response.json();
+    console.log("Referral data received:", referralData);
 
-    if (
-      !referralData ||
-      !Array.isArray(referralData) ||
-      referralData.length === 0
-    ) {
-      alert("No patient data found.");
-      window.location.href = "patients.html";
-      return;
+    if (!referralData || !Array.isArray(referralData) || referralData.length === 0) {
+      throw new Error("No referral data found");
     }
 
     // Extract patient data from the first referral
     patient = referralData[0].patient;
     referrals = referralData;
+
+    console.log("Processed data:", { patient, referrals });
+
   } catch (error) {
-    console.error("Error fetching patient data:", error);
-    alert(
-      "Failed to load patient data. Please check your connection and try again.",
-    );
-
-    // For testing purposes, use mock data
-    patient = {
-      registration_id: "TEST123",
-      registration_date: "2024-01-15T00:00:00Z",
-      patient_info: {
-        first_name: "John",
-        middle_name: "M",
-        last_name: "Doe",
-        national_id: "CM123456789",
-        dob: "1990-05-15T00:00:00Z",
-        gender: "Male",
-        phone: "+256700123456",
-        district: "Kampala",
-        age: 34,
-      },
-      facility: {
-        name: "Mulago National Referral Hospital",
-      },
-    };
-
-    referrals = [
-      {
-        ID: 1,
-        patient: patient,
-        referred_by: "Dr. Smith",
-        facility_name: "Mulago National Referral Hospital",
-        diagnosis: "Suspected Breast Cancer",
-        referred_to: "Uganda Cancer Institute",
-        country: "Uganda",
-        city: "Kampala",
-        facility: "UCI Mulago",
-        doctor: "Dr. Johnson",
-        referral_date: "2024-02-01T00:00:00Z",
-        status: "Pending",
-      },
-    ];
+    console.error("Error fetching referral data:", error);
+    alert("Failed to load patient data. Please check your connection and try again.");
   }
 
   function formatDate(dateString) {
     if (!dateString) return "Not specified";
-
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return "Invalid date";
-
       return date.toLocaleDateString("en-US", {
         year: "numeric",
-        month: "long",
+        month: "short",
         day: "numeric",
       });
     } catch (error) {
-      console.error("Error formatting date:", error);
+      console.error("Date formatting error:", error);
       return "Invalid date";
     }
   }
 
   function calculateAge(dob) {
-    if (!dob) return 0;
-
+    if (!dob) return "Unknown";
     try {
       const today = new Date();
       const birthDate = new Date(dob);
-
-      if (isNaN(birthDate.getTime())) return 0;
-
+      if (isNaN(birthDate.getTime())) return "Unknown";
+      
       let age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
 
@@ -119,28 +82,27 @@ $(document).ready(async function () {
 
       return age;
     } catch (error) {
-      console.error("Error calculating age:", error);
-      return 0;
+      console.error("Age calculation error:", error);
+      return "Unknown";
     }
   }
 
   function renderPatientDetails() {
+    console.log("Rendering patient details:", patient);
+    
     if (!patient) {
       console.error("No patient data available");
       return;
     }
 
     const patientInfo = patient.patient_info || {};
-    const fullName =
-      `${patientInfo.first_name || ""} ${patientInfo.middle_name || ""} ${patientInfo.last_name || ""}`.trim();
-    const age = patientInfo.dob
-      ? calculateAge(patientInfo.dob)
-      : patientInfo.age || 0;
+    const fullName = `${patientInfo.first_name || ""} ${patientInfo.middle_name || ""} ${patientInfo.last_name || ""}`.trim();
+    const age = patientInfo.dob ? calculateAge(patientInfo.dob) : patientInfo.age || "Unknown";
 
     // Set patient name
     $("#referral-name").text(fullName || "Unknown Patient");
 
-    // Render basic info with improved grid layout
+    // Render basic info
     const basicInfoHtml = `
       <div class="referral-basic-info">
           <div class="info-item">
@@ -155,7 +117,7 @@ $(document).ready(async function () {
             patientInfo.dob && patientInfo.dob.includes("0001-01-01")
               ? `<div class="info-item">
                   <span class="info-label">Age</span>
-                  <span class="info-value">${patientInfo.age || 0} years</span>
+                  <span class="info-value">${patientInfo.age || age} years</span>
               </div>`
               : `<div class="info-item">
                   <span class="info-label">Date of Birth</span>
@@ -197,8 +159,10 @@ $(document).ready(async function () {
   }
 
   function renderReferralsTable() {
+    console.log("Rendering referrals table with", referrals.length, "referrals");
+
     if (!referrals || referrals.length === 0) {
-      $("#referrals-accordion").html(`
+      $("#referrals-table").html(`
         <div class="empty-state">
             <i class="fas fa-share-square"></i>
             <h4>No Referrals Recorded</h4>
@@ -209,103 +173,84 @@ $(document).ready(async function () {
     }
 
     const tableHtml = `
-      <div class="accordion-table-container">
-          <table class="accordion-table">
-              <thead>
-                       <tr>
-                            <th style="width: 25%;">Referred To</th>
-                            <th style="width: 20%;">Referred By</th>
-                            <th style="width: 20%;">Referred From</th>
-                            <th style="width: 15%;">Facility Referred To</th>
-                            <th style="width: 20%;">Status & Actions</th>
-                        </tr>
-              </thead>
-              <tbody>
-                   ${referrals
-                     .map((referral, index) => {
-                       const statusClass =
-                         referral.status === "Completed"
-                           ? "status-completed"
-                           : referral.status === "Pending"
-                             ? "status-pending"
-                             : "status-inactive";
+      <table class="data-table">
+          <thead>
+              <tr>
+                  <th style="width: 15%;">Referred By</th>
+                  <th style="width: 15%;">From Facility</th>
+                  <th style="width: 20%;">Diagnosis</th>
+                  <th style="width: 15%;">Referred To</th>
+                  <th style="width: 12%;">Location</th>
+                  <th style="width: 12%;">Date</th>
+                  <th style="width: 11%;">Actions</th>
+              </tr>
+          </thead>
+          <tbody>
+              ${referrals
+                .map((referral, index) => {
+                  const statusClass =
+                    referral.status === "Completed"
+                      ? "status-completed"
+                      : referral.status === "Pending"
+                        ? "status-pending"
+                        : referral.status === "Cancelled"
+                          ? "status-cancelled"
+                          : "status-inactive";
 
-                       return `
-                                <tr class="accordion-row">
-                                    <tr class="accordion-header-row" data-target="referral-${referral.id}">
-                                        <td style="width: 25%;">
-                                            <div class="cell-content">${referral.referred_to}</div>
-                                        </td>
-                                        <td style="width: 20%;">
-                                            <div class="cell-content">${referral.referred_by}</div>
-                                        </td>
-                                        <td style="width: 20%;">
-                                            <div class="cell-content">${referral.facility_name}</div>
-                                        </td>
-                                        <td style="width: 15%;">
-                                            <div class="cell-content">${referral.facility}</div>
-                                        </td>
-                                        <td style="width: 20%;">
-                                            <div class="cell-content">
-                                                <span class="status-badge ${statusClass}">${referral.status}</span>
-                                                <div class="accordion-actions">
-                                                    <button class="btn small text edit-referral" data-referral-id="${referral.id}" title="Edit">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button class="btn small danger delete-referral" data-referral-id="${referral.id}" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                    <i class="fas fa-chevron-down accordion-icon"></i>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="accordion-content-row" id="referral-${referral.id}">
-                                        <td colspan="5" class="accordion-content-cell">
-                                            <div class="accordion-content-inner">
-                                                <div class="accordion-details-grid">
-                                                    <div class="detail-group">
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Referred By</div>
-                                                            <div class="detail-value">${referral.referred_by}</div>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Facility Name</div>
-                                                            <div class="detail-value">${referral.facility_name}</div>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Diagnosis</div>
-                                                            <div class="detail-value">${referral.diagnosis}</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="detail-group">
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Referred To</div>
-                                                            <div class="detail-value">${referral.referred_to}</div>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Doctor</div>
-                                                            <div class="detail-value">${referral.doctor}</div>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Referral Date</div>
-                                                            <div class="detail-value">${formatDate(referral.referral_date)}</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tr>
-                            `;
-                     })
-                     .join("")}
-              </tbody>
-          </table>
-      </div>
+                  return `
+                      <tr>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${referral.referred_by || "Not specified"}</div>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${referral.facility_name || "Not specified"}</div>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${referral.diagnosis || "Not specified"}</div>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${referral.referred_to || "Not specified"}</div>
+                                  <div class="cell-sub">${referral.doctor || ""}</div>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${referral.city || ""}</div>
+                                  <div class="cell-sub">${referral.country || ""}</div>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${formatDate(referral.referral_date)}</div>
+                                  <span class="status-badge ${statusClass}">${referral.status || "Pending"}</span>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="actions-cell">
+                                  <button class="btn small text edit-referral" data-referral-id="${referral.ID || referral.id}" title="Edit">
+                                      <i class="fas fa-edit"></i>
+                                  </button>
+                                  <button class="btn small danger delete-referral" data-referral-id="${referral.ID || referral.id}" title="Delete">
+                                      <i class="fas fa-trash"></i>
+                                  </button>
+                              </div>
+                          </td>
+                      </tr>
+                  `;
+                })
+                .join("")}
+          </tbody>
+      </table>
     `;
 
-    $("#referrals-accordion").html(tableHtml);
+    $("#referrals-table").html(tableHtml);
 
     // Make sure the referrals tab is active
     $(".tab").removeClass("active");
@@ -320,18 +265,19 @@ $(document).ready(async function () {
     console.log("Opening referral modal for referral:", referral);
 
     if (referral) {
-      $("#referral-modal-title").text("Edit Referral");
+      $(".modal-title").text("Edit Referral");
       $("#referred-by").val(referral.referred_by || "");
       $("#facility-name").val(
         referral.facility_name ||
-          (patient.facility ? patient.facility.name : ""),
+          (patient.facility ? patient.facility.name : "")
       );
       $("#referral-diagnosis").val(referral.diagnosis || "");
       $("#referred-to").val(referral.referred_to || "");
-      $("#country").val(referral.country || "");
+      $("#country").val(referral.country || "Uganda");
       $("#city").val(referral.city || "");
       $("#referral-facility").val(referral.facility || "");
       $("#doctor").val(referral.doctor || "");
+      $("#referral-status").val(referral.status || "Pending");
 
       // Format date for input field
       if (referral.referral_date) {
@@ -341,11 +287,12 @@ $(document).ready(async function () {
         }
       }
     } else {
-      $("#referral-modal-title").text("Add New Referral");
+      $(".modal-title").text("Add New Referral");
       $("#referral-form")[0].reset();
       // Pre-populate facility name for new referrals
       $("#facility-name").val(patient.facility ? patient.facility.name : "");
       $("#country").val("Uganda"); // Default to Uganda
+      $("#referral-status").val("Pending");
     }
 
     $("#referral-modal").show();
@@ -363,9 +310,6 @@ $(document).ready(async function () {
       return;
     }
 
-    const date = new Date(referralDateInput);
-    const isoDate = date.toISOString();
-
     const formData = {
       referred_by: $("#referred-by").val(),
       facility_name: $("#facility-name").val(),
@@ -375,8 +319,8 @@ $(document).ready(async function () {
       city: $("#city").val(),
       facility: $("#referral-facility").val(),
       doctor: $("#doctor").val(),
-      referral_date: isoDate,
-      status: "Pending",
+      referral_date: referralDateInput,
+      status: $("#referral-status").val() || "Pending",
     };
 
     // Validate required fields
@@ -391,34 +335,23 @@ $(document).ready(async function () {
     }
 
     try {
-      const response = await fetch(`/api/v1/patients/${patientId}/referral`, {
-        method: currentEditingReferral ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to save referral");
-      }
-
-      const savedReferral = await response.json();
-
       if (currentEditingReferral) {
         // Update existing referral
         const index = referrals.findIndex(
-          (r) => r.ID === currentEditingReferral.ID,
+          (r) => (r.ID || r.id) === (currentEditingReferral.ID || currentEditingReferral.id)
         );
         if (index !== -1) {
-          referrals[index] = {
-            ...savedReferral,
-            ID: currentEditingReferral.ID,
-          };
+          referrals[index] = { ...referrals[index], ...formData };
         }
       } else {
         // Add new referral
-        referrals.push({ ...savedReferral, ID: Date.now() }); // Use timestamp as ID for demo
+        const newReferral = {
+          ID: Date.now(),
+          id: Date.now(),
+          patient: patient,
+          ...formData,
+        };
+        referrals.push(newReferral);
       }
 
       renderReferralsTable();
@@ -440,27 +373,6 @@ $(document).ready(async function () {
     $(`#${targetTab}-tab`).addClass("active");
   });
 
-  // Accordion functionality
-  $(document).on("click", ".accordion-header-row", function (e) {
-    if ($(e.target).closest(".accordion-actions").length > 0) {
-      return;
-    }
-
-    const target = $(this).data("target");
-    const content = $(`#${target}`);
-    const icon = $(this).find(".accordion-icon");
-
-    // Close other accordions
-    $(".accordion-header-row").not(this).removeClass("active");
-    $(".accordion-content-row").not(content).removeClass("active");
-    $(".accordion-icon").not(icon).removeClass("rotated");
-
-    // Toggle current accordion
-    $(this).toggleClass("active");
-    content.toggleClass("active");
-    icon.toggleClass("rotated");
-  });
-
   // Referral events
   $(document).on("click", "#add-referral-btn", function () {
     openReferralModal();
@@ -469,7 +381,7 @@ $(document).ready(async function () {
   $(document).on("click", ".edit-referral", function (e) {
     e.stopPropagation();
     const referralId = parseInt($(this).data("referral-id"));
-    const referral = referrals.find((r) => r.ID === referralId);
+    const referral = referrals.find((r) => (r.ID || r.id) === referralId);
     if (referral) {
       openReferralModal(referral);
     }
@@ -479,19 +391,15 @@ $(document).ready(async function () {
     e.stopPropagation();
     const referralId = parseInt($(this).data("referral-id"));
     if (confirm("Are you sure you want to delete this referral?")) {
-      referrals = referrals.filter((r) => r.ID !== referralId);
+      referrals = referrals.filter((r) => (r.ID || r.id) !== referralId);
       renderReferralsTable();
     }
   });
 
   // Modal events
-  $(document).on(
-    "click",
-    "#close-referral-modal, #cancel-referral-btn",
-    function () {
-      closeReferralModal();
-    },
-  );
+  $(document).on("click", ".close, #cancel-referral-btn", function () {
+    closeReferralModal();
+  });
 
   $(document).on("click", "#save-referral-btn", function () {
     saveReferral();
@@ -501,14 +409,6 @@ $(document).ready(async function () {
     if (e.target === this) {
       closeReferralModal();
     }
-  });
-
-  $(document).on("click", ".close", function () {
-    closeReferralModal();
-  });
-
-  $(".mobile-menu-toggle").click(function () {
-    $("nav").toggleClass("active");
   });
 
   // Initialize the page

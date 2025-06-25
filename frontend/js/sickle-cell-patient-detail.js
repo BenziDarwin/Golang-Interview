@@ -1,407 +1,381 @@
 $(document).ready(async function () {
+  console.log("Sickle cell patient detail page loaded");
+  
   // Get patient data from URL parameter
   const urlParams = new URLSearchParams(window.location.search);
   const patientId = urlParams.get("id");
 
+  console.log("Patient ID from URL:", patientId);
+
   if (!patientId) {
     alert("Patient ID not found in URL.");
-    window.location.href = "patients.html";
+    window.location.href = "/sickle_cell/sickle-cell-patients.html";
     return;
   }
 
-  const response = await fetch(`/api/v1/sickle-cell-patients/${patientId}`);
-  if (!response.ok) {
-    alert("Patient not found or an error occurred while fetching data.");
-    window.location.href = "patients.html";
-    return;
-  }
+  // Show loading state
+  $("#diagnoses-table").html('<div class="loading"><i class="fas fa-spinner"></i> Loading diagnoses...</div>');
+  $("#referrals-table").html('<div class="loading"><i class="fas fa-spinner"></i> Loading referrals...</div>');
 
-  const patientData = await response.json();
-
-  if (!patientData) {
-    window.location.href = "patients.html";
-    return;
-  }
-
-  // Use the patient data directly
-  let patient = patientData.patient;
-  let diagnoses = Array.isArray(patientData.diagnosis)
-    ? patientData.diagnosis
-    : [];
-  let referrals = Array.isArray(patient.referrals) ? patient.referrals : [];
+  let patient = null;
+  let diagnoses = [];
+  let referrals = [];
   let currentEditingDiagnosis = null;
+  let currentEditingReferral = null;
+
+  try {
+    console.log(`Fetching from: /api/v1/sickle-cell-patients/${patientId}`);
+    const response = await fetch(`/api/v1/sickle-cell-patients/${patientId}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const patientData = await response.json();
+    console.log("Patient data received:", patientData);
+
+    if (!patientData) {
+      throw new Error("No patient data received");
+    }
+
+    // Use the patient data directly
+    patient = patientData.patient;
+    diagnoses = Array.isArray(patientData.diagnosis) ? patientData.diagnosis : [];
+    referrals = Array.isArray(patient.referrals) ? patient.referrals : [];
+
+    console.log("Processed data:", { patient, diagnoses, referrals });
+
+  } catch (error) {
+    console.error("Error fetching patient data:", error);
+    alert("Patient not found or an error occurred while fetching data.");
+    window.location.href = "sickle-cell-patients.html";
+    return;
+  }
 
   function formatDate(dateString) {
     if (!dateString) return "Not specified";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid date";
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "Invalid date";
+    }
   }
 
   function calculateAge(dob) {
-    const today = new Date();
-    const birthDate = new Date(dob);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (!dob) return "Unknown";
+    try {
+      const today = new Date();
+      const birthDate = new Date(dob);
+      if (isNaN(birthDate.getTime())) return "Unknown";
+      
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
 
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+      ) {
+        age--;
+      }
+
+      return age;
+    } catch (error) {
+      console.error("Age calculation error:", error);
+      return "Unknown";
     }
-
-    return age;
   }
 
   function renderPatientDetails() {
-    const fullName =
-      `${patient.patient_info.first_name} ${patient.patient_info.middle_name || ""} ${patient.patient_info.last_name}`.trim();
-    const age = calculateAge(patient.patient_info.dob);
+    console.log("Rendering patient details:", patient);
+    
+    if (!patient || !patient.patient_info) {
+      console.error("Invalid patient data structure");
+      return;
+    }
+
+    const patientInfo = patient.patient_info;
+    const fullName = `${patientInfo.first_name || ''} ${patientInfo.middle_name || ''} ${patientInfo.last_name || ''}`.trim();
+    const age = calculateAge(patientInfo.dob);
 
     // Set patient name
-    $("#patient-name").text(fullName);
+    $("#patient-name").text(fullName || "Unknown Patient");
 
-    // Render basic info with improved grid layout
+    // Render basic info
     const basicInfoHtml = `
-    <div class="patient-basic-info">
-        <div class="info-item">
-            <span class="info-label">Registration ID</span>
-            <span class="info-value">${patient.registration_id}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">National ID</span>
-            <span class="info-value">${patient.patient_info.national_id || "Not provided"}</span>
-        </div>
-        ${
-          patient.patient_info.dob &&
-          patient.patient_info.dob.includes("0001-01-01")
-            ? `<div class="info-item">
-            <span class="info-label">Age</span>
-            <span class="info-value">${patient.patient_info.age} years</span>
-        </div>`
-            : `      <div class="info-item">
-            <span class="info-label">Date of Birth</span>
-            <span class="info-value">${formatDate(patient.patient_info.dob)}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">Age</span>
-            <span class="info-value">${age} years</span>
-        </div>`
-        }
-  
-        <div class="info-item">
-            <span class="info-label">Gender</span>
-            <span class="info-value">${patient.patient_info.gender}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">Registration Date</span>
-            <span class="info-value">${formatDate(patient.registration_date)}</span>
-        </div>
-        ${
-          patient.patient_info.phone
-            ? `
-        <div class="info-item">
-            <span class="info-label">Phone</span>
-            <span class="info-value">${patient.patient_info.phone}</span>
-        </div>
-        `
-            : ""
-        }
-        ${
-          patient.patient_info.district
-            ? `
-        <div class="info-item">
-            <span class="info-label">District</span>
-            <span class="info-value">${patient.patient_info.district}</span>
-        </div>
-        `
-            : ""
-        }
-    </div>
-`;
+      <div class="patient-basic-info">
+          <div class="info-item">
+              <span class="info-label">Registration ID</span>
+              <span class="info-value">${patient.registration_id || "Not provided"}</span>
+          </div>
+          <div class="info-item">
+              <span class="info-label">National ID</span>
+              <span class="info-value">${patientInfo.national_id || "Not provided"}</span>
+          </div>
+          ${
+            patientInfo.dob && patientInfo.dob.includes("0001-01-01")
+              ? `<div class="info-item">
+              <span class="info-label">Age</span>
+              <span class="info-value">${patientInfo.age || age} years</span>
+          </div>`
+              : `<div class="info-item">
+              <span class="info-label">Date of Birth</span>
+              <span class="info-value">${formatDate(patientInfo.dob)}</span>
+          </div>
+          <div class="info-item">
+              <span class="info-label">Age</span>
+              <span class="info-value">${age} years</span>
+          </div>`
+          }
+          <div class="info-item">
+              <span class="info-label">Gender</span>
+              <span class="info-value">${patientInfo.gender || "Not specified"}</span>
+          </div>
+          <div class="info-item">
+              <span class="info-label">Registration Date</span>
+              <span class="info-value">${formatDate(patient.registration_date)}</span>
+          </div>
+          ${
+            patientInfo.phone
+              ? `
+          <div class="info-item">
+              <span class="info-label">Phone</span>
+              <span class="info-value">${patientInfo.phone}</span>
+          </div>
+          `
+              : ""
+          }
+          ${
+            patientInfo.district
+              ? `
+          <div class="info-item">
+              <span class="info-label">District</span>
+              <span class="info-value">${patientInfo.district}</span>
+          </div>
+          `
+              : ""
+          }
+      </div>
+    `;
 
     $("#patient-basic-info").html(basicInfoHtml);
   }
 
   function renderDiagnosesTable() {
-    console.log(
-      "Rendering diagnoses table with",
-      diagnoses.length,
-      "diagnoses",
-    );
+    console.log("Rendering diagnoses table with", diagnoses.length, "diagnoses");
 
     if (!diagnoses || diagnoses.length === 0) {
-      $("#diagnoses-accordion").html(`
-                <div class="empty-state">
-                    <i class="fas fa-stethoscope"></i>
-                    <h4>No Diagnoses Recorded</h4>
-                    <p>No cancer diagnoses have been recorded for this patient yet.</p>
-                </div>
-            `);
+      $("#diagnoses-table").html(`
+        <div class="empty-state">
+            <i class="fas fa-stethoscope"></i>
+            <h4>No Diagnoses Recorded</h4>
+            <p>No sickle cell diagnoses have been recorded for this patient yet.</p>
+        </div>
+      `);
       return;
     }
 
     const tableHtml = `
-            <div class="accordion-table-container">
-                <table class="accordion-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 25%;">Primary Site</th>
-                            <th style="width: 25%;">Disease Type</th>
-                            <th style="width: 15%;">Diagnostic Confirmation</th>
-                            <th style="width: 20%;">Diagnosis Date</th>
-                            <th style="width: 15%;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${diagnoses
-                          .map((diagnosis, index) => {
-                            const primaryBadge =
-                              index === 0
-                                ? '<span class="primary-badge">Primary</span>'
-                                : "";
+      <table class="data-table">
+          <thead>
+              <tr>
+                  <th style="width: 20%;">Primary Site</th>
+                  <th style="width: 25%;">Disease Type</th>
+                  <th style="width: 20%;">Diagnostic Confirmation</th>
+                  <th style="width: 20%;">Diagnosis Date</th>
+                  <th style="width: 15%;">Actions</th>
+              </tr>
+          </thead>
+          <tbody>
+              ${diagnoses
+                .map((diagnosis, index) => {
+                  const primaryBadge =
+                    index === 0
+                      ? '<div class="primary-badge">Primary</div>'
+                      : "";
 
-                            return `
-                                <tr class="accordion-row">
-                                    <tr class="accordion-header-row" data-target="diagnosis-${diagnosis.ID}">
-                                        <td style="width: 25%;">
-                                            <div class="cell-content">
-                                                ${diagnosis.primary_site || "Not specified"} 
-                                                ${primaryBadge}
-                                            </div>
-                                        </td>
-                                        <td style="width: 25%;">
-                                            <div class="cell-content">${diagnosis.disease_type || "Not specified"}</div>
-                                        </td>
-                                        <td style="width: 15%;">
-                                            <div class="cell-content">
-                                                  <div class="cell-content">${diagnosis.diagnostic_confirmation || "Not specified"}</div>
-                                            </div>
-                                        </td>
-                                        <td style="width: 20%;">
-                                            <div class="cell-content">${formatDate(diagnosis.date_of_diagnosis)}</div>
-                                        </td>
-                                        <td style="width: 15%;">
-                                            <div class="accordion-actions">
-                                                <button class="btn small text edit-diagnosis" data-diagnosis-id="${diagnosis.ID}" title="Edit">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn small danger delete-diagnosis" data-diagnosis-id="${diagnosis.ID}" title="Delete">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                                <i class="fas fa-chevron-down accordion-icon"></i>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="accordion-content-row" id="diagnosis-${diagnosis.ID}">
-                                        <td colspan="5" class="accordion-content-cell">
-                                            <div class="accordion-content-inner">
-                                                <div class="accordion-details-grid">
-                                                    <div class="detail-group">
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Primary Site</div>
-                                                            <div class="detail-value">${diagnosis.primary_site || "Not specified"}</div>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Histology</div>
-                                                            <div class="detail-value">${diagnosis.histology || "Not specified"}</div>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Stage</div>
-                                                            <div class="detail-value">
-                                                                <span class="stage-badge stage-${diagnosis.stage?.toLowerCase()}">${diagnosis.stage || "Not specified"}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="detail-group">
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Date of Diagnosis</div>
-                                                            <div class="detail-value">${formatDate(diagnosis.date_of_diagnosis)}</div>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Diagnostic Confirmation</div>
-                                                            <div class="detail-value">${diagnosis.diagnostic_confirmation || "Not specified"}</div>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Laterality</div>
-                                                            <div class="detail-value">${diagnosis.laterality || "Not specified"}</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tr>
-                            `;
-                          })
-                          .join("")}
-                    </tbody>
-                </table>
-            </div>
-        `;
+                  const diseaseTypeClass = (diagnosis.disease_type || '').toLowerCase().replace(/[^a-z0-9]/g, '-');
 
-    $("#diagnoses-accordion").html(tableHtml);
+                  return `
+                      <tr>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${diagnosis.primary_site || "Not specified"}</div>
+                                  ${primaryBadge}
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <span class="disease-type-badge disease-type-${diseaseTypeClass}">${diagnosis.disease_type || "Not specified"}</span>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${diagnosis.diagnostic_confirmation || "Not specified"}</div>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${formatDate(diagnosis.date_of_diagnosis)}</div>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="actions-cell">
+                                  <button class="btn small text edit-diagnosis" data-diagnosis-id="${diagnosis.ID || diagnosis.id}" title="Edit">
+                                      <i class="fas fa-edit"></i>
+                                  </button>
+                                  <button class="btn small danger delete-diagnosis" data-diagnosis-id="${diagnosis.ID || diagnosis.id}" title="Delete">
+                                      <i class="fas fa-trash"></i>
+                                  </button>
+                              </div>
+                          </td>
+                      </tr>
+                  `;
+                })
+                .join("")}
+          </tbody>
+      </table>
+    `;
+
+    $("#diagnoses-table").html(tableHtml);
   }
 
   function renderReferralsTable() {
+    console.log("Rendering referrals table with", referrals.length, "referrals");
+
     if (referrals.length === 0) {
-      $("#referrals-accordion").html(`
-                <div class="empty-state">
-                    <i class="fas fa-share-square"></i>
-                    <h4>No Referrals Recorded</h4>
-                    <p>No patient referrals have been recorded yet.</p>
-                </div>
-            `);
+      $("#referrals-table").html(`
+        <div class="empty-state">
+            <i class="fas fa-share-square"></i>
+            <h4>No Referrals Recorded</h4>
+            <p>No patient referrals have been recorded yet.</p>
+        </div>
+      `);
       return;
     }
 
     const tableHtml = `
-            <div class="accordion-table-container">
-                <table class="accordion-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 25%;">Referred To</th>
-                            <th style="width: 20%;">Referred By</th>
-                            <th style="width: 20%;">Referred From</th>
-                            <th style="width: 15%;">Facility Referred To</th>
-                            <th style="width: 20%;">Status & Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${referrals
-                          .map((referral, index) => {
-                            const statusClass =
-                              referral.status === "Completed"
-                                ? "status-completed"
-                                : referral.status === "Pending"
-                                  ? "status-pending"
-                                  : "status-inactive";
+      <table class="data-table">
+          <thead>
+              <tr>
+                  <th style="width: 15%;">Referred By</th>
+                  <th style="width: 15%;">From Facility</th>
+                  <th style="width: 20%;">Diagnosis</th>
+                  <th style="width: 15%;">Referred To</th>
+                  <th style="width: 12%;">Location</th>
+                  <th style="width: 12%;">Date</th>
+                  <th style="width: 11%;">Actions</th>
+              </tr>
+          </thead>
+          <tbody>
+              ${referrals
+                .map((referral, index) => {
+                  const statusClass =
+                    referral.status === "Completed"
+                      ? "status-completed"
+                      : referral.status === "Pending"
+                        ? "status-pending"
+                        : "status-inactive";
 
-                            return `
-                                <tr class="accordion-row">
-                                    <tr class="accordion-header-row" data-target="referral-${referral.id}">
-                                        <td style="width: 25%;">
-                                            <div class="cell-content">${referral.referred_to}</div>
-                                        </td>
-                                        <td style="width: 20%;">
-                                            <div class="cell-content">${referral.referred_by}</div>
-                                        </td>
-                                        <td style="width: 20%;">
-                                            <div class="cell-content">${referral.facility_name}</div>
-                                        </td>
-                                        <td style="width: 15%;">
-                                            <div class="cell-content">${referral.facility}</div>
-                                        </td>
-                                        <td style="width: 20%;">
-                                            <div class="cell-content">
-                                                <span class="status-badge ${statusClass}">${referral.status}</span>
-                                                <div class="accordion-actions">
-                                                    <button class="btn small text edit-referral" data-referral-id="${referral.id}" title="Edit">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button class="btn small danger delete-referral" data-referral-id="${referral.id}" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                    <i class="fas fa-chevron-down accordion-icon"></i>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="accordion-content-row" id="referral-${referral.id}">
-                                        <td colspan="5" class="accordion-content-cell">
-                                            <div class="accordion-content-inner">
-                                                <div class="accordion-details-grid">
-                                                    <div class="detail-group">
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Referred By</div>
-                                                            <div class="detail-value">${referral.referred_by}</div>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Facility Name</div>
-                                                            <div class="detail-value">${referral.facility_name}</div>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Diagnosis</div>
-                                                            <div class="detail-value">${referral.diagnosis}</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="detail-group">
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Referred To</div>
-                                                            <div class="detail-value">${referral.referred_to}</div>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Doctor</div>
-                                                            <div class="detail-value">${referral.doctor}</div>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <div class="detail-label">Referral Date</div>
-                                                            <div class="detail-value">${formatDate(referral.referral_date)}</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tr>
-                            `;
-                          })
-                          .join("")}
-                    </tbody>
-                </table>
-            </div>
-        `;
+                  return `
+                      <tr>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${referral.referred_by || "Not specified"}</div>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${referral.facility_name || "Not specified"}</div>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${referral.diagnosis || "Not specified"}</div>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${referral.referred_to || "Not specified"}</div>
+                                  <div class="cell-sub">${referral.doctor || ""}</div>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${referral.city || ""}</div>
+                                  <div class="cell-sub">${referral.country || ""}</div>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="cell-content">
+                                  <div class="cell-main">${formatDate(referral.referral_date)}</div>
+                                  <span class="status-badge ${statusClass}">${referral.status || "Pending"}</span>
+                              </div>
+                          </td>
+                          <td>
+                              <div class="actions-cell">
+                                  <button class="btn small text edit-referral" data-referral-id="${referral.id || referral.ID}" title="Edit">
+                                      <i class="fas fa-edit"></i>
+                                  </button>
+                                  <button class="btn small danger delete-referral" data-referral-id="${referral.id || referral.ID}" title="Delete">
+                                      <i class="fas fa-trash"></i>
+                                  </button>
+                              </div>
+                          </td>
+                      </tr>
+                  `;
+                })
+                .join("")}
+          </tbody>
+      </table>
+    `;
 
-    $("#referrals-accordion").html(tableHtml);
+    $("#referrals-table").html(tableHtml);
   }
 
-  // Modal functions (keeping existing functionality)
+  // Modal functions
   function openDiagnosisModal(diagnosis = null) {
     currentEditingDiagnosis = diagnosis;
 
     if (diagnosis) {
-      $("#diagnosis-modal-title").text("Edit Diagnosis");
-      $("#primary-site").val(diagnosis.primary_site);
-      $("#histology").val(diagnosis.histology);
-      $("#diagnosis-date").val(diagnosis.date_of_diagnosis.split("T")[0]);
-      $("#diagnostic-confirmation").val(diagnosis.diagnostic_confirmation);
-      $("#stage").val(diagnosis.stage);
-      $("#laterality").val(diagnosis.laterality);
+      $(".modal-title").text("Edit Diagnosis");
+      $("#primary-site").val(diagnosis.primary_site || "");
+      $("#disease-type").val(diagnosis.disease_type || "");
+      $("#diagnosis-date").val(diagnosis.date_of_diagnosis ? diagnosis.date_of_diagnosis.split("T")[0] : "");
+      $("#diagnostic-confirmation").val(diagnosis.diagnostic_confirmation || "");
     } else {
-      $("#diagnosis-modal-title").text("Add New Diagnosis");
+      $(".modal-title").text("Add New Diagnosis");
       $("#diagnosis-form")[0].reset();
     }
 
     $("#diagnosis-modal").show();
   }
 
-  // Fixed openReferralModal function
   function openReferralModal(referral = null) {
     currentEditingReferral = referral;
 
-    console.log("Opening referral modal for patient:", patient);
-
     if (referral) {
-      $("#referral-modal-title").text("Edit Referral");
-      $("#referred-by").val(referral.referred_by);
-      // Fixed: Use the patient variable that's in scope, not the parameter
+      $("#referral-modal .modal-title").text("Edit Referral");
+      $("#referred-by").val(referral.referred_by || "");
       $("#facility-name").val(patient.facility ? patient.facility.name : "");
-      $("#referral-diagnosis").val(referral.diagnosis);
-      $("#referred-to").val(referral.referred_to);
-      $("#country").val(referral.country);
-      $("#city").val(referral.city);
-      $("#referral-facility").val(referral.facility);
-      $("#doctor").val(referral.doctor);
-      $("#referral-date").val(referral.referral_date);
+      $("#referral-diagnosis").val(referral.diagnosis || "");
+      $("#referred-to").val(referral.referred_to || "");
+      $("#country").val(referral.country || "Uganda");
+      $("#city").val(referral.city || "");
+      $("#referral-facility").val(referral.facility || "");
+      $("#doctor").val(referral.doctor || "");
+      $("#referral-date").val(referral.referral_date ? referral.referral_date.split("T")[0] : "");
     } else {
-      $("#referral-modal-title").text("Add New Referral");
+      $("#referral-modal .modal-title").text("Add New Referral");
       $("#referral-form")[0].reset();
-      // Pre-populate facility name for new referrals
       $("#facility-name").val(patient.facility ? patient.facility.name : "");
+      $("#country").val("Uganda");
     }
 
     $("#referral-modal").show();
@@ -418,60 +392,57 @@ $(document).ready(async function () {
   }
 
   async function saveDiagnosis() {
-    const date = new Date($("#diagnosis-date").val());
-    const isoDate = date.toISOString();
+      const rawDiagDate = $("#diagnosis-date").val();
+const diagDate = new Date(rawDiagDate).toISOString();
     const formData = {
       primary_site: $("#primary-site").val(),
-      histology: $("#histology").val(),
-      date_of_diagnosis: isoDate,
+      disease_type: $("#disease-type").val(),
+      date_of_diagnosis: diagDate,
       diagnostic_confirmation: $("#diagnostic-confirmation").val(),
-      stage: $("#stage").val(),
-      laterality: $("#laterality").val(),
+      sickle_cell_patient_id: parseInt(patientId),
     };
 
     try {
-      const response = await fetch(`/api/v1/patients/${patientId}/diagnosis`, {
+      if (currentEditingDiagnosis) {
+        // Update existing diagnosis
+        const index = diagnoses.findIndex(
+          (d) => (d.ID || d.id) === (currentEditingDiagnosis.ID || currentEditingDiagnosis.id)
+        );
+        if (index !== -1) {
+          diagnoses[index] = { ...diagnoses[index], ...formData };
+        }
+      } else {
+        // Add new diagnosis
+             const response = await fetch(`/api/v1/sickle-cell-patients/${patientId}/diagnosis`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
-
       if (!response.ok) {
-        throw new Error("Failed to save diagnosis");
+                alert("An error occurred while saving the diagnosis. Please try again.");
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+        const newDiagnosis = {
+          ID: Date.now(),
+          id: Date.now(),
+          ...formData,
+        };
+        diagnoses.push(newDiagnosis);
       }
 
-      const newDiagnosis = await response.json();
-      diagnoses.push(newDiagnosis);
+      renderDiagnosesTable();
+      closeDiagnosisModal();
     } catch (error) {
       console.error("Error saving diagnosis:", error);
       alert("An error occurred while saving the diagnosis. Please try again.");
-      return;
     }
-
-    if (currentEditingDiagnosis) {
-      const index = diagnoses.findIndex(
-        (d) => d.ID === currentEditingDiagnosis.ID,
-      );
-      if (index !== -1) {
-        diagnoses[index] = { ...diagnoses[index], ...formData };
-      }
-    } else {
-      const newDiagnosis = {
-        ID: Date.now(),
-        ...formData,
-      };
-      diagnoses.push(newDiagnosis);
-    }
-
-    renderDiagnosesTable();
-    closeDiagnosisModal();
   }
 
   async function saveReferral() {
-    const date = new Date($("#referral-date").val());
-    const isoDate = date.toISOString(); // Get just the date part
+        const rawReferralDate = $("#referral-date").val();
+    const referralDate = new Date(rawReferralDate).toISOString();
     const formData = {
       referred_by: $("#referred-by").val(),
       facility_name: $("#facility-name").val(),
@@ -481,36 +452,47 @@ $(document).ready(async function () {
       city: $("#city").val(),
       facility: $("#referral-facility").val(),
       doctor: $("#doctor").val(),
-      referral_date: isoDate,
+      referral_date: referralDate,
       status: "Pending",
     };
 
     try {
-      const response = await fetch(
-        `/api/v1/sickle-cell-patients/${patientData.patient_id}/referral`,
-        {
+      if (currentEditingReferral) {
+        // Update existing referral
+        const index = referrals.findIndex(
+          (r) => (r.id || r.ID) === (currentEditingReferral.id || currentEditingReferral.ID)
+        );
+        if (index !== -1) {
+          referrals[index] = { ...referrals[index], ...formData };
+        }
+      } else {
+        // Add new referral
+        const response = await fetch(`/api/v1/sickle-cell-patients/${patient.ID}/referral`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(formData),
-        },
-      );
+        }); 
+        if (!response.ok) {
+          alert("An error occurred while saving the referral. Please try again.");
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-      if (!response.ok) {
-        throw new Error("Failed to save referral");
+        const newReferral = {
+          id: Date.now(),
+          ID: Date.now(),
+          ...formData,
+        };
+        referrals.push(newReferral);
       }
 
-      const newReferral = await response.json();
-      referrals.push(newReferral);
+      renderReferralsTable();
+      closeReferralModal();
     } catch (error) {
       console.error("Error saving referral:", error);
       alert("An error occurred while saving the referral. Please try again.");
-      return;
     }
-
-    renderReferralsTable();
-    closeReferralModal();
   }
 
   // Event handlers
@@ -524,27 +506,6 @@ $(document).ready(async function () {
     $(`#${targetTab}-tab`).addClass("active");
   });
 
-  // Accordion functionality
-  $(document).on("click", ".accordion-header-row", function (e) {
-    if ($(e.target).closest(".accordion-actions").length > 0) {
-      return;
-    }
-
-    const target = $(this).data("target");
-    const content = $(`#${target}`);
-    const icon = $(this).find(".accordion-icon");
-
-    // Close other accordions
-    $(".accordion-header-row").not(this).removeClass("active");
-    $(".accordion-content-row").not(content).removeClass("active");
-    $(".accordion-icon").not(icon).removeClass("rotated");
-
-    // Toggle current accordion
-    $(this).toggleClass("active");
-    content.toggleClass("active");
-    icon.toggleClass("rotated");
-  });
-
   // Diagnosis events
   $(document).on("click", "#add-diagnosis-btn", function () {
     openDiagnosisModal();
@@ -553,7 +514,7 @@ $(document).ready(async function () {
   $(document).on("click", ".edit-diagnosis", function (e) {
     e.stopPropagation();
     const diagnosisId = parseInt($(this).data("diagnosis-id"));
-    const diagnosis = diagnoses.find((d) => d.ID === diagnosisId);
+    const diagnosis = diagnoses.find((d) => (d.ID || d.id) === diagnosisId);
     if (diagnosis) {
       openDiagnosisModal(diagnosis);
     }
@@ -563,12 +524,12 @@ $(document).ready(async function () {
     e.stopPropagation();
     const diagnosisId = parseInt($(this).data("diagnosis-id"));
     if (confirm("Are you sure you want to delete this diagnosis?")) {
-      diagnoses = diagnoses.filter((d) => d.ID !== diagnosisId);
+      diagnoses = diagnoses.filter((d) => (d.ID || d.id) !== diagnosisId);
       renderDiagnosesTable();
     }
   });
 
-  // Referral events - Fixed to remove patient parameter
+  // Referral events
   $(document).on("click", "#add-referral-btn", function () {
     openReferralModal();
   });
@@ -576,9 +537,9 @@ $(document).ready(async function () {
   $(document).on("click", ".edit-referral", function (e) {
     e.stopPropagation();
     const referralId = parseInt($(this).data("referral-id"));
-    const referral = referrals.find((r) => r.id === referralId);
+    const referral = referrals.find((r) => (r.id || r.ID) === referralId);
     if (referral) {
-      openReferralModal(referral); // Removed patient parameter
+      openReferralModal(referral);
     }
   });
 
@@ -586,27 +547,19 @@ $(document).ready(async function () {
     e.stopPropagation();
     const referralId = parseInt($(this).data("referral-id"));
     if (confirm("Are you sure you want to delete this referral?")) {
-      referrals = referrals.filter((r) => r.id !== referralId);
+      referrals = referrals.filter((r) => (r.id || r.ID) !== referralId);
       renderReferralsTable();
     }
   });
 
   // Modal events
-  $(document).on(
-    "click",
-    "#close-diagnosis-modal, #cancel-diagnosis-btn",
-    function () {
-      closeDiagnosisModal();
-    },
-  );
+  $(document).on("click", ".close, #cancel-diagnosis-btn", function () {
+    closeDiagnosisModal();
+  });
 
-  $(document).on(
-    "click",
-    "#close-referral-modal, #cancel-referral-btn",
-    function () {
-      closeReferralModal();
-    },
-  );
+  $(document).on("click", "#cancel-referral-btn", function () {
+    closeReferralModal();
+  });
 
   $(document).on("click", "#save-diagnosis-btn", function () {
     saveDiagnosis();
@@ -621,10 +574,6 @@ $(document).ready(async function () {
       closeDiagnosisModal();
       closeReferralModal();
     }
-  });
-
-  $(".mobile-menu-toggle").click(function () {
-    $("nav").toggleClass("active");
   });
 
   // Initialize the page

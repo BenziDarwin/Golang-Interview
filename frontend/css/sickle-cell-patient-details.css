@@ -39,7 +39,7 @@ body {
   flex-shrink: 0;
 }
 
-.patient-basic-info .referral-basic-info {
+.patient-basic-info {
   display: flex;
   gap: var(--spacing-3);
   flex-wrap: wrap;
@@ -91,7 +91,7 @@ body {
   color: var(--primary);
 }
 
-/* Compressed Tab styles */
+/* Tab styles */
 .tabs {
   display: flex;
   border-bottom: 2px solid var(--gray-200);
@@ -143,7 +143,7 @@ body {
   font-size: 1rem;
 }
 
-/* Single Row Table styles - no accordion */
+/* Single Row Table styles */
 .table-container {
   border: 1px solid var(--gray-200);
   border-radius: var(--radius-md);
@@ -201,7 +201,7 @@ body {
   border-right: none;
 }
 
-/* Compact cell content */
+/* Cell content */
 .cell-content {
   display: flex;
   flex-direction: column;
@@ -226,6 +226,7 @@ body {
   align-items: center;
 }
 
+/* Buttons */
 .btn {
   padding: var(--spacing-1) var(--spacing-2);
   border-radius: var(--radius-sm);
@@ -275,7 +276,7 @@ body {
 
 /* Badges */
 .primary-badge {
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: linear-gradient(135deg, var(--success), #20c997);
   color: white;
   padding: 0.2rem 0.6rem;
   border-radius: 12px;
@@ -285,7 +286,7 @@ body {
   letter-spacing: 0.5px;
 }
 
-.stage-badge {
+.disease-type-badge {
   padding: 0.2rem 0.6rem;
   border-radius: 12px;
   font-size: 0.65rem;
@@ -294,18 +295,23 @@ body {
   letter-spacing: 0.5px;
 }
 
-.stage-i, .stage-ii {
-  background: linear-gradient(135deg, #28a745, #20c997);
-  color: white;
-}
-
-.stage-iii {
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
-  color: white;
-}
-
-.stage-iv {
+.disease-type-hbss {
   background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+}
+
+.disease-type-hbsc {
+  background: linear-gradient(135deg, var(--warning), #fd7e14);
+  color: white;
+}
+
+.disease-type-hbs-beta-thalassemia {
+  background: linear-gradient(135deg, #6f42c1, #5a32a3);
+  color: white;
+}
+
+.disease-type-other {
+  background: var(--gray-600);
   color: white;
 }
 
@@ -319,17 +325,17 @@ body {
 }
 
 .status-completed {
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: linear-gradient(135deg, var(--success), #20c997);
   color: white;
 }
 
 .status-pending {
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
+  background: linear-gradient(135deg, var(--warning), #fd7e14);
   color: white;
 }
 
 .status-inactive {
-  background: #6c757d;
+  background: var(--gray-600);
   color: white;
 }
 
@@ -360,7 +366,7 @@ body {
   margin: 0;
 }
 
-/* Modal styles - compressed */
+/* Modal styles */
 .modal {
   display: none;
   position: fixed;
@@ -510,7 +516,7 @@ body {
     align-items: stretch;
   }
 
-  .patient-basic-info .referral-basic-info {
+  .patient-basic-info {
     justify-content: flex-start;
     gap: var(--spacing-2);
   }
