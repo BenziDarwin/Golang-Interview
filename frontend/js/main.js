@@ -101,7 +101,7 @@ const NavigationManager = {
 
     if (!this.canAccessPage(currentPage)) {
       alert("Please log in to access this page.");
-      window.location.href = "login.html";
+      window.location.href = "/login.html";
       return false;
     }
     return true;
@@ -147,7 +147,7 @@ const NavigationManager = {
     } else {
       // Add login link for non-authenticated users
       navItems += `
-        <li><a id="login" href="login.html" ${currentPage === "login.html" ? 'class="active"' : ""}> <i class="fas fa-sign-in-alt"></i> Login</a></li>
+        <li><a id="login" href="/login.html" ${currentPage === "login.html" ? 'class="active"' : ""}> <i class="fas fa-sign-in-alt"></i> Login</a></li>
       `;
     }
 
@@ -581,7 +581,7 @@ $(document).ready(function () {
     ) {
       e.preventDefault();
       alert("Please log in to access this page.");
-      window.location.href = "login.html";
+      window.location.href = "/login.html";
       return false;
     }
   });
