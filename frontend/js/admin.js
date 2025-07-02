@@ -1,4 +1,13 @@
 $(document).ready(function () {
+  // Tab titles and icons
+  const tabConfig = {
+    diagnosis: { title: 'Diagnosis Types Management', icon: 'fas fa-stethoscope' },
+    cancer: { title: 'Cancer Types Management', icon: 'fas fa-disease' },
+    locations: { title: 'Locations Management', icon: 'fas fa-map-marker-alt' },
+    treatments: { title: 'Treatments Management', icon: 'fas fa-pills' },
+    facilities: { title: 'Facility Types Management', icon: 'fas fa-hospital' }
+  };
+
   // Initial mock data
   const mockData = {
     diagnosis: [
@@ -118,30 +127,40 @@ $(document).ready(function () {
     ],
   };
 
-  // Initialize localStorage with mock data if empty
+  // Initialize data storage
   Object.keys(mockData).forEach((key) => {
-    if (!localStorage.getItem(`registry_${key}`)) {
-      localStorage.setItem(`registry_${key}`, JSON.stringify(mockData[key]));
+    const storageKey = `registry_${key}`;
+    if (!window.registryData) window.registryData = {};
+    if (!window.registryData[key]) {
+      window.registryData[key] = mockData[key];
     }
   });
 
-  // Handle tab switching
-  $(".tab").click(function () {
-    $(".tab").removeClass("active");
-    $(this).addClass("active");
+  // Sidebar toggle functionality
+  $('#sidebarToggle').click(function() {
+    $('.sidebar').toggleClass('collapsed');
+  });
 
-    const tabId = $(this).data("tab");
-    $(".tab-content").removeClass("active");
-    $(`#${tabId}-tab`).addClass("active");
+  // Handle navigation item clicks
+  $('.nav-item').click(function () {
+    $('.nav-item').removeClass('active');
+    $(this).addClass('active');
+
+    const tabId = $(this).data('tab');
+    $('.tab-content').removeClass('active');
+    $(`#${tabId}-tab`).addClass('active');
+
+    // Update header title and add button
+    const config = tabConfig[tabId];
+    $('#content-title').html(`<i class="${config.icon}"></i> ${config.title}`);
+    $('.add-item').data('type', tabId);
 
     loadItems(tabId);
   });
 
   // Load items for a category
   function loadItems(category) {
-    const items = JSON.parse(
-      localStorage.getItem(`registry_${category}`) || "[]",
-    );
+    const items = window.registryData[category] || [];
     const list = $(`#${category}-list`);
     list.empty();
 
@@ -161,11 +180,12 @@ $(document).ready(function () {
       card.html(`
         <div class="data-card-header">
           <div class="data-card-title">
-            <h4>${item.name}</h4>
+            <h4>${item.name}
+              <span class="status-badge ${item.active ? "active" : "inactive"}">
+                ${item.active ? "Active" : "Inactive"}
+              </span>
+            </h4>
             <span class="data-card-code">${item.code}</span>
-            <span class="status-badge ${item.active ? "active" : "inactive"}">
-              ${item.active ? "Active" : "Inactive"}
-            </span>
           </div>
           <div class="data-card-actions">
             <button class="btn icon edit edit-item" data-id="${item.id}" data-type="${category}" title="Edit">
@@ -183,8 +203,8 @@ $(document).ready(function () {
   }
 
   // Show modal for adding new item
-  $(".add-item").click(function () {
-    const type = $(this).data("type");
+  $('.add-item').click(function () {
+    const type = $(this).data('type');
     showModal("add", type);
   });
 
@@ -200,11 +220,7 @@ $(document).ready(function () {
     const type = $(this).data("type");
     const id = parseInt($(this).data("id"));
 
-    if (
-      confirm(
-        "Are you sure you want to delete this item? This action cannot be undone.",
-      )
-    ) {
+    if (confirm("Are you sure you want to delete this item? This action cannot be undone.")) {
       deleteItem(type, id);
     }
   });
@@ -221,9 +237,7 @@ $(document).ready(function () {
 
     if (mode === "edit" && id) {
       title.text("Edit Item");
-      const items = JSON.parse(
-        localStorage.getItem(`registry_${type}`) || "[]",
-      );
+      const items = window.registryData[type] || [];
       const item = items.find((i) => i.id === id);
 
       if (item) {
@@ -271,129 +285,391 @@ $(document).ready(function () {
     const type = form.data("type");
     const id = form.data("id");
 
-    // Validate required fields
-    const name = $("#item-name").val().trim();
-    const code = $("#item-code").val().trim();
-
-    if (!name || !code) {
-      alert("Please fill in all required fields.");
-      return;
-    }
-
+    // Get form data
     const formData = {
-      name: name,
-      code: code,
+      name: $("#item-name").val().trim(),
+      code: $("#item-code").val().trim().toUpperCase(),
       description: $("#item-description").val().trim(),
-      active: $("#item-active").is(":checked"),
+      active: $("#item-active").is(":checked")
     };
 
-    if (mode === "add") {
-      addItem(type, formData);
-    } else {
-      updateItem(type, id, formData);
-    }
-
-    closeModal();
-  });
-
-  // Add new item
-  function addItem(type, data) {
-    const items = JSON.parse(localStorage.getItem(`registry_${type}`) || "[]");
-    const newId =
-      items.length > 0 ? Math.max(...items.map((i) => i.id)) + 1 : 1;
-
-    // Check for duplicate codes
-    if (items.some((item) => item.code === data.code)) {
-      alert(
-        "An item with this code already exists. Please use a different code.",
-      );
+    // Validate required fields
+    if (!formData.name || !formData.code) {
+      showNotification("Please fill in all required fields.", "error");
       return;
     }
 
-    items.push({
-      id: newId,
-      ...data,
-    });
+    // Get items array for the current type
+    if (!window.registryData[type]) {
+      window.registryData[type] = [];
+    }
+    const items = window.registryData[type];
 
-    localStorage.setItem(`registry_${type}`, JSON.stringify(items));
-    loadItems(type);
-
-    // Show success message
-    showNotification("Item added successfully!", "success");
-  }
-
-  // Update existing item
-  function updateItem(type, id, data) {
-    const items = JSON.parse(localStorage.getItem(`registry_${type}`) || "[]");
-    const index = items.findIndex((i) => i.id === id);
-
-    if (index !== -1) {
-      // Check for duplicate codes (excluding current item)
-      if (items.some((item) => item.code === data.code && item.id !== id)) {
-        alert(
-          "An item with this code already exists. Please use a different code.",
+    if (mode === "edit") {
+      // Update existing item
+      const itemIndex = items.findIndex(item => item.id === id);
+      if (itemIndex !== -1) {
+        // Check for duplicate code (excluding current item)
+        const duplicateCode = items.some(item => 
+          item.id !== id && item.code.toUpperCase() === formData.code
         );
+        
+        if (duplicateCode) {
+          showNotification("Code already exists. Please use a different code.", "error");
+          return;
+        }
+
+        items[itemIndex] = {
+          ...items[itemIndex],
+          ...formData
+        };
+        
+        showNotification("Item updated successfully!", "success");
+      } else {
+        showNotification("Item not found.", "error");
+        return;
+      }
+    } else {
+      // Add new item
+      // Check for duplicate code
+      const duplicateCode = items.some(item => 
+        item.code.toUpperCase() === formData.code
+      );
+      
+      if (duplicateCode) {
+        showNotification("Code already exists. Please use a different code.", "error");
         return;
       }
 
-      items[index] = {
-        ...items[index],
-        ...data,
+      // Generate new ID
+      const newId = items.length > 0 ? Math.max(...items.map(item => item.id)) + 1 : 1;
+      
+      const newItem = {
+        id: newId,
+        ...formData
       };
 
-      localStorage.setItem(`registry_${type}`, JSON.stringify(items));
-      loadItems(type);
+      items.push(newItem);
+      showNotification("Item added successfully!", "success");
+    }
 
-      // Show success message
-      showNotification("Item updated successfully!", "success");
+    // Save to storage (in a real app, this would be an API call)
+    saveToStorage(type, items);
+
+    // Reload items and close modal
+    loadItems(type);
+    closeModal();
+  });
+
+  // Delete item function
+  function deleteItem(type, id) {
+    if (!window.registryData[type]) {
+      return;
+    }
+
+    const items = window.registryData[type];
+    const itemIndex = items.findIndex(item => item.id === id);
+    
+    if (itemIndex !== -1) {
+      items.splice(itemIndex, 1);
+      saveToStorage(type, items);
+      loadItems(type);
+      showNotification("Item deleted successfully!", "success");
+    } else {
+      showNotification("Item not found.", "error");
     }
   }
 
-  // Delete item
-  function deleteItem(type, id) {
-    const items = JSON.parse(localStorage.getItem(`registry_${type}`) || "[]");
-    const filteredItems = items.filter((i) => i.id !== id);
-
-    localStorage.setItem(`registry_${type}`, JSON.stringify(filteredItems));
-    loadItems(type);
-
-    // Show success message
-    showNotification("Item deleted successfully!", "success");
+  // Save data to storage (simulated)
+  function saveToStorage(type, data) {
+    window.registryData[type] = data;
+    // In a real application, you would make an API call here
+    console.log(`Saved ${type} data:`, data);
   }
 
-  // Show notification
+  // Show notification function
   function showNotification(message, type = "info") {
+    // Remove existing notifications
+    $(".notification").remove();
+
     const notification = $(`
-      <div class="notification ${type}" style="
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${type === "success" ? "var(--success)" : "var(--info)"};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-lg);
-        z-index: 1001;
-        animation: slideInRight 0.3s ease;
-      ">
-        ${message}
+      <div class="notification notification-${type}">
+        <div class="notification-content">
+          <i class="fas ${getNotificationIcon(type)}"></i>
+          <span>${message}</span>
+          <button class="notification-close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
       </div>
     `);
 
     $("body").append(notification);
 
+    // Show notification
     setTimeout(() => {
-      notification.fadeOut(300, function () {
-        $(this).remove();
-      });
-    }, 3000);
+      notification.addClass("show");
+    }, 100);
+
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      hideNotification(notification);
+    }, 5000);
+
+    // Handle close button
+    notification.find(".notification-close").click(function() {
+      hideNotification(notification);
+    });
   }
 
-  // Mobile menu toggle
-  $(".mobile-menu-toggle").click(function () {
-    $("nav").toggleClass("active");
-  });
+  // Hide notification function
+  function hideNotification(notification) {
+    notification.removeClass("show");
+    setTimeout(() => {
+      notification.remove();
+    }, 300);
+  }
 
-  // Load initial data for the first tab
-  loadItems("diagnosis");
+  // Get notification icon based on type
+  function getNotificationIcon(type) {
+    switch (type) {
+      case "success": return "fa-check-circle";
+      case "error": return "fa-exclamation-circle";
+      case "warning": return "fa-exclamation-triangle";
+      default: return "fa-info-circle";
+    }
+  }
+
+  // Search functionality
+  function setupSearch() {
+    const searchInput = $('<div class="search-container"><input type="text" id="search-input" placeholder="Search items..."><i class="fas fa-search"></i></div>');
+    $('.content-header').append(searchInput);
+
+    $('#search-input').on('input', function() {
+      const searchTerm = $(this).val().toLowerCase();
+      const activeTab = $('.nav-item.active').data('tab');
+      
+      if (!searchTerm) {
+        loadItems(activeTab);
+        return;
+      }
+
+      const items = window.registryData[activeTab] || [];
+      const filteredItems = items.filter(item => 
+        item.name.toLowerCase().includes(searchTerm) ||
+        item.code.toLowerCase().includes(searchTerm) ||
+        (item.description && item.description.toLowerCase().includes(searchTerm))
+      );
+
+      displayFilteredItems(activeTab, filteredItems);
+    });
+  }
+
+  // Display filtered items
+  function displayFilteredItems(category, items) {
+    const list = $(`#${category}-list`);
+    list.empty();
+
+    if (items.length === 0) {
+      list.html(`
+        <div class="empty-state">
+          <i class="fas fa-search"></i>
+          <h4>No Results Found</h4>
+          <p>Try adjusting your search terms.</p>
+        </div>
+      `);
+      return;
+    }
+
+    items.forEach((item) => {
+      const card = $("<div>").addClass("data-card");
+      card.html(`
+        <div class="data-card-header">
+          <div class="data-card-title">
+            <h4>${item.name}
+              <span class="status-badge ${item.active ? "active" : "inactive"}">
+                ${item.active ? "Active" : "Inactive"}
+              </span>
+            </h4>
+            <span class="data-card-code">${item.code}</span>
+          </div>
+          <div class="data-card-actions">
+            <button class="btn icon edit edit-item" data-id="${item.id}" data-type="${category}" title="Edit">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn icon delete delete-item" data-id="${item.id}" data-type="${category}" title="Delete">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        ${item.description ? `<div class="data-card-description">${item.description}</div>` : ""}
+      `);
+      list.append(card);
+    });
+  }
+
+  // Initialize
+  function init() {
+    // Load initial tab (diagnosis)
+    loadItems('diagnosis');
+    
+    // Setup search functionality
+    setupSearch();
+
+    // Add keyboard shortcuts
+    $(document).keydown(function(e) {
+      // Escape key to close modal
+      if (e.keyCode === 27 && $("#item-modal").hasClass("active")) {
+        closeModal();
+      }
+      
+      // Ctrl+N to add new item
+      if (e.ctrlKey && e.keyCode === 78) {
+        e.preventDefault();
+        const activeType = $('.nav-item.active').data('tab');
+        if (activeType) {
+          showModal("add", activeType);
+        }
+      }
+    });
+
+    // Add tooltips
+    $('[title]').each(function() {
+      $(this).tooltip();
+    });
+  }
+
+  // Add custom styles for notifications
+  const notificationStyles = `
+    <style>
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        border-left: 4px solid #007bff;
+        min-width: 300px;
+        max-width: 400px;
+      }
+
+      .notification.show {
+        transform: translateX(0);
+      }
+
+      .notification-success {
+        border-left-color: #28a745;
+      }
+
+      .notification-error {
+        border-left-color: #dc3545;
+      }
+
+      .notification-warning {
+        border-left-color: #ffc107;
+      }
+
+      .notification-content {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        gap: 10px;
+      }
+
+      .notification-content i:first-child {
+        font-size: 18px;
+        color: #007bff;
+      }
+
+      .notification-success .notification-content i:first-child {
+        color: #28a745;
+      }
+
+      .notification-error .notification-content i:first-child {
+        color: #dc3545;
+      }
+
+      .notification-warning .notification-content i:first-child {
+        color: #ffc107;
+      }
+
+      .notification-content span {
+        flex: 1;
+        font-size: 14px;
+        color: #333;
+      }
+
+      .notification-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #666;
+        padding: 5px;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+      }
+
+      .notification-close:hover {
+        background-color: #f8f9fa;
+      }
+
+      .search-container {
+        position: relative;
+        display: inline-block;
+        margin-left: 20px;
+      }
+
+      .search-container input {
+        padding: 8px 35px 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        width: 250px;
+        transition: border-color 0.2s ease;
+      }
+
+      .search-container input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      }
+
+      .search-container i {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        pointer-events: none;
+      }
+
+      @media (max-width: 768px) {
+        .notification {
+          top: 10px;
+          right: 10px;
+          left: 10px;
+          min-width: auto;
+          max-width: none;
+        }
+
+        .search-container {
+          display: block;
+          margin: 10px 0 0 0;
+        }
+
+        .search-container input {
+          width: 100%;
+        }
+      }
+    </style>
+  `;
+
+  $('head').append(notificationStyles);
+
+  // Initialize the application
+  init();
 });
