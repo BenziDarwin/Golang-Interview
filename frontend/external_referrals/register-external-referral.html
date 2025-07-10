@@ -12,7 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   </head>
   <body>
-    <style>
+      <style>
       .gender-radio-group {
         display: flex;
         flex-wrap: wrap;
@@ -60,21 +60,43 @@
         z-index: 1;
       }
 
-      /* Checked state styling */
-      .gender-option input[type="radio"]:checked + .gender-label {
+      /* Checked state styling - Fixed to target the container when radio is checked */
+      .gender-option:has(input[type="radio"]:checked) .gender-label {
         color: #007bff;
         font-weight: bold;
       }
 
-      .gender-option input[type="radio"]:checked::before {
+      .gender-option:has(input[type="radio"]:checked)::before {
         background-color: #007bff;
         border-color: #007bff;
         box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
       }
 
+      /* Add inner dot for checked state */
+      .gender-option:has(input[type="radio"]:checked)::after {
+        content: "";
+        position: absolute;
+        left: 0.6rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: white;
+        z-index: 2;
+      }
+
       /* Hover effect */
       .gender-option:hover {
         background-color: #e9ecef;
+      }
+
+      /* Fallback for browsers that don't support :has() */
+      @supports not selector(:has(*)) {
+        .gender-option input[type="radio"]:checked ~ .gender-label {
+          color: #007bff;
+          font-weight: bold;
+        }
       }
 
       #patient-review-summary {
@@ -97,7 +119,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
-
+      
       .status-radio-group {
         display: flex;
         flex-wrap: wrap;

@@ -13,40 +13,50 @@
   <body>
     <div class="admin-layout">
       <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="sidebar-header">
-          <div class="logo">
-            <i class="fas fa-hospital-alt"></i>
-            <span>Registry Admin</span>
-          </div>
-          <button class="sidebar-toggle" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-          </button>
-        </div>
-        
-        <nav class="sidebar-nav">
-          <button class="nav-item active" data-tab="diagnosis">
-            <i class="fas fa-stethoscope"></i>
-            <span>Diagnosis Types</span>
-          </button>
-          <button class="nav-item" data-tab="cancer">
-            <i class="fas fa-disease"></i>
-            <span>Cancer Types</span>
-          </button>
-          <button class="nav-item" data-tab="locations">
-            <i class="fas fa-map-marker-alt"></i>
-            <span>Locations</span>
-          </button>
-          <button class="nav-item" data-tab="treatments">
-            <i class="fas fa-pills"></i>
-            <span>Treatments</span>
-          </button>
-          <button class="nav-item" data-tab="facilities">
-            <i class="fas fa-hospital"></i>
-            <span>Facility Types</span>
-          </button>
-        </nav>
-      </aside>
+  <aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <span>Registry Admin</span>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+  
+  <nav class="sidebar-nav">
+    <button class="nav-item active" data-tab="diagnosis">
+      <i class="fas fa-stethoscope"></i>
+      <span>Diagnosis Types</span>
+    </button>
+    <button class="nav-item" data-tab="cancer">
+      <i class="fas fa-disease"></i>
+      <span>Cancer Types</span>
+    </button>
+    <button class="nav-item" data-tab="locations">
+      <i class="fas fa-map-marker-alt"></i>
+      <span>Locations</span>
+    </button>
+    <button class="nav-item" data-tab="treatments">
+      <i class="fas fa-pills"></i>
+      <span>Treatments</span>
+    </button>
+    <button class="nav-item" data-tab="facilities">
+      <i class="fas fa-hospital"></i>
+      <span>Facility Types</span>
+    </button>
+  </nav>
+
+  <!-- Divider -->
+  <hr style="margin: 1rem 0; border-color: #ccc;" />
+
+  <!-- Logout Button -->
+  <div class="sidebar-logout" style="padding: 1rem;">
+    <button class="btn logout-btn" onclick="handleLogout()" style="width: 100%; background: #e74c3c; color: white;">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+  </div>
+</aside>
+
 
       <!-- Main Content -->
       <main class="main-content">
@@ -126,5 +136,18 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="../js/admin.js"></script>
+    <script>
+  function removeCookie(name) {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`
+  };
+  function handleLogout() {
+    removeCookie("session_token")
+    removeCookie("user_role")
+    removeCookie("user_name")
+    removeCookie("user_email")
+    removeCookie("facility_id")
+    window.location.href = "/index.html"
+  }
+</script>
   </body>
 </html>

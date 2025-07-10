@@ -11,7 +11,7 @@ type Patient struct {
 	FacilityID       uint        `json:"facility_id"`
 	PatientInfo      PatientInfo `json:"patient_info" gorm:"embedded;embeddedPrefix:patient_"`
 	Referrals        []Referral  `json:"referrals"` // GORM will figure it out from Referral.PatientID
-	Submitters       []Submitter `json:"submitter"` // Same
+	Doctors          []Doctors   `json:"doctor"`    // Same
 	RegistrationID   string      `json:"registration_id" gorm:"unique"`
 	RegistrationDate time.Time   `json:"registration_date"`
 	Facility         Facility    `json:"facility" gorm:"foreignKey:FacilityID;references:ID"`
@@ -43,7 +43,7 @@ type Referral struct {
 	Patient      Patient   `json:"patient" gorm:"foreignKey:PatientID;references:ID"`
 }
 
-type Submitter struct {
+type Doctors struct {
 	gorm.Model
 	Name      string  `json:"name"`
 	Title     string  `json:"title"`

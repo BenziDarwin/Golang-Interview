@@ -78,10 +78,10 @@ func CreateCancerPatient(c *fiber.Ctx) error {
 	err = database.DB.Where("patient_national_id  = ? AND facility_id = ?", req.PatientInfo.NationalId, req.FacilityID).First(&existing).Error
 	if err == nil {
 		// Patient exists — add new submitter only
-		newSubmitter := models.Submitter{
-			Name:      req.Submitter.Name,
-			Title:     req.Submitter.Title,
-			Email:     req.Submitter.Email,
+		newSubmitter := models.Doctors{
+			Name:      req.Doctor.Name,
+			Title:     req.Doctor.Title,
+			Email:     req.Doctor.Email,
 			PatientID: existing.ID,
 		}
 
@@ -127,11 +127,11 @@ func CreateCancerPatient(c *fiber.Ctx) error {
 			},
 			RegistrationID:   req.RegistrationID,
 			RegistrationDate: registrationDate,
-			Submitters: []models.Submitter{
+			Doctors: []models.Doctors{
 				{
-					Name:  req.Submitter.Name,
-					Title: req.Submitter.Title,
-					Email: req.Submitter.Email,
+					Name:  req.Doctor.Name,
+					Title: req.Doctor.Title,
+					Email: req.Doctor.Email,
 				},
 			},
 		},

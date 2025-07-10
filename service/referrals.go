@@ -43,11 +43,11 @@ func CreateReferral(c *fiber.Ctx) error {
 		patientID = existingPatient.ID
 
 		// Add new submitter if provided
-		if len(req.Patient.Submitters) > 0 {
-			newSubmitter := models.Submitter{
-				Name:      req.Patient.Submitters[0].Name,
-				Title:     req.Patient.Submitters[0].Title,
-				Email:     req.Patient.Submitters[0].Email,
+		if len(req.Patient.Doctors) > 0 {
+			newSubmitter := models.Doctors{
+				Name:      req.Patient.Doctors[0].Name,
+				Title:     req.Patient.Doctors[0].Title,
+				Email:     req.Patient.Doctors[0].Email,
 				PatientID: existingPatient.ID,
 			}
 			if err := database.DB.Create(&newSubmitter).Error; err != nil {
@@ -68,7 +68,7 @@ func CreateReferral(c *fiber.Ctx) error {
 				Age:        req.Patient.PatientInfo.Age,
 				NationalId: req.Patient.PatientInfo.NationalId,
 			},
-			Submitters:       req.Patient.Submitters,
+			Doctors:          req.Patient.Doctors,
 			RegistrationID:   req.Patient.RegistrationID,
 			RegistrationDate: req.Patient.RegistrationDate,
 		}

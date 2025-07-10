@@ -114,6 +114,27 @@ func CreateFacility(c *fiber.Ctx) error {
 		})
 	}
 
+	// Check for existing facility with contact emails
+	contactEmails := []string{
+		req.Contact.FacilityIncharge.Email,
+		req.Contact.RegistryFocalPerson.Email,
+		req.Contact.AltRegistryFocalPerson.Email,
+	}
+
+	for _, email := range contactEmails {
+		if email != "" { // Only check non-empty emails
+			if exists, err := checkExistingFacilityByContactEmail(email); err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"error": "Database error while checking existing contact email",
+				})
+			} else if exists {
+				return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+					"error": fmt.Sprintf("A facility with contact email '%s' already exists", email),
+				})
+			}
+		}
+	}
+
 	// Create facility with all related models
 	facility := models.Facility{
 		Name:              req.Name,
@@ -225,6 +246,16 @@ func CreateFacility(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(createdFacility)
 }
 
+// Helper function to check if a facility exists with a given contact email
+func checkExistingFacilityByContactEmail(email string) (bool, error) {
+	var count int64
+	err := database.DB.Model(&models.Contact{}).Where("email = ?", email).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 func UpdateFacility(c *fiber.Ctx) error {
 	// Get facility ID from URL parameter
 	facilityID := c.Params("id")
@@ -245,39 +276,6 @@ func UpdateFacility(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Facility not found",
 		})
-	}
-
-	// Validate and process identification fields if provided
-	if req.Identification != nil {
-		_, err := validateAndProcessIdentification(struct {
-			RegistryId string `json:"registry_id"`
-			FacilityId uint   `json:"facility_id"`
-			NPI        string `json:"npi,omitempty"`
-		}{
-			RegistryId: req.Identification.RegistryID,
-			FacilityId: 0, // Not used in the function
-			NPI:        req.Identification.NPI,
-		})
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
-		}
-
-		// Check for duplicate NPI (if provided)
-		if req.Identification.NPI != "" && req.Identification.NPI != facility.Identification.NPI {
-			exists, err := checkExistingFacilityByNPI(req.Identification.NPI)
-			if err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"error": "Database error while checking existing facility",
-				})
-			}
-			if exists {
-				return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-					"error": "Facility with this NPI already exists",
-				})
-			}
-		}
 	}
 
 	// Update general information if provided

@@ -4,7 +4,7 @@ package models
 type PatientCreateRequest struct {
 	FacilityID       uint               `json:"facility_id" validate:"required"`
 	PatientInfo      PatientInfoRequest `json:"patient_info" validate:"required"`
-	Submitter        Submitter          `json:"submitter" validate:"required"`
+	Doctor           Doctors            `json:"submitter" validate:"required"`
 	RegistrationID   string             `json:"registration_id,omitempty"`
 	RegistrationDate string             `json:"registration_date,omitempty"`
 }
@@ -21,7 +21,7 @@ type PatientInfoRequest struct {
 }
 
 // SubmitterRequest represents the submitter information in the request
-type SubmitterRequest struct {
+type DoctorRequest struct {
 	Name  string `json:"name" validate:"required"`
 	Title string `json:"title" validate:"required"`
 	Email string `json:"email" validate:"required,email"`
