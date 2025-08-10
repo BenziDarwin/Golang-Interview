@@ -2,10 +2,13 @@ package service
 
 import (
 	"fmt"
+	"log"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
@@ -177,6 +180,20 @@ func CreateFacility(c *fiber.Ctx) error {
 	}
 	facilityIncharge.Password = string(hashedPassword)
 
+	token := helpers.GenerateSecureToken(32)
+	passwordToken := models.PasswordToken{
+		Token:     token,
+		Email:     facilityIncharge.Email,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+	if err := database.DB.Create(&passwordToken).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to store token"})
+	}
+	defaultDomain := "http://localhost:6060"
+	domain := getEnv("SERVER_DOMAIN", &defaultDomain)
+
+	link := fmt.Sprintf("%s/reset-password.html?token=%s", url.QueryEscape(token), domain)
+
 	emailBody := fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
@@ -193,12 +210,14 @@ func CreateFacility(c *fiber.Ctx) error {
       <td style="padding: 8px; background-color: #f4f4f4;">%s</td>
     </tr>
     <tr>
-      <td style="padding: 8px;"><strong>Password:</strong></td>
-      <td style="padding: 8px; background-color: #f4f4f4;">%s</td>
+      <td style="padding: 8px;"><strong>Set Password:</strong></td>
+      <td style="padding: 8px; background-color: #f4f4f4;">
+        <a href="%s">%s</a>
+      </td>
     </tr>
   </table>
 
-  <p>You can now log in and begin managing your registry data securely.</p>
+  <p>This link will expire in 24 hours. Once you set your password, you can log in and begin managing your registry data securely.</p>
 
   <p style="color: #888;">If you did not request this registration or believe this message was sent in error, please contact our support team immediately.</p>
 
@@ -206,7 +225,7 @@ func CreateFacility(c *fiber.Ctx) error {
   <strong>Uganda Patient Registry</strong></p>
 </body>
 </html>
-`, facilityIncharge.Name, processedFacilityID, password)
+`, facilityIncharge.Name, processedFacilityID, link, link)
 
 	to := facilityIncharge.Email
 
@@ -574,4 +593,114 @@ func CheckFacilityExists(facilityID uint) (models.Facility, error) {
 		First(&facility).Error
 
 	return facility, err
+}
+
+func SetPassword(c *fiber.Ctx) error {
+	var req struct {
+		Token    string `json:"token"`
+		Password string `json:"password"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	var t models.PasswordToken
+	if err := database.DB.Where("token = ?", req.Token).First(&t).Error; err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid or expired token"})
+	}
+	if time.Now().After(t.ExpiresAt) {
+		return c.Status(400).JSON(fiber.Map{"error": "Token expired"})
+	}
+
+	hashed, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	database.DB.Model(&models.Contact{}).
+		Where("email = ?", t.Email).
+		Update("password", string(hashed))
+
+	database.DB.Delete(&t)
+
+	return c.JSON(fiber.Map{"message": "Password set successfully"})
+}
+
+func getEnv(key string, fallback *string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	if fallback != nil {
+		return *fallback
+	}
+	return ""
+}
+
+func ForgotPassword(c *fiber.Ctx) error {
+	var req struct {
+		Email string `json:"email"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	req.Email = strings.TrimSpace(req.Email)
+	if req.Email == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Email is required"})
+	}
+
+	// 1) Find the contact — prefer an explicit facility incharge type, but fall back to any contact with that email.
+	var contact models.Contact
+	err := database.DB.Where("email = ? AND type = ?", req.Email, "facility_incharge").First(&contact).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// fallback: any contact with that email (if you prefer strict check, remove this fallback)
+			err = database.DB.Where("email = ?", req.Email).First(&contact).Error
+		}
+	}
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// If you want to avoid revealing whether the email exists, return a generic message here.
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "No facility in-charge found with that email"})
+		}
+		// DB error
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Server error"})
+	}
+
+	// 2) Generate secure token and persist
+	token := helpers.GenerateSecureToken(32)
+	pt := models.PasswordToken{
+		Token:     token,
+		Email:     contact.Email,
+		ExpiresAt: time.Now().Add(24 * time.Hour), // adjust expiry as needed
+	}
+	if err := database.DB.Create(&pt).Error; err != nil {
+		log.Println("Failed to create password token:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save reset token"})
+	}
+
+	// 3) Build reset link and email (URL-escape token)
+	defaultDomain := "http://localhost:6060"
+	domain := getEnv("SERVER_DOMAIN", &defaultDomain)
+	resetLink := fmt.Sprintf("%s/reset-password.html?token=%s", domain, url.QueryEscape(token))
+
+	emailBody := fmt.Sprintf(`
+		<!DOCTYPE html>
+		<html>
+		<body style="font-family: Arial, sans-serif; line-height: 1.6;">
+		 <p>Dear %s,</p>
+		 <p>We received a request to reset your password. Click the link below to set a new password:</p>
+		 <p><a href="%s">%s</a></p>
+		 <p>This link will expire in 24 hours.</p>
+		 <p>If you did not request this, please ignore this email.</p>
+		 </body>
+		 </html>
+	`, contact.Name, resetLink, resetLink)
+
+	// 4) Send the email asynchronously (so the HTTP request returns quickly)
+	go func(to string) {
+		if err := helpers.SendEmail(to, "Password Reset Request", emailBody); err != nil {
+			log.Println("ForgotPassword: email send failed:", err)
+			// optionally: notify / retry logic
+		}
+	}(contact.Email)
+
+	return c.JSON(fiber.Map{"message": "Reset link sent (if the email is registered)."})
 }

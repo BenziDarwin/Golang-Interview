@@ -61,7 +61,9 @@ func ConnectDB() *gorm.DB {
 		&models.CancerDiagnosis{},
 		&models.Referral{},
 		&models.Doctors{},
+		&models.PasswordToken{},
 	)
+
 	if err != nil {
 		log.Fatal("AutoMigrate failed:", err)
 	}

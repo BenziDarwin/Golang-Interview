@@ -1,3 +1,8 @@
+async function getCsrfToken() {
+    const res = await fetch("/api/csrf-token", { method: "GET" });
+    return res.headers.get("X-CSRF-Token");
+}
+
 // Helper function to get cookie value by name
 function getCookie(name) {
   const value = `; ${document.cookie}`;
@@ -31,6 +36,7 @@ $(document).ready(async function () {
   try {
     const response = await fetch(
       `/api/v1/sickle-cell-patients/facility/${facilityId}`,
+      {headers:{"X-CSRF-Token": token }}
     );
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

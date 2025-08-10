@@ -160,24 +160,13 @@ func shuffleBytes(slice []byte) error {
 	return nil
 }
 
-// Alternative simpler version if the above is too complex:
-func generateSimpleSecurePassword(name, registryID string) (string, error) {
-	// Validate inputs
-	if strings.TrimSpace(name) == "" || strings.TrimSpace(registryID) == "" {
-		return "", fmt.Errorf("name and registryID cannot be empty")
+func GenerateSecureToken(lengthBytes int) string {
+	b := make([]byte, lengthBytes)
+	_, err := rand.Read(b)
+	if err != nil {
+		// In production, you might want to log this instead of panic
+		panic(fmt.Sprintf("failed to generate secure token: %v", err))
 	}
-
-	// Generate 12 random characters
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
-	password := make([]byte, 12)
-
-	for i := range password {
-		index, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
-		if err != nil {
-			return "", fmt.Errorf("failed to generate random character: %w", err)
-		}
-		password[i] = charset[index.Int64()]
-	}
-
-	return string(password), nil
+	// Base64 URL encoding ensures no + or / characters
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(b)
 }

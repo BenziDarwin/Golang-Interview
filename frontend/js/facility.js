@@ -1,3 +1,8 @@
+async function getCsrfToken() {
+    const res = await fetch("/api/csrf-token", { method: "GET" });
+    return res.headers.get("X-CSRF-Token");
+}
+
 class FacilityProfile {
   constructor() {
     this.isEditMode = false
@@ -77,7 +82,9 @@ class FacilityProfile {
 
   async loadFacilityData() {
     try {
-      const response = await fetch(`/api/v1/facilities/registry/${this.facilityId}`)
+      const token = await getCsrfToken();
+
+      const response = await fetch(`/api/v1/facilities/registry/${this.facilityId}`, {headers:{"X-CSRF-Token": token }})
       if (!response.ok) throw new Error("Network response was not ok")
       const data = await response.json()
       this.originalData = data[0]
@@ -227,12 +234,13 @@ class FacilityProfile {
     const formData = this.collectFormData()
     const saveBtn = $("#saveBtn")
     saveBtn.prop("disabled", true).html('<div class="spinner"></div> Saving...')
-
+const token = await getCsrfToken();
     try {
       const response = await fetch(`/api/v1/facilities/${this.currentData.ID}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "X-CSRF-Token": token 
         },
         body: JSON.stringify(formData),
       })

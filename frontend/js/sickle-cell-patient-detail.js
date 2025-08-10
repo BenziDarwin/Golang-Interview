@@ -1,3 +1,8 @@
+async function getCsrfToken() {
+    const res = await fetch("/api/csrf-token", { method: "GET" });
+    return res.headers.get("X-CSRF-Token");
+}
+
 $(document).ready(async function () {
   console.log("Sickle cell patient detail page loaded");
   

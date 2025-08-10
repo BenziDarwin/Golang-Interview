@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"patient-registry.com/fhir"
 	"patient-registry.com/middleware"
 	"patient-registry.com/service"
 )
@@ -26,6 +27,8 @@ func SetupRoutes(app *fiber.App) {
 	{
 		facility.Post("/", service.CreateFacility)
 		facility.Post("/login", service.LoginFacility)
+		facility.Post("/reset-password", service.SetPassword)
+		facility.Post("/forgot-password", service.ForgotPassword)
 	}
 
 	// Authenticated routes for facilities
@@ -87,5 +90,29 @@ func SetupRoutes(app *fiber.App) {
 	// Unauthenticated routes for admin
 	{
 		admin.Post("/login", service.LoginAdmin)
+	}
+
+	fhirAPI := app.Group("/fhir")
+	fhirAPI.Use(middleware.RequireAuth())
+	{
+		// Patient resource endpoints
+		fhirAPI.Get("/Patient", fhir.GetFHIRPatients)
+		fhirAPI.Get("/Patient/:id", fhir.GetFHIRPatientByID)
+
+		// Condition resource endpoints (cancer diagnoses)
+		fhirAPI.Get("/Condition", fhir.GetFHIRConditions)
+		fhirAPI.Get("/Condition/:id", fhir.GetFHIRConditionByID)
+
+		// Organization resource endpoints (facilities)
+		fhirAPI.Get("/Organization", fhir.GetFHIROrganizations)
+		fhirAPI.Get("/Organization/:id", fhir.GetFHIROrganizationByID)
+
+		// Practitioner resource endpoints (doctors)
+		fhirAPI.Get("/Practitioner", fhir.GetFHIRPractitioners)
+		fhirAPI.Get("/Practitioner/:id", fhir.GetFHIRPractitionerByID)
+
+		// ServiceRequest resource endpoints (referrals)
+		fhirAPI.Get("/ServiceRequest", fhir.GetFHIRServiceRequests)
+		fhirAPI.Get("/ServiceRequest/:id", fhir.GetFHIRServiceRequestByID)
 	}
 }

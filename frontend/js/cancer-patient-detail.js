@@ -1,3 +1,8 @@
+async function getCsrfToken() {
+    const res = await fetch("/api/csrf-token", { method: "GET" });
+    return res.headers.get("X-CSRF-Token");
+}
+
 $(document).ready(async function () {
   console.log("Patient detail page loaded");
   
@@ -27,8 +32,6 @@ $(document).ready(async function () {
   async function fetchPatientData() {
     const endpoints = [
       `/api/v1/cancer-patients/${patientId}`,
-      `/api/v1/sickle-cell-patients/${patientId}`,
-      `/api/v1/patients/${patientId}`
     ];
 
     for (const endpoint of endpoints) {

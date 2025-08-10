@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -9,7 +11,7 @@ import (
 type Contact struct {
 	gorm.Model
 	FacilityID uint   `json:"facility_id"`
-	Type       string `json:"type"` // "meaningful_use", "registry_lead", "network_lead"
+	Type       string `json:"type"`
 	Name       string `json:"name"`
 	Email      string `json:"email"`
 	Password   string `json:"password,omitempty"` // Optional, used for registry lead
@@ -136,4 +138,12 @@ type ContactInput struct {
 	Name  string `json:"name,omitempty"`
 	Email string `json:"email,omitempty"`
 	Phone string `json:"phone,omitempty"`
+}
+
+type PasswordToken struct {
+	gorm.Model
+	Token     string `gorm:"uniqueIndex"`
+	Email     string
+	ExpiresAt time.Time
+	CreatedAt time.Time
 }

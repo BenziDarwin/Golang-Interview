@@ -95,7 +95,7 @@ func CreateCancerPatient(c *fiber.Ctx) error {
 		if err := database.DB.
 			Preload("Patient").
 			Preload("Patient.Facility").
-			Preload("Patient.Submitters").
+			Preload("Patient.Doctors").
 			Preload("Patient.Referrals").
 			Preload("CancerDiagnosis").
 			Where("patient_id = ?", existing.ID).
@@ -157,7 +157,7 @@ func CreateCancerPatient(c *fiber.Ctx) error {
 	if err := database.DB.
 		Preload("Patient").
 		Preload("Patient.Facility").
-		Preload("Patient.Submitters").
+		Preload("Patient.Doctors").
 		Preload("Patient.Referrals").
 		Preload("CancerDiagnosis").
 		First(&created, patient.ID).Error; err != nil {
@@ -179,7 +179,7 @@ func GetCancerPatients(c *fiber.Ctx) error {
 		Preload("Facility.Technical").
 		Preload("Diagnosis").
 		Preload("Referrals").
-		Preload("Submitters").
+		Preload("Doctors").
 		Find(&patients)
 	return c.JSON(patients)
 }
@@ -198,7 +198,7 @@ func GetCancerPatientByID(c *fiber.Ctx) error {
 		Preload("Patient.Facility.Contacts").
 		Preload("CancerDiagnosis").
 		Preload("Patient.Referrals").
-		Preload("Patient.Submitters").
+		Preload("Patient.Doctors").
 		First(&patient).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Patient not found",
@@ -282,7 +282,7 @@ func GetCancerPatientByName(c *fiber.Ctx) error {
 		Preload("Patient").
 		Preload("Patient.Facility").
 		Preload("Patient.Referrals").
-		Preload("Patient.Submitters").
+		Preload("Patient.Doctors").
 		Preload("CancerDiagnosis").
 		Find(&patients)
 
@@ -307,7 +307,7 @@ func GetCancerPatientsByFacilityID(c *fiber.Ctx) error {
 		Where("facility_identifications.registry_id = ?", facilityID).
 		Preload("CancerDiagnosis").
 		Preload("Patient.Referrals").
-		Preload("Patient.Submitters").
+		Preload("Patient.Doctors").
 		Order("cancer_patients.id desc").
 		Find(&patients).Error
 

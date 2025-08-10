@@ -435,7 +435,7 @@
                 </div>
 
                 <div class="forgot-password">
-                    <a href="#" id="forgot-password-link">Forgot your password?</a>
+                    <a href="/forgot-password.html" id="forgot-password-link">Forgot your password?</a>
                 </div>
 
                 <button type="submit" class="login-btn" id="login-btn">
@@ -461,6 +461,11 @@
     <script>
         $(document).ready(async function() {
             // Check if user is already logged in
+            async function getCsrfToken() {
+    const res = await fetch("/api/csrf-token", { method: "GET" });
+    return res.headers.get("X-CSRF-Token");
+}
+const token = await getCsrfToken();
             if (getCookie('session_token')) {
                 window.location.href = 'index.html';
                 return;
@@ -509,7 +514,8 @@
                 const res = await fetch("/api/v1/facilities/login", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
+                        "X-CSRF-Token": token
                     },
                     body: JSON.stringify({ email, password })
                 });
@@ -587,12 +593,6 @@
             $('input').on('focus', function() {
                 $(this).removeClass('input-error');
                 $(this).siblings('.form-error').hide();
-            });
-
-            // Forgot password handler
-            $('#forgot-password-link').on('click', function(e) {
-                e.preventDefault();
-                alert('Password reset functionality will be implemented. Please contact your system administrator for assistance.');
             });
         });
     </script>

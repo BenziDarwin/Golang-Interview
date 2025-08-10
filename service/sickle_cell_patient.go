@@ -95,7 +95,7 @@ func CreateSickleCellPatient(c *fiber.Ctx) error {
 		if err := database.DB.
 			Preload("Patient").
 			Preload("Patient.Facility").
-			Preload("Patient.Submitters").
+			Preload("Patient.Doctors").
 			Preload("Patient.Referrals").
 			Preload("SickleCellDiagnosis").
 			Where("patient_id = ?", existing.ID).
@@ -155,7 +155,7 @@ func CreateSickleCellPatient(c *fiber.Ctx) error {
 	if err := database.DB.
 		Preload("Patient").
 		Preload("Patient.Facility").
-		Preload("Patient.Submitters").
+		Preload("Patient.Doctors").
 		Preload("Patient.Referrals").
 		Preload("SickleCellDiagnosis").
 		First(&created, patient.ID).Error; err != nil {
@@ -177,7 +177,7 @@ func GetSickleCellPatients(c *fiber.Ctx) error {
 		Preload("Facility.Technical").
 		Preload("Diagnosis").
 		Preload("Referrals").
-		Preload("Submitters").
+		Preload("Doctors").
 		Find(&patients)
 	return c.JSON(patients)
 }
@@ -196,7 +196,7 @@ func GetSickleCellPatientByID(c *fiber.Ctx) error {
 		Preload("Patient.Facility.Contacts").
 		Preload("SickleCellDiagnosis").
 		Preload("Patient.Referrals").
-		Preload("Patient.Submitters").
+		Preload("Patient.Doctors").
 		First(&patient).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Patient not found",
@@ -280,7 +280,7 @@ func GetSickleCellPatientByName(c *fiber.Ctx) error {
 		Preload("Patient").
 		Preload("Patient.Facility").
 		Preload("Patient.Referrals").
-		Preload("Patient.Submitters").
+		Preload("Patient.Doctors").
 		Preload("SickleCellDiagnosis").
 		Find(&patients)
 
@@ -305,7 +305,7 @@ func GetSickleCellPatientsByFacilityID(c *fiber.Ctx) error {
 		Where("facility_identifications.registry_id = ?", facilityID).
 		Preload("SickleCellDiagnosis").
 		Preload("Patient.Referrals").
-		Preload("Patient.Submitters").
+		Preload("Patient.Doctors").
 		Order("sickle_cell_patients.id desc").
 		Find(&patients).Error
 

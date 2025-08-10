@@ -1,3 +1,8 @@
+async function getCsrfToken() {
+    const res = await fetch("/api/csrf-token", { method: "GET" });
+    return res.headers.get("X-CSRF-Token");
+}
+
 $(document).ready(async function () {
   console.log("Referral detail page loaded");
   
