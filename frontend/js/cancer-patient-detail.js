@@ -10,8 +10,6 @@ $(document).ready(async function () {
   const urlParams = new URLSearchParams(window.location.search);
   const patientId = urlParams.get("id");
 
-  console.log("Patient ID from URL:", patientId);
-
   if (!patientId) {
     alert("Patient ID not found in URL.");
     window.location.href = "/cancer/cancer-patients.html";
