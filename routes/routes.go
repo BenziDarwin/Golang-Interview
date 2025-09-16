@@ -29,6 +29,8 @@ func SetupRoutes(app *fiber.App) {
 		facility.Post("/login", service.LoginFacility)
 		facility.Post("/reset-password", service.SetPassword)
 		facility.Post("/forgot-password", service.ForgotPassword)
+		facility.Get("/registry/exists/:registryId", service.GetExistsFacilityByRegistryID)
+		facility.Get("/name/exists/:name", service.GetExistsFacilityByName)
 	}
 
 	// Authenticated routes for facilities
@@ -36,9 +38,7 @@ func SetupRoutes(app *fiber.App) {
 	{
 		facility.Get("/", service.GetFacilities)
 		facility.Get("/name/:name", service.GetFacilityByName)
-		facility.Get("/name/exists/:name", service.GetExistsFacilityByName)
 		facility.Get("/registry/:registryId", service.GetFacilityByRegistryID)
-		facility.Get("/registry/exists/:registryId", service.GetExistsFacilityByRegistryID)
 		facility.Put("/:id", service.UpdateFacility)
 		facility.Put("/status/:id", service.SetFacilityStatus)
 	}

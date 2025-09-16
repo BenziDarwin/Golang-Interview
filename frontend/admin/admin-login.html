@@ -505,6 +505,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <script>
+      async function getCsrfToken() {
+        const res = await fetch("/api/csrf-token", { method: "GET" });
+        return res.headers.get("X-CSRF-Token");
+      }
       $(document).ready(async function () {
         // Check if admin is already logged in
         if (getCookie("admin_session_token")) {
@@ -550,11 +554,13 @@
 
         // Admin authentication function
         async function authenticateAdmin(email, password) {
+          const token = await getCsrfToken();
           try {
             const res = await fetch("/api/v1/admin/login", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
+                "X-CSRF-Token": token,
               },
               body: JSON.stringify({ email, password }),
             });

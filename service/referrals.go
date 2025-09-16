@@ -107,7 +107,7 @@ func CreateReferral(c *fiber.Ctx) error {
 	var fullReferral models.Referral
 	if err := database.DB.
 		Preload("Patient").
-		Preload("Patient.Submitters").
+		Preload("Patient.Doctors").
 		First(&fullReferral, referral.ID).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to load created referral",
@@ -164,7 +164,7 @@ func GetReferralByPatientID(c *fiber.Ctx) error {
 	err := database.DB.Where("patient_id = ?", patientID).
 		Preload("Patient").
 		Preload("Patient.Facility").
-		Preload("Patient.Submitters").
+		Preload("Patient.Doctors").
 		Preload("Patient.Referrals").
 		Find(&referrals).Error
 	if err != nil {

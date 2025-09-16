@@ -1,6 +1,6 @@
 async function getCsrfToken() {
-    const res = await fetch("/api/csrf-token", { method: "GET" });
-    return res.headers.get("X-CSRF-Token");
+  const res = await fetch("/api/csrf-token", { method: "GET" });
+  return res.headers.get("X-CSRF-Token");
 }
 
 // Helper function to get cookie value by name
@@ -272,8 +272,11 @@ $(document).ready(async function () {
         facilityId = getCookie("facility_id") || "123456"; // Default for demo
       }
 
-    const token = await getCsrfToken();
-      const response = await fetch(`/api/v1/facilities/registry/${facilityId}`, {headers:{"X-CSRF-Token": token }});
+      const token = await getCsrfToken();
+      const response = await fetch(
+        `/api/v1/facilities/registry/${facilityId}`,
+        { headers: { "X-CSRF-Token": token } },
+      );
 
       if (!response.ok) {
         $("#facility-error").removeClass("hidden");
@@ -388,13 +391,13 @@ $(document).ready(async function () {
 
     console.log("Submitting referral data:", formData);
 
-      const token = await getCsrfToken();
+    const token = await getCsrfToken();
     try {
       const response = await fetch("/api/v1/referrals", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-Token": token 
+          "X-CSRF-Token": token,
         },
         body: JSON.stringify(formData),
       });

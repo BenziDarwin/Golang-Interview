@@ -1,3 +1,8 @@
+async function getCsrfToken() {
+  const res = await fetch("/api/csrf-token", { method: "GET" });
+  return res.headers.get("X-CSRF-Token");
+}
+
 $(document).ready(function () {
   // Mock database of facilities for demo purposes
 
@@ -44,11 +49,12 @@ $(document).ready(function () {
     let results = null;
     let response;
     let data;
-
+    const token = await getCsrfToken();
     switch (activeSearchType) {
       case "name":
         response = await fetch(
           "/api/v1/facilities/name/exists/" + encodeURIComponent(searchValue),
+          { headers: { "X-CSRF-Token": token } },
         );
         data = await response.json();
         results = data;
@@ -56,6 +62,7 @@ $(document).ready(function () {
       case "id":
         response = await fetch(
           "/api/v1/facilities/registry/exists/" + searchValue,
+          { headers: { "X-CSRF-Token": token } },
         );
         data = await response.json();
         results = data;

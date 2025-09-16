@@ -1,11 +1,11 @@
 async function getCsrfToken() {
-    const res = await fetch("/api/csrf-token", { method: "GET" });
-    return res.headers.get("X-CSRF-Token");
+  const res = await fetch("/api/csrf-token", { method: "GET" });
+  return res.headers.get("X-CSRF-Token");
 }
 
 $(document).ready(async function () {
   console.log("Patient detail page loaded");
-  
+
   // Get patient data from URL parameter
   const urlParams = new URLSearchParams(window.location.search);
   const patientId = urlParams.get("id");
@@ -17,8 +17,12 @@ $(document).ready(async function () {
   }
 
   // Show loading state
-  $("#diagnoses-table").html('<div class="loading"><i class="fas fa-spinner"></i> Loading diagnoses...</div>');
-  $("#referrals-table").html('<div class="loading"><i class="fas fa-spinner"></i> Loading referrals...</div>');
+  $("#diagnoses-table").html(
+    '<div class="loading"><i class="fas fa-spinner"></i> Loading diagnoses...</div>',
+  );
+  $("#referrals-table").html(
+    '<div class="loading"><i class="fas fa-spinner"></i> Loading referrals...</div>',
+  );
 
   let patient = null;
   let diagnoses = [];
@@ -28,50 +32,58 @@ $(document).ready(async function () {
 
   // Try multiple API endpoints to fetch patient data
   async function fetchPatientData() {
-    const endpoints = [
-      `/api/v1/cancer-patients/${patientId}`,
-    ];
+    const endpoints = [`/api/v1/cancer-patients/${patientId}`];
 
     for (const endpoint of endpoints) {
       try {
         console.log(`Trying endpoint: ${endpoint}`);
         const response = await fetch(endpoint);
-        
+
         if (response.ok) {
           const data = await response.json();
           console.log("Patient data received:", data);
           return data;
         } else {
-          console.log(`Endpoint ${endpoint} returned status: ${response.status}`);
+          console.log(
+            `Endpoint ${endpoint} returned status: ${response.status}`,
+          );
         }
       } catch (error) {
         console.error(`Error fetching from ${endpoint}:`, error);
       }
     }
-    
+
     throw new Error("Could not fetch patient data from any endpoint");
   }
 
   try {
     const patientData = await fetchPatientData();
-    
+
     // Handle different data structures
     if (patientData.patient) {
-      
       patient = patientData.patient;
-      diagnoses = Array.isArray(patientData.diagnosis) ? patientData.diagnosis : 
-                  Array.isArray(patientData.diagnoses) ? patientData.diagnoses : [];
-      referrals = Array.isArray(patientData.referrals) ? patientData.referrals :
-                  Array.isArray(patient.referrals) ? patient.referrals : [];
+      diagnoses = Array.isArray(patientData.diagnosis)
+        ? patientData.diagnosis
+        : Array.isArray(patientData.diagnoses)
+          ? patientData.diagnoses
+          : [];
+      referrals = Array.isArray(patientData.referrals)
+        ? patientData.referrals
+        : Array.isArray(patient.referrals)
+          ? patient.referrals
+          : [];
     } else {
       // Direct patient object
       patient = patientData;
-      diagnoses = Array.isArray(patientData.diagnoses) ? patientData.diagnoses : [];
-      referrals = Array.isArray(patientData.referrals) ? patientData.referrals : [];
+      diagnoses = Array.isArray(patientData.diagnoses)
+        ? patientData.diagnoses
+        : [];
+      referrals = Array.isArray(patientData.referrals)
+        ? patientData.referrals
+        : [];
     }
 
     console.log("Processed data:", { patient, diagnoses, referrals });
-
   } catch (error) {
     console.error("Error fetching patient data:", error);
     alert("Patient not found or an error occurred while fetching data.");
@@ -101,7 +113,7 @@ $(document).ready(async function () {
       const today = new Date();
       const birthDate = new Date(dob);
       if (isNaN(birthDate.getTime())) return "Unknown";
-      
+
       let age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
 
@@ -121,14 +133,15 @@ $(document).ready(async function () {
 
   function renderPatientDetails() {
     console.log("Rendering patient details:", patient);
-    
+
     if (!patient || !patient.patient_info) {
       console.error("Invalid patient data structure");
       return;
     }
 
     const patientInfo = patient.patient_info;
-    const fullName = `${patientInfo.first_name || ''} ${patientInfo.middle_name || ''} ${patientInfo.last_name || ''}`.trim();
+    const fullName =
+      `${patientInfo.first_name || ""} ${patientInfo.middle_name || ""} ${patientInfo.last_name || ""}`.trim();
     const age = calculateAge(patientInfo.dob);
 
     // Set patient name
@@ -195,7 +208,11 @@ $(document).ready(async function () {
   }
 
   function renderDiagnosesTable() {
-    console.log("Rendering diagnoses table with", diagnoses.length, "diagnoses");
+    console.log(
+      "Rendering diagnoses table with",
+      diagnoses.length,
+      "diagnoses",
+    );
 
     if (!diagnoses || diagnoses.length === 0) {
       $("#diagnoses-table").html(`
@@ -244,7 +261,7 @@ $(document).ready(async function () {
                           </td>
                           <td>
                               <div class="cell-content">
-                                  <span class="stage-badge stage-${(diagnosis.stage || '').toLowerCase().replace(' ', '-')}">${diagnosis.stage || "Not specified"}</span>
+                                  <span class="stage-badge stage-${(diagnosis.stage || "").toLowerCase().replace(" ", "-")}">${diagnosis.stage || "Not specified"}</span>
                               </div>
                           </td>
                           <td>
@@ -284,7 +301,11 @@ $(document).ready(async function () {
   }
 
   function renderReferralsTable() {
-    console.log("Rendering referrals table with", referrals.length, "referrals");
+    console.log(
+      "Rendering referrals table with",
+      referrals.length,
+      "referrals",
+    );
 
     if (referrals.length === 0) {
       $("#referrals-table").html(`
@@ -384,8 +405,14 @@ $(document).ready(async function () {
       $(".modal-title").text("Edit Diagnosis");
       $("#primary-site").val(diagnosis.primary_site || "");
       $("#histology").val(diagnosis.histology || "");
-      $("#diagnosis-date").val(diagnosis.date_of_diagnosis ? diagnosis.date_of_diagnosis.split("T")[0] : "");
-      $("#diagnostic-confirmation").val(diagnosis.diagnostic_confirmation || "");
+      $("#diagnosis-date").val(
+        diagnosis.date_of_diagnosis
+          ? diagnosis.date_of_diagnosis.split("T")[0]
+          : "",
+      );
+      $("#diagnostic-confirmation").val(
+        diagnosis.diagnostic_confirmation || "",
+      );
       $("#stage").val(diagnosis.stage || "");
       $("#laterality").val(diagnosis.laterality || "");
     } else {
@@ -409,7 +436,9 @@ $(document).ready(async function () {
       $("#city").val(referral.city || "");
       $("#referral-facility").val(referral.facility || "");
       $("#doctor").val(referral.doctor || "");
-      $("#referral-date").val(referral.referral_date ? referral.referral_date.split("T")[0] : "");
+      $("#referral-date").val(
+        referral.referral_date ? referral.referral_date.split("T")[0] : "",
+      );
     } else {
       $("#referral-modal .modal-title").text("Add New Referral");
       $("#referral-form")[0].reset();
@@ -430,63 +459,69 @@ $(document).ready(async function () {
     currentEditingReferral = null;
   }
 
- async function saveDiagnosis() {
-  const rawDiagDate = $("#diagnosis-date").val();
-const diagDate = new Date(rawDiagDate).toISOString();
-  const formData = {
-    primary_site: $("#primary-site").val(),
-    histology: $("#histology").val(),
-    date_of_diagnosis: diagDate,
-    diagnostic_confirmation: $("#diagnostic-confirmation").val(),
-    stage: $("#stage").val(),
-    laterality: $("#laterality").val(),
-    cancer_patient_id: parseInt(patientId), // Include this
-  };
+  async function saveDiagnosis() {
+    const rawDiagDate = $("#diagnosis-date").val();
+    const diagDate = new Date(rawDiagDate).toISOString();
+    const formData = {
+      primary_site: $("#primary-site").val(),
+      histology: $("#histology").val(),
+      date_of_diagnosis: diagDate,
+      diagnostic_confirmation: $("#diagnostic-confirmation").val(),
+      stage: $("#stage").val(),
+      laterality: $("#laterality").val(),
+      cancer_patient_id: parseInt(patientId), // Include this
+    };
 
-  try {
-    if (currentEditingDiagnosis) {
-      // Update existing diagnosis
-      const index = diagnoses.findIndex(
-        (d) => (d.ID || d.id) === (currentEditingDiagnosis.ID || currentEditingDiagnosis.id)
-      );
-      if (index !== -1) {
-        await fetch(`/api/v1/cancer-patients/${patientId}/diagnoses/${diagnoses[index].ID || diagnoses[index].id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
+    try {
+      if (currentEditingDiagnosis) {
+        // Update existing diagnosis
+        const index = diagnoses.findIndex(
+          (d) =>
+            (d.ID || d.id) ===
+            (currentEditingDiagnosis.ID || currentEditingDiagnosis.id),
+        );
+        if (index !== -1) {
+          await fetch(
+            `/api/v1/cancer-patients/${patientId}/diagnoses/${diagnoses[index].ID || diagnoses[index].id}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            },
+          );
+
+          console.log("Diagnosis updated successfully");
+          diagnoses[index] = { ...diagnoses[index], ...formData };
+        }
+      } else {
+        // Add new diagnosis
+        const response = await fetch(
+          `/api/v1/cancer-patients/${patientId}/diagnosis`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
           },
-          body: JSON.stringify(formData),
-        });
+        );
 
-        console.log("Diagnosis updated successfully");
-        diagnoses[index] = { ...diagnoses[index], ...formData };
+        if (!response.ok) throw new Error("Failed to create diagnosis");
+
+        const savedDiagnosis = await response.json(); // Use backend-generated data
+        diagnoses.push(savedDiagnosis);
+        console.log("New diagnosis added successfully");
       }
 
-    } else {
-      // Add new diagnosis
-      const response = await fetch(`/api/v1/cancer-patients/${patientId}/diagnosis`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) throw new Error("Failed to create diagnosis");
-
-      const savedDiagnosis = await response.json(); // Use backend-generated data
-      diagnoses.push(savedDiagnosis);
-      console.log("New diagnosis added successfully");
+      renderDiagnosesTable();
+      closeDiagnosisModal();
+    } catch (error) {
+      console.error("Error saving diagnosis:", error);
+      alert("An error occurred while saving the diagnosis. Please try again.");
     }
-
-    renderDiagnosesTable();
-    closeDiagnosisModal();
-  } catch (error) {
-    console.error("Error saving diagnosis:", error);
-    alert("An error occurred while saving the diagnosis. Please try again.");
   }
-}
-
 
   async function saveReferral() {
     const rawReferralDate = $("#referral-date").val();
@@ -503,12 +538,14 @@ const diagDate = new Date(rawDiagDate).toISOString();
       referral_date: referralDate,
       status: "Pending",
     };
-
+    const token = await getCsrfToken();
     try {
       if (currentEditingReferral) {
         // Update existing referral
         const index = referrals.findIndex(
-          (r) => (r.id || r.ID) === (currentEditingReferral.id || currentEditingReferral.ID)
+          (r) =>
+            (r.id || r.ID) ===
+            (currentEditingReferral.id || currentEditingReferral.ID),
         );
         if (index !== -1) {
           referrals[index] = { ...referrals[index], ...formData };
@@ -516,13 +553,17 @@ const diagDate = new Date(rawDiagDate).toISOString();
       } else {
         // Add new referral
         console.log("Saving new referral for patient ID:", patient.ID);
-        const response = await fetch(`/api/v1/cancer-patients/${patient.ID}/referral`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          `/api/v1/cancer-patients/${patient.ID}/referral`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": token,
+            },
+            body: JSON.stringify(formData),
           },
-          body: JSON.stringify(formData),
-        });
+        );
         if (!response.ok) throw new Error("Failed to create referral");
         const newReferral = {
           id: Date.now(),

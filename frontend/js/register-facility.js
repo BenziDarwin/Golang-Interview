@@ -1,3 +1,8 @@
+async function getCsrfToken() {
+  const res = await fetch("/api/csrf-token", { method: "GET" });
+  return res.headers.get("X-CSRF-Token");
+}
+
 $(document).ready(function () {
   // Show/hide "Other" field based on transport option selection
   $("#transport-option").on("change", function () {
@@ -199,12 +204,15 @@ $(document).ready(function () {
       status: "pending",
     };
 
+    const token = await getCsrfToken();
+
     // Log the JSON data
     try {
       const response = await fetch("/api/v1/facilities", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-CSRF-Token": token,
         },
         body: JSON.stringify(formData),
       });

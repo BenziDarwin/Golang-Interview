@@ -1,6 +1,6 @@
 async function getCsrfToken() {
-    const res = await fetch("/api/csrf-token", { method: "GET" });
-    return res.headers.get("X-CSRF-Token");
+  const res = await fetch("/api/csrf-token", { method: "GET" });
+  return res.headers.get("X-CSRF-Token");
 }
 
 // Helper function to get cookie value by name
@@ -277,8 +277,11 @@ $(document).ready(async function () {
       }
 
       // Fetch facility information from API
-       const token = await getCsrfToken();
-      const response = await fetch(`/api/v1/facilities/registry/${facilityId}`, {headers:{"X-CSRF-Token": token }});
+      const token = await getCsrfToken();
+      const response = await fetch(
+        `/api/v1/facilities/registry/${facilityId}`,
+        { headers: { "X-CSRF-Token": token } },
+      );
 
       if (!response.ok) {
         $("#facility-error").removeClass("hidden");
@@ -385,7 +388,7 @@ $(document).ready(async function () {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-Token": token 
+          "X-CSRF-Token": token,
         },
         body: JSON.stringify(formData),
       });

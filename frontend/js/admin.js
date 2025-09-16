@@ -1,11 +1,14 @@
 $(document).ready(function () {
   // Tab titles and icons
   const tabConfig = {
-    diagnosis: { title: 'Diagnosis Types Management', icon: 'fas fa-stethoscope' },
-    cancer: { title: 'Cancer Types Management', icon: 'fas fa-disease' },
-    locations: { title: 'Locations Management', icon: 'fas fa-map-marker-alt' },
-    treatments: { title: 'Treatments Management', icon: 'fas fa-pills' },
-    facilities: { title: 'Facility Types Management', icon: 'fas fa-hospital' }
+    diagnosis: {
+      title: "Diagnosis Types Management",
+      icon: "fas fa-stethoscope",
+    },
+    cancer: { title: "Cancer Types Management", icon: "fas fa-disease" },
+    locations: { title: "Locations Management", icon: "fas fa-map-marker-alt" },
+    treatments: { title: "Treatments Management", icon: "fas fa-pills" },
+    facilities: { title: "Facility Types Management", icon: "fas fa-hospital" },
   };
 
   // Initial mock data
@@ -137,23 +140,23 @@ $(document).ready(function () {
   });
 
   // Sidebar toggle functionality
-  $('#sidebarToggle').click(function() {
-    $('.sidebar').toggleClass('collapsed');
+  $("#sidebarToggle").click(function () {
+    $(".sidebar").toggleClass("collapsed");
   });
 
   // Handle navigation item clicks
-  $('.nav-item').click(function () {
-    $('.nav-item').removeClass('active');
-    $(this).addClass('active');
+  $(".nav-item").click(function () {
+    $(".nav-item").removeClass("active");
+    $(this).addClass("active");
 
-    const tabId = $(this).data('tab');
-    $('.tab-content').removeClass('active');
-    $(`#${tabId}-tab`).addClass('active');
+    const tabId = $(this).data("tab");
+    $(".tab-content").removeClass("active");
+    $(`#${tabId}-tab`).addClass("active");
 
     // Update header title and add button
     const config = tabConfig[tabId];
-    $('#content-title').html(`<i class="${config.icon}"></i> ${config.title}`);
-    $('.add-item').data('type', tabId);
+    $("#content-title").html(`<i class="${config.icon}"></i> ${config.title}`);
+    $(".add-item").data("type", tabId);
 
     loadItems(tabId);
   });
@@ -203,8 +206,8 @@ $(document).ready(function () {
   }
 
   // Show modal for adding new item
-  $('.add-item').click(function () {
-    const type = $(this).data('type');
+  $(".add-item").click(function () {
+    const type = $(this).data("type");
     showModal("add", type);
   });
 
@@ -220,7 +223,11 @@ $(document).ready(function () {
     const type = $(this).data("type");
     const id = parseInt($(this).data("id"));
 
-    if (confirm("Are you sure you want to delete this item? This action cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this item? This action cannot be undone.",
+      )
+    ) {
       deleteItem(type, id);
     }
   });
@@ -290,7 +297,7 @@ $(document).ready(function () {
       name: $("#item-name").val().trim(),
       code: $("#item-code").val().trim().toUpperCase(),
       description: $("#item-description").val().trim(),
-      active: $("#item-active").is(":checked")
+      active: $("#item-active").is(":checked"),
     };
 
     // Validate required fields
@@ -307,23 +314,26 @@ $(document).ready(function () {
 
     if (mode === "edit") {
       // Update existing item
-      const itemIndex = items.findIndex(item => item.id === id);
+      const itemIndex = items.findIndex((item) => item.id === id);
       if (itemIndex !== -1) {
         // Check for duplicate code (excluding current item)
-        const duplicateCode = items.some(item => 
-          item.id !== id && item.code.toUpperCase() === formData.code
+        const duplicateCode = items.some(
+          (item) => item.id !== id && item.code.toUpperCase() === formData.code,
         );
-        
+
         if (duplicateCode) {
-          showNotification("Code already exists. Please use a different code.", "error");
+          showNotification(
+            "Code already exists. Please use a different code.",
+            "error",
+          );
           return;
         }
 
         items[itemIndex] = {
           ...items[itemIndex],
-          ...formData
+          ...formData,
         };
-        
+
         showNotification("Item updated successfully!", "success");
       } else {
         showNotification("Item not found.", "error");
@@ -332,21 +342,25 @@ $(document).ready(function () {
     } else {
       // Add new item
       // Check for duplicate code
-      const duplicateCode = items.some(item => 
-        item.code.toUpperCase() === formData.code
+      const duplicateCode = items.some(
+        (item) => item.code.toUpperCase() === formData.code,
       );
-      
+
       if (duplicateCode) {
-        showNotification("Code already exists. Please use a different code.", "error");
+        showNotification(
+          "Code already exists. Please use a different code.",
+          "error",
+        );
         return;
       }
 
       // Generate new ID
-      const newId = items.length > 0 ? Math.max(...items.map(item => item.id)) + 1 : 1;
-      
+      const newId =
+        items.length > 0 ? Math.max(...items.map((item) => item.id)) + 1 : 1;
+
       const newItem = {
         id: newId,
-        ...formData
+        ...formData,
       };
 
       items.push(newItem);
@@ -368,8 +382,8 @@ $(document).ready(function () {
     }
 
     const items = window.registryData[type];
-    const itemIndex = items.findIndex(item => item.id === id);
-    
+    const itemIndex = items.findIndex((item) => item.id === id);
+
     if (itemIndex !== -1) {
       items.splice(itemIndex, 1);
       saveToStorage(type, items);
@@ -417,7 +431,7 @@ $(document).ready(function () {
     }, 5000);
 
     // Handle close button
-    notification.find(".notification-close").click(function() {
+    notification.find(".notification-close").click(function () {
       hideNotification(notification);
     });
   }
@@ -433,32 +447,40 @@ $(document).ready(function () {
   // Get notification icon based on type
   function getNotificationIcon(type) {
     switch (type) {
-      case "success": return "fa-check-circle";
-      case "error": return "fa-exclamation-circle";
-      case "warning": return "fa-exclamation-triangle";
-      default: return "fa-info-circle";
+      case "success":
+        return "fa-check-circle";
+      case "error":
+        return "fa-exclamation-circle";
+      case "warning":
+        return "fa-exclamation-triangle";
+      default:
+        return "fa-info-circle";
     }
   }
 
   // Search functionality
   function setupSearch() {
-    const searchInput = $('<div class="search-container"><input type="text" id="search-input" placeholder="Search items..."><i class="fas fa-search"></i></div>');
-    $('.content-header').append(searchInput);
+    const searchInput = $(
+      '<div class="search-container"><input type="text" id="search-input" placeholder="Search items..."><i class="fas fa-search"></i></div>',
+    );
+    $(".content-header").append(searchInput);
 
-    $('#search-input').on('input', function() {
+    $("#search-input").on("input", function () {
       const searchTerm = $(this).val().toLowerCase();
-      const activeTab = $('.nav-item.active').data('tab');
-      
+      const activeTab = $(".nav-item.active").data("tab");
+
       if (!searchTerm) {
         loadItems(activeTab);
         return;
       }
 
       const items = window.registryData[activeTab] || [];
-      const filteredItems = items.filter(item => 
-        item.name.toLowerCase().includes(searchTerm) ||
-        item.code.toLowerCase().includes(searchTerm) ||
-        (item.description && item.description.toLowerCase().includes(searchTerm))
+      const filteredItems = items.filter(
+        (item) =>
+          item.name.toLowerCase().includes(searchTerm) ||
+          item.code.toLowerCase().includes(searchTerm) ||
+          (item.description &&
+            item.description.toLowerCase().includes(searchTerm)),
       );
 
       displayFilteredItems(activeTab, filteredItems);
@@ -511,22 +533,22 @@ $(document).ready(function () {
   // Initialize
   function init() {
     // Load initial tab (diagnosis)
-    loadItems('diagnosis');
-    
+    loadItems("diagnosis");
+
     // Setup search functionality
     setupSearch();
 
     // Add keyboard shortcuts
-    $(document).keydown(function(e) {
+    $(document).keydown(function (e) {
       // Escape key to close modal
       if (e.keyCode === 27 && $("#item-modal").hasClass("active")) {
         closeModal();
       }
-      
+
       // Ctrl+N to add new item
       if (e.ctrlKey && e.keyCode === 78) {
         e.preventDefault();
-        const activeType = $('.nav-item.active').data('tab');
+        const activeType = $(".nav-item.active").data("tab");
         if (activeType) {
           showModal("add", activeType);
         }
@@ -534,7 +556,7 @@ $(document).ready(function () {
     });
 
     // Add tooltips
-    $('[title]').each(function() {
+    $("[title]").each(function () {
       $(this).tooltip();
     });
   }
@@ -668,7 +690,7 @@ $(document).ready(function () {
     </style>
   `;
 
-  $('head').append(notificationStyles);
+  $("head").append(notificationStyles);
 
   // Initialize the application
   init();

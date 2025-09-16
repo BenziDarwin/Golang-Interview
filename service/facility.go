@@ -192,7 +192,7 @@ func CreateFacility(c *fiber.Ctx) error {
 	defaultDomain := "http://localhost:6060"
 	domain := getEnv("SERVER_DOMAIN", &defaultDomain)
 
-	link := fmt.Sprintf("%s/reset-password.html?token=%s", url.QueryEscape(token), domain)
+	link := fmt.Sprintf("%s/reset-password.html?token=%s", domain, url.QueryEscape(token))
 
 	emailBody := fmt.Sprintf(`
 <!DOCTYPE html>

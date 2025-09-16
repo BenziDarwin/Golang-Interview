@@ -1,11 +1,11 @@
 async function getCsrfToken() {
-    const res = await fetch("/api/csrf-token", { method: "GET" });
-    return res.headers.get("X-CSRF-Token");
+  const res = await fetch("/api/csrf-token", { method: "GET" });
+  return res.headers.get("X-CSRF-Token");
 }
 
 $(document).ready(async function () {
   console.log("Referral detail page loaded");
-  
+
   // Get patient data from URL parameter
   const urlParams = new URLSearchParams(window.location.search);
   const patientId = urlParams.get("id");
@@ -19,16 +19,21 @@ $(document).ready(async function () {
   }
 
   // Show loading state
-  $("#referrals-table").html('<div class="loading"><i class="fas fa-spinner"></i> Loading referrals...</div>');
+  $("#referrals-table").html(
+    '<div class="loading"><i class="fas fa-spinner"></i> Loading referrals...</div>',
+  );
 
   let patient = null;
   let referrals = [];
   let currentEditingReferral = null;
 
+  const token = await getCsrfToken();
+
   // Try to fetch patient data
   try {
-    console.log(`Fetching from: /api/v1/referrals/patient/${patientId}`);
-    const response = await fetch(`/api/v1/referrals/patient/${patientId}`);
+    const response = await fetch(`/api/v1/referrals/patient/${patientId}`, {
+      headers: { "X-CSRF-Token": token },
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -37,7 +42,11 @@ $(document).ready(async function () {
     const referralData = await response.json();
     console.log("Referral data received:", referralData);
 
-    if (!referralData || !Array.isArray(referralData) || referralData.length === 0) {
+    if (
+      !referralData ||
+      !Array.isArray(referralData) ||
+      referralData.length === 0
+    ) {
       throw new Error("No referral data found");
     }
 
@@ -46,10 +55,11 @@ $(document).ready(async function () {
     referrals = referralData;
 
     console.log("Processed data:", { patient, referrals });
-
   } catch (error) {
     console.error("Error fetching referral data:", error);
-    alert("Failed to load patient data. Please check your connection and try again.");
+    alert(
+      "Failed to load patient data. Please check your connection and try again.",
+    );
   }
 
   function formatDate(dateString) {
@@ -74,7 +84,7 @@ $(document).ready(async function () {
       const today = new Date();
       const birthDate = new Date(dob);
       if (isNaN(birthDate.getTime())) return "Unknown";
-      
+
       let age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
 
@@ -94,15 +104,18 @@ $(document).ready(async function () {
 
   function renderPatientDetails() {
     console.log("Rendering patient details:", patient);
-    
+
     if (!patient) {
       console.error("No patient data available");
       return;
     }
 
     const patientInfo = patient.patient_info || {};
-    const fullName = `${patientInfo.first_name || ""} ${patientInfo.middle_name || ""} ${patientInfo.last_name || ""}`.trim();
-    const age = patientInfo.dob ? calculateAge(patientInfo.dob) : patientInfo.age || "Unknown";
+    const fullName =
+      `${patientInfo.first_name || ""} ${patientInfo.middle_name || ""} ${patientInfo.last_name || ""}`.trim();
+    const age = patientInfo.dob
+      ? calculateAge(patientInfo.dob)
+      : patientInfo.age || "Unknown";
 
     // Set patient name
     $("#referral-name").text(fullName || "Unknown Patient");
@@ -164,7 +177,11 @@ $(document).ready(async function () {
   }
 
   function renderReferralsTable() {
-    console.log("Rendering referrals table with", referrals.length, "referrals");
+    console.log(
+      "Rendering referrals table with",
+      referrals.length,
+      "referrals",
+    );
 
     if (!referrals || referrals.length === 0) {
       $("#referrals-table").html(`
@@ -274,7 +291,7 @@ $(document).ready(async function () {
       $("#referred-by").val(referral.referred_by || "");
       $("#facility-name").val(
         referral.facility_name ||
-          (patient.facility ? patient.facility.name : "")
+          (patient.facility ? patient.facility.name : ""),
       );
       $("#referral-diagnosis").val(referral.diagnosis || "");
       $("#referred-to").val(referral.referred_to || "");
@@ -343,7 +360,9 @@ $(document).ready(async function () {
       if (currentEditingReferral) {
         // Update existing referral
         const index = referrals.findIndex(
-          (r) => (r.ID || r.id) === (currentEditingReferral.ID || currentEditingReferral.id)
+          (r) =>
+            (r.ID || r.id) ===
+            (currentEditingReferral.ID || currentEditingReferral.id),
         );
         if (index !== -1) {
           referrals[index] = { ...referrals[index], ...formData };

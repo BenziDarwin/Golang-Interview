@@ -1,11 +1,11 @@
 async function getCsrfToken() {
-    const res = await fetch("/api/csrf-token", { method: "GET" });
-    return res.headers.get("X-CSRF-Token");
+  const res = await fetch("/api/csrf-token", { method: "GET" });
+  return res.headers.get("X-CSRF-Token");
 }
 
 $(document).ready(async function () {
   console.log("Sickle cell patient detail page loaded");
-  
+
   // Get patient data from URL parameter
   const urlParams = new URLSearchParams(window.location.search);
   const patientId = urlParams.get("id");
@@ -19,8 +19,12 @@ $(document).ready(async function () {
   }
 
   // Show loading state
-  $("#diagnoses-table").html('<div class="loading"><i class="fas fa-spinner"></i> Loading diagnoses...</div>');
-  $("#referrals-table").html('<div class="loading"><i class="fas fa-spinner"></i> Loading referrals...</div>');
+  $("#diagnoses-table").html(
+    '<div class="loading"><i class="fas fa-spinner"></i> Loading diagnoses...</div>',
+  );
+  $("#referrals-table").html(
+    '<div class="loading"><i class="fas fa-spinner"></i> Loading referrals...</div>',
+  );
 
   let patient = null;
   let diagnoses = [];
@@ -31,7 +35,7 @@ $(document).ready(async function () {
   try {
     console.log(`Fetching from: /api/v1/sickle-cell-patients/${patientId}`);
     const response = await fetch(`/api/v1/sickle-cell-patients/${patientId}`);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -45,11 +49,12 @@ $(document).ready(async function () {
 
     // Use the patient data directly
     patient = patientData.patient;
-    diagnoses = Array.isArray(patientData.diagnosis) ? patientData.diagnosis : [];
+    diagnoses = Array.isArray(patientData.diagnosis)
+      ? patientData.diagnosis
+      : [];
     referrals = Array.isArray(patient.referrals) ? patient.referrals : [];
 
     console.log("Processed data:", { patient, diagnoses, referrals });
-
   } catch (error) {
     console.error("Error fetching patient data:", error);
     alert("Patient not found or an error occurred while fetching data.");
@@ -79,7 +84,7 @@ $(document).ready(async function () {
       const today = new Date();
       const birthDate = new Date(dob);
       if (isNaN(birthDate.getTime())) return "Unknown";
-      
+
       let age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
 
@@ -99,14 +104,15 @@ $(document).ready(async function () {
 
   function renderPatientDetails() {
     console.log("Rendering patient details:", patient);
-    
+
     if (!patient || !patient.patient_info) {
       console.error("Invalid patient data structure");
       return;
     }
 
     const patientInfo = patient.patient_info;
-    const fullName = `${patientInfo.first_name || ''} ${patientInfo.middle_name || ''} ${patientInfo.last_name || ''}`.trim();
+    const fullName =
+      `${patientInfo.first_name || ""} ${patientInfo.middle_name || ""} ${patientInfo.last_name || ""}`.trim();
     const age = calculateAge(patientInfo.dob);
 
     // Set patient name
@@ -173,7 +179,11 @@ $(document).ready(async function () {
   }
 
   function renderDiagnosesTable() {
-    console.log("Rendering diagnoses table with", diagnoses.length, "diagnoses");
+    console.log(
+      "Rendering diagnoses table with",
+      diagnoses.length,
+      "diagnoses",
+    );
 
     if (!diagnoses || diagnoses.length === 0) {
       $("#diagnoses-table").html(`
@@ -205,7 +215,9 @@ $(document).ready(async function () {
                       ? '<div class="primary-badge">Primary</div>'
                       : "";
 
-                  const diseaseTypeClass = (diagnosis.disease_type || '').toLowerCase().replace(/[^a-z0-9]/g, '-');
+                  const diseaseTypeClass = (diagnosis.disease_type || "")
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g, "-");
 
                   return `
                       <tr>
@@ -252,7 +264,11 @@ $(document).ready(async function () {
   }
 
   function renderReferralsTable() {
-    console.log("Rendering referrals table with", referrals.length, "referrals");
+    console.log(
+      "Rendering referrals table with",
+      referrals.length,
+      "referrals",
+    );
 
     if (referrals.length === 0) {
       $("#referrals-table").html(`
@@ -352,8 +368,14 @@ $(document).ready(async function () {
       $(".modal-title").text("Edit Diagnosis");
       $("#primary-site").val(diagnosis.primary_site || "");
       $("#disease-type").val(diagnosis.disease_type || "");
-      $("#diagnosis-date").val(diagnosis.date_of_diagnosis ? diagnosis.date_of_diagnosis.split("T")[0] : "");
-      $("#diagnostic-confirmation").val(diagnosis.diagnostic_confirmation || "");
+      $("#diagnosis-date").val(
+        diagnosis.date_of_diagnosis
+          ? diagnosis.date_of_diagnosis.split("T")[0]
+          : "",
+      );
+      $("#diagnostic-confirmation").val(
+        diagnosis.diagnostic_confirmation || "",
+      );
     } else {
       $(".modal-title").text("Add New Diagnosis");
       $("#diagnosis-form")[0].reset();
@@ -375,7 +397,9 @@ $(document).ready(async function () {
       $("#city").val(referral.city || "");
       $("#referral-facility").val(referral.facility || "");
       $("#doctor").val(referral.doctor || "");
-      $("#referral-date").val(referral.referral_date ? referral.referral_date.split("T")[0] : "");
+      $("#referral-date").val(
+        referral.referral_date ? referral.referral_date.split("T")[0] : "",
+      );
     } else {
       $("#referral-modal .modal-title").text("Add New Referral");
       $("#referral-form")[0].reset();
@@ -397,8 +421,8 @@ $(document).ready(async function () {
   }
 
   async function saveDiagnosis() {
-      const rawDiagDate = $("#diagnosis-date").val();
-const diagDate = new Date(rawDiagDate).toISOString();
+    const rawDiagDate = $("#diagnosis-date").val();
+    const diagDate = new Date(rawDiagDate).toISOString();
     const formData = {
       primary_site: $("#primary-site").val(),
       disease_type: $("#disease-type").val(),
@@ -406,29 +430,37 @@ const diagDate = new Date(rawDiagDate).toISOString();
       diagnostic_confirmation: $("#diagnostic-confirmation").val(),
       sickle_cell_patient_id: parseInt(patientId),
     };
-
+    const token = await getCsrfToken();
     try {
       if (currentEditingDiagnosis) {
         // Update existing diagnosis
         const index = diagnoses.findIndex(
-          (d) => (d.ID || d.id) === (currentEditingDiagnosis.ID || currentEditingDiagnosis.id)
+          (d) =>
+            (d.ID || d.id) ===
+            (currentEditingDiagnosis.ID || currentEditingDiagnosis.id),
         );
         if (index !== -1) {
           diagnoses[index] = { ...diagnoses[index], ...formData };
         }
       } else {
         // Add new diagnosis
-             const response = await fetch(`/api/v1/sickle-cell-patients/${patientId}/diagnosis`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      if (!response.ok) {
-                alert("An error occurred while saving the diagnosis. Please try again.");
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+        const response = await fetch(
+          `/api/v1/sickle-cell-patients/${patientId}/diagnosis`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": token,
+            },
+            body: JSON.stringify(formData),
+          },
+        );
+        if (!response.ok) {
+          alert(
+            "An error occurred while saving the diagnosis. Please try again.",
+          );
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const newDiagnosis = {
           ID: Date.now(),
           id: Date.now(),
@@ -446,7 +478,7 @@ const diagDate = new Date(rawDiagDate).toISOString();
   }
 
   async function saveReferral() {
-        const rawReferralDate = $("#referral-date").val();
+    const rawReferralDate = $("#referral-date").val();
     const referralDate = new Date(rawReferralDate).toISOString();
     const formData = {
       referred_by: $("#referred-by").val(),
@@ -460,27 +492,35 @@ const diagDate = new Date(rawDiagDate).toISOString();
       referral_date: referralDate,
       status: "Pending",
     };
-
+    const token = await getCsrfToken();
     try {
       if (currentEditingReferral) {
         // Update existing referral
         const index = referrals.findIndex(
-          (r) => (r.id || r.ID) === (currentEditingReferral.id || currentEditingReferral.ID)
+          (r) =>
+            (r.id || r.ID) ===
+            (currentEditingReferral.id || currentEditingReferral.ID),
         );
         if (index !== -1) {
           referrals[index] = { ...referrals[index], ...formData };
         }
       } else {
         // Add new referral
-        const response = await fetch(`/api/v1/sickle-cell-patients/${patient.ID}/referral`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          `/api/v1/sickle-cell-patients/${patient.ID}/referral`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": token,
+            },
+            body: JSON.stringify(formData),
           },
-          body: JSON.stringify(formData),
-        }); 
+        );
         if (!response.ok) {
-          alert("An error occurred while saving the referral. Please try again.");
+          alert(
+            "An error occurred while saving the referral. Please try again.",
+          );
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
